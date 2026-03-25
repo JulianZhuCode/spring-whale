@@ -1,0 +1,12 @@
+spring:
+  messages:
+    basename: messages
+    encoding: UTF-8
+    cache-duration: 0s
+    fallback-to-system-locale: false
+  whale:
+    json:
+      use-i18n: true
+      fallback-to-default-desc: true
+      dateTimeFormat: "yyyy-MM-dd HH:mm:ss"
+      dateFormat: "yyyy-MM-dd"
