@@ -26,6 +26,7 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
         messageSource = context.getBean(MessageSource.class);
     }
 
+    @SuppressWarnings("unused")
     public static class BaseEnumSerializer extends ValueSerializer<BaseEnum> {
         @Override
         public void serialize(BaseEnum value, JsonGenerator jsonGenerator, SerializationContext context) throws JacksonException {
@@ -55,6 +56,7 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
         private Class<? extends BaseEnum> enumClass;
 
         @Override
+        @SuppressWarnings("unchecked")
         public ValueDeserializer<?> createContextual(DeserializationContext context, BeanProperty property) {
             this.enumClass = (Class<? extends BaseEnum>) context.getContextualType().getRawClass();
             return super.createContextual(context, property);
