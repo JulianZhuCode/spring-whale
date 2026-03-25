@@ -8,5 +8,3 @@ spring:
     json:
       use-i18n: true
       fallback-to-default-desc: true
-      dateTimeFormat: "yyyy-MM-dd HH:mm:ss"
-      dateFormat: "yyyy-MM-dd"

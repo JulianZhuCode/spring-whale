@@ -18,18 +18,24 @@ public class SpringWhaleJsonConfig {
     private boolean useI18n = false;
 
     /**
-     * Whether to fallback to default description if i18n key is missing
+     * Whether to fall back to default description if i18n key is missing
      */
     private boolean fallbackToDefaultDesc = false;
 
     /**
      * DateTime format for serialization, default is "yyyy-MM-dd HH:mm:ss"
+     * if value is "timestamp", it will serialize as timestamp (milliseconds since epoch)
      */
     private String dateTimeFormat = "yyyy-MM-dd HH:mm:ss";
 
     /**
-     * Date format for serialization, default is "yyyy-MM-dd"
+     * LocalDate format for serialization, default is "yyyy-MM-dd"
      */
     private String dateFormat = "yyyy-MM-dd";
+
+    /**
+     * LocalTime format for serialization, default is "HH:mm:ss"
+     */
+    private String timeFormat = "HH:mm:ss";
 
 }

@@ -14,6 +14,13 @@ import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.JsonParser;
 import tools.jackson.databind.*;
 
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+
 @JacksonComponent
 public class SpringWhaleJacksonComponent implements ApplicationContextAware {
 
@@ -27,13 +34,56 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
     }
 
     @SuppressWarnings("unused")
+    public static class DateSerializer extends ValueSerializer<Date> {
+        @Override
+        public void serialize(Date value, JsonGenerator gen, SerializationContext context) throws JacksonException {
+            if ("timestamp".equalsIgnoreCase(jsonConfig.getDateTimeFormat())) {
+                gen.writeNumber(value.getTime());
+            } else {
+                gen.writeString(new SimpleDateFormat(jsonConfig.getDateTimeFormat()).format(value));
+            }
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public static class LocalDateSerializer extends ValueSerializer<LocalDate> {
+        @Override
+        public void serialize(LocalDate value, JsonGenerator gen, SerializationContext context) throws JacksonException {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(jsonConfig.getDateFormat());
+            gen.writeString(value.format(formatter));
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public static class LocalTimeSerializer extends ValueSerializer<LocalTime> {
+        @Override
+        public void serialize(LocalTime value, JsonGenerator gen, SerializationContext context) throws JacksonException {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(jsonConfig.getTimeFormat());
+            gen.writeString(value.format(formatter));
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public static class LocalDateTimeSerializer extends ValueSerializer<LocalDateTime> {
+        @Override
+        public void serialize(LocalDateTime value, JsonGenerator gen, SerializationContext context) throws JacksonException {
+            if ("timestamp".equalsIgnoreCase(jsonConfig.getDateTimeFormat())) {
+                gen.writeNumber(value.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli());
+            } else {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern(jsonConfig.getDateTimeFormat());
+                gen.writeString(value.format(formatter));
+            }
+        }
+    }
+
+    @SuppressWarnings("unused")
     public static class BaseEnumSerializer extends ValueSerializer<BaseEnum> {
         @Override
-        public void serialize(BaseEnum value, JsonGenerator jsonGenerator, SerializationContext context) throws JacksonException {
-            jsonGenerator.writeStartObject();
-            jsonGenerator.writeStringProperty("id", value.getId());
-            jsonGenerator.writeStringProperty("desc", resolveDesc(value));
-            jsonGenerator.writeEndObject();
+        public void serialize(BaseEnum value, JsonGenerator gen, SerializationContext context) throws JacksonException {
+            gen.writeStartObject();
+            gen.writeStringProperty("id", value.getId());
+            gen.writeStringProperty("desc", resolveDesc(value));
+            gen.writeEndObject();
         }
 
         private String resolveDesc(BaseEnum value) {
