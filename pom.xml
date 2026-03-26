@@ -15,6 +15,7 @@
     <description>spring-whale</description>
     <modules>
         <module>spring-whale-core</module>
+        <module>spring-whale-mvc</module>
     </modules>
     <packaging>pom</packaging>
     <url>https://github.com/JulianZhuCode/spring-whale</url>
