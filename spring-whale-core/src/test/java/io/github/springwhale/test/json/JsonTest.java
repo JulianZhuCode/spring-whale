@@ -18,7 +18,8 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Locale;
 
@@ -224,10 +225,10 @@ public class JsonTest {
         jsonConfig.setDateFormat("yyyy-MM-dd");
         LocalDate date = LocalDate.of(2024, 3, 25);
         TimeRecord record = new TimeRecord(null, null, date, null);
-        
+
         String json = mapper.writeValueAsString(record);
         JsonNode node = mapper.readTree(json).get("localDate");
-        
+
         assertEquals("2024-03-25", node.asString());
     }
 
@@ -240,10 +241,10 @@ public class JsonTest {
         jsonConfig.setDateFormat("dd/MM/yyyy");
         LocalDate date = LocalDate.of(2024, 3, 25);
         TimeRecord record = new TimeRecord(null, null, date, null);
-        
+
         String json = mapper.writeValueAsString(record);
         JsonNode node = mapper.readTree(json).get("localDate");
-        
+
         assertEquals("25/03/2024", node.asString());
     }
 
@@ -256,10 +257,10 @@ public class JsonTest {
         jsonConfig.setTimeFormat("HH:mm:ss");
         LocalTime time = LocalTime.of(14, 30, 45);
         TimeRecord record = new TimeRecord(null, null, null, time);
-        
+
         String json = mapper.writeValueAsString(record);
         JsonNode node = mapper.readTree(json).get("localTime");
-        
+
         assertEquals("14:30:45", node.asString());
     }
 
@@ -272,10 +273,10 @@ public class JsonTest {
         jsonConfig.setTimeFormat("HH:mm");
         LocalTime time = LocalTime.of(14, 30, 45);
         TimeRecord record = new TimeRecord(null, null, null, time);
-        
+
         String json = mapper.writeValueAsString(record);
         JsonNode node = mapper.readTree(json).get("localTime");
-        
+
         assertEquals("14:30", node.asString());
     }
 
@@ -288,10 +289,10 @@ public class JsonTest {
         jsonConfig.setDateTimeFormat("yyyy-MM-dd HH:mm:ss");
         LocalDateTime dateTime = LocalDateTime.of(2024, 3, 25, 14, 30, 45);
         TimeRecord record = new TimeRecord(null, dateTime, null, null);
-        
+
         String json = mapper.writeValueAsString(record);
         JsonNode node = mapper.readTree(json).get("localDateTime");
-        
+
         assertEquals("2024-03-25 14:30:45", node.asString());
     }
 
@@ -304,10 +305,10 @@ public class JsonTest {
         jsonConfig.setDateTimeFormat("dd/MM/yyyy HH:mm");
         LocalDateTime dateTime = LocalDateTime.of(2024, 3, 25, 14, 30, 45);
         TimeRecord record = new TimeRecord(null, dateTime, null, null);
-        
+
         String json = mapper.writeValueAsString(record);
         JsonNode node = mapper.readTree(json).get("localDateTime");
-        
+
         assertEquals("25/03/2024 14:30", node.asString());
     }
 
@@ -320,10 +321,10 @@ public class JsonTest {
         jsonConfig.setDateTimeFormat("timestamp");
         LocalDateTime dateTime = LocalDateTime.of(2024, 3, 25, 14, 30, 45);
         TimeRecord record = new TimeRecord(null, dateTime, null, null);
-        
+
         String json = mapper.writeValueAsString(record);
         JsonNode node = mapper.readTree(json).get("localDateTime");
-        
+
         // Verify it's a number (timestamp)
         assertTrue(node.isNumber(), "LocalDateTime should be serialized as timestamp number");
         long timestamp = node.asLong();
@@ -340,14 +341,14 @@ public class JsonTest {
         // Use a specific date and verify the format (not the exact time)
         Date date = new Date(1711353045000L); // 2024-03-25 14:30:45 UTC
         TimeRecord record = new TimeRecord(date, null, null, null);
-        
+
         String json = mapper.writeValueAsString(record);
         JsonNode node = mapper.readTree(json).get("date");
-        
+
         // Verify the format is correct (the actual time will depend on timezone)
         assertNotNull(node.asString(), "Date should be serialized as string");
-        assertTrue(node.asString().matches("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}"), 
-            "Date should match format yyyy-MM-dd HH:mm:ss");
+        assertTrue(node.asString().matches("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}"),
+                "Date should match format yyyy-MM-dd HH:mm:ss");
     }
 
     /**
@@ -359,14 +360,14 @@ public class JsonTest {
         jsonConfig.setDateTimeFormat("dd/MM/yyyy HH:mm");
         Date date = new Date(1711353045000L); // 2024-03-25 14:30:45 UTC
         TimeRecord record = new TimeRecord(date, null, null, null);
-        
+
         String json = mapper.writeValueAsString(record);
         JsonNode node = mapper.readTree(json).get("date");
-        
+
         // Verify the format is correct (the actual time will depend on timezone)
         assertNotNull(node.asString(), "Date should be serialized as string");
-        assertTrue(node.asString().matches("\\d{2}/\\d{2}/\\d{4} \\d{2}:\\d{2}"), 
-            "Date should match format dd/MM/yyyy HH:mm");
+        assertTrue(node.asString().matches("\\d{2}/\\d{2}/\\d{4} \\d{2}:\\d{2}"),
+                "Date should match format dd/MM/yyyy HH:mm");
     }
 
     /**
@@ -378,13 +379,221 @@ public class JsonTest {
         jsonConfig.setDateTimeFormat("timestamp");
         Date date = new Date(1711353045000L); // 2024-03-25 14:30:45 UTC
         TimeRecord record = new TimeRecord(date, null, null, null);
-        
+
         String json = mapper.writeValueAsString(record);
         JsonNode node = mapper.readTree(json).get("date");
-        
+
         // Verify it's a number (timestamp)
         assertTrue(node.isNumber(), "Date should be serialized as timestamp number");
         long timestamp = node.asLong();
         assertEquals(1711353045000L, timestamp);
+    }
+
+    /**
+     * Test Date deserialization from various formats using iterator pattern
+     */
+    @Test
+    @DisplayName("Should deserialize Date from multiple supported formats")
+    public void testDateDeserializationWithMultipleFormats() {
+        // Test ISO format
+        String isoJson = "{\"date\":\"2024-03-25T14:30:45\"}";
+        TimeRecord record = mapper.readValue(isoJson, TimeRecord.class);
+        assertNotNull(record.date());
+        assertEquals(2024, record.date().toInstant().atZone(ZoneId.systemDefault()).getYear());
+        assertEquals(3, record.date().toInstant().atZone(ZoneId.systemDefault()).getMonthValue());
+        assertEquals(25, record.date().toInstant().atZone(ZoneId.systemDefault()).getDayOfMonth());
+
+        // Test Chinese format
+        String chineseJson = "{\"date\":\"2024/03/25 14:30:45\"}";
+        record = mapper.readValue(chineseJson, TimeRecord.class);
+        assertNotNull(record.date());
+
+        // Test European format
+        String europeanJson = "{\"date\":\"25-03-2024 14:30:45\"}";
+        record = mapper.readValue(europeanJson, TimeRecord.class);
+        assertNotNull(record.date());
+
+        // Test numeric timestamp
+        String timestampJson = "{\"date\":1711353045000}";
+        record = mapper.readValue(timestampJson, TimeRecord.class);
+        assertNotNull(record.date());
+        assertEquals(1711353045000L, record.date().getTime());
+
+        // Test numeric string timestamp
+        String timestampStringJson = "{\"date\":\"1711353045000\"}";
+        record = mapper.readValue(timestampStringJson, TimeRecord.class);
+        assertNotNull(record.date());
+        assertEquals(1711353045000L, record.date().getTime());
+    }
+
+    /**
+     * Test LocalDate deserialization from various formats using iterator pattern
+     */
+    @Test
+    @DisplayName("Should deserialize LocalDate from multiple supported formats")
+    public void testLocalDateDeserializationWithMultipleFormats() {
+        // Test ISO format
+        String isoJson = "{\"localDate\":\"2024-03-25\"}";
+        TimeRecord record = mapper.readValue(isoJson, TimeRecord.class);
+        assertNotNull(record.localDate());
+        assertEquals(2024, record.localDate().getYear());
+        assertEquals(3, record.localDate().getMonthValue());
+        assertEquals(25, record.localDate().getDayOfMonth());
+
+        // Test Chinese format
+        String chineseJson = "{\"localDate\":\"2024/03/25\"}";
+        record = mapper.readValue(chineseJson, TimeRecord.class);
+        assertNotNull(record.localDate());
+
+        // Test European format
+        String europeanJson = "{\"localDate\":\"25-03-2024\"}";
+        record = mapper.readValue(europeanJson, TimeRecord.class);
+        assertNotNull(record.localDate());
+
+        // Test US format
+        String usJson = "{\"localDate\":\"03/25/2024\"}";
+        record = mapper.readValue(usJson, TimeRecord.class);
+        assertNotNull(record.localDate());
+
+        // Test numeric timestamp
+        String timestampJson = "{\"localDate\":1711353045000}";
+        record = mapper.readValue(timestampJson, TimeRecord.class);
+        assertNotNull(record.localDate());
+    }
+
+    /**
+     * Test LocalTime deserialization from various formats using iterator pattern
+     */
+    @Test
+    @DisplayName("Should deserialize LocalTime from multiple supported formats")
+    public void testLocalTimeDeserializationWithMultipleFormats() {
+        // Test ISO format
+        String isoJson = "{\"localTime\":\"14:30:45\"}";
+        TimeRecord record = mapper.readValue(isoJson, TimeRecord.class);
+        assertNotNull(record.localTime());
+        assertEquals(14, record.localTime().getHour());
+        assertEquals(30, record.localTime().getMinute());
+        assertEquals(45, record.localTime().getSecond());
+
+        // Test without seconds
+        String noSecondsJson = "{\"localTime\":\"14:30\"}";
+        record = mapper.readValue(noSecondsJson, TimeRecord.class);
+        assertNotNull(record.localTime());
+        assertEquals(14, record.localTime().getHour());
+        assertEquals(30, record.localTime().getMinute());
+
+        // Test with milliseconds
+        String withMillisJson = "{\"localTime\":\"14:30:45.123\"}";
+        record = mapper.readValue(withMillisJson, TimeRecord.class);
+        assertNotNull(record.localTime());
+        assertEquals(14, record.localTime().getHour());
+        assertEquals(30, record.localTime().getMinute());
+
+        // Test numeric timestamp
+        String timestampJson = "{\"localTime\":1711353045000}";
+        record = mapper.readValue(timestampJson, TimeRecord.class);
+        assertNotNull(record.localTime());
+    }
+
+    /**
+     * Test LocalDateTime deserialization from various formats using iterator pattern
+     */
+    @Test
+    @DisplayName("Should deserialize LocalDateTime from multiple supported formats")
+    public void testLocalDateTimeDeserializationWithMultipleFormats() {
+        // Test ISO format
+        String isoJson = "{\"localDateTime\":\"2024-03-25T14:30:45\"}";
+        TimeRecord record = mapper.readValue(isoJson, TimeRecord.class);
+        assertNotNull(record.localDateTime());
+        assertEquals(2024, record.localDateTime().getYear());
+        assertEquals(3, record.localDateTime().getMonthValue());
+        assertEquals(25, record.localDateTime().getDayOfMonth());
+        assertEquals(14, record.localDateTime().getHour());
+        assertEquals(30, record.localDateTime().getMinute());
+
+        // Test Chinese format
+        String chineseJson = "{\"localDateTime\":\"2024/03/25 14:30:45\"}";
+        record = mapper.readValue(chineseJson, TimeRecord.class);
+        assertNotNull(record.localDateTime());
+
+        // Test European format
+        String europeanJson = "{\"localDateTime\":\"25-03-2024 14:30:45\"}";
+        record = mapper.readValue(europeanJson, TimeRecord.class);
+        assertNotNull(record.localDateTime());
+
+        // Test without seconds
+        String noSecondsJson = "{\"localDateTime\":\"2024-03-25 14:30\"}";
+        record = mapper.readValue(noSecondsJson, TimeRecord.class);
+        assertNotNull(record.localDateTime());
+
+        // Test numeric timestamp
+        String timestampJson = "{\"localDateTime\":1711353045000}";
+        record = mapper.readValue(timestampJson, TimeRecord.class);
+        assertNotNull(record.localDateTime());
+
+        // Test numeric string timestamp
+        String timestampStringJson = "{\"localDateTime\":\"1711353045000\"}";
+        record = mapper.readValue(timestampStringJson, TimeRecord.class);
+        assertNotNull(record.localDateTime());
+    }
+
+    /**
+     * Test Date deserialization with invalid format throws exception
+     */
+    @Test
+    @DisplayName("Should throw exception when Date format is invalid")
+    public void testDateDeserializationWithInvalidFormat() {
+        String invalidJson = "{\"date\":\"invalid-date-format\"}";
+
+        Exception exception = assertThrows(Exception.class, () -> {
+            mapper.readValue(invalidJson, TimeRecord.class);
+        });
+
+        assertTrue(exception.getMessage().contains("Cannot parse date"));
+    }
+
+    /**
+     * Test LocalDate deserialization with invalid format throws exception
+     */
+    @Test
+    @DisplayName("Should throw exception when LocalDate format is invalid")
+    public void testLocalDateDeserializationWithInvalidFormat() {
+        String invalidJson = "{\"localDate\":\"invalid-date-format\"}";
+
+        Exception exception = assertThrows(Exception.class, () -> {
+            mapper.readValue(invalidJson, TimeRecord.class);
+        });
+
+        assertTrue(exception.getMessage().contains("Cannot parse local date"));
+    }
+
+    /**
+     * Test LocalTime deserialization with invalid format throws exception
+     */
+    @Test
+    @DisplayName("Should throw exception when LocalTime format is invalid")
+    public void testLocalTimeDeserializationWithInvalidFormat() {
+        String invalidJson = "{\"localTime\":\"invalid-time-format\"}";
+
+        Exception exception = assertThrows(Exception.class, () -> {
+            mapper.readValue(invalidJson, TimeRecord.class);
+        });
+
+        assertTrue(exception.getMessage().contains("Cannot parse local time"));
+    }
+
+    /**
+     * Test LocalDateTime deserialization with invalid format throws exception
+     */
+    @Test
+    @DisplayName("Should throw exception when LocalDateTime format is invalid")
+    public void testLocalDateTimeDeserializationWithInvalidFormat() {
+        String invalidJson = "{\"localDateTime\":\"invalid-datetime-format\"}";
+
+        Exception exception = assertThrows(Exception.class, () -> {
+            mapper.readValue(invalidJson, TimeRecord.class);
+        });
+
+        assertTrue(exception.getMessage().contains("Cannot parse local date time"));
     }
 }

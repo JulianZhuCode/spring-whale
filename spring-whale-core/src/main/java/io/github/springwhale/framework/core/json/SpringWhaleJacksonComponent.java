@@ -1,6 +1,7 @@
 package io.github.springwhale.framework.core.json;
 
 import io.github.springwhale.framework.core.enums.BaseEnum;
+import io.github.springwhale.framework.core.utils.DateTimeFormats;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.BeansException;
 import org.springframework.boot.jackson.JacksonComponent;
@@ -15,9 +16,7 @@ import tools.jackson.core.JsonParser;
 import tools.jackson.databind.*;
 
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
@@ -46,11 +45,46 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
     }
 
     @SuppressWarnings("unused")
+    public static class DateDeserializer extends ValueDeserializer<Date> {
+        @Override
+        public Date deserialize(JsonParser jsonParser, DeserializationContext context) throws JacksonException {
+            JsonNode node = jsonParser.readValueAsTree();
+            
+            if (node.isLong() || node.isInt()) {
+                // Deserialize from timestamp (milliseconds)
+                return new Date(node.asLong());
+            } else if (node.isString()) {
+                return DateTimeFormats.parseDateFromText(node.asString());
+            }
+            
+            throw new IllegalArgumentException("Cannot deserialize date from: " + node);
+        }
+    }
+
+    @SuppressWarnings("unused")
     public static class LocalDateSerializer extends ValueSerializer<LocalDate> {
         @Override
         public void serialize(LocalDate value, JsonGenerator gen, SerializationContext context) throws JacksonException {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern(jsonConfig.getDateFormat());
             gen.writeString(value.format(formatter));
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public static class LocalDateDeserializer extends ValueDeserializer<LocalDate> {
+        @Override
+        public LocalDate deserialize(JsonParser jsonParser, DeserializationContext context) throws JacksonException {
+            JsonNode node = jsonParser.readValueAsTree();
+            
+            if (node.isLong() || node.isInt()) {
+                // Deserialize from timestamp (milliseconds)
+                long timestamp = node.asLong();
+                return LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault()).toLocalDate();
+            } else if (node.isString()) {
+                return DateTimeFormats.parseLocalDateFromText(node.asString());
+            }
+            
+            throw new IllegalArgumentException("Cannot deserialize local date from: " + node);
         }
     }
 
@@ -64,15 +98,51 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
     }
 
     @SuppressWarnings("unused")
+    public static class LocalTimeDeserializer extends ValueDeserializer<LocalTime> {
+        @Override
+        public LocalTime deserialize(JsonParser jsonParser, DeserializationContext context) throws JacksonException {
+            JsonNode node = jsonParser.readValueAsTree();
+            
+            if (node.isLong() || node.isInt()) {
+                // Deserialize from timestamp (milliseconds)
+                long timestamp = node.asLong();
+                return LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault()).toLocalTime();
+            } else if (node.isString()) {
+                return DateTimeFormats.parseLocalTimeFromText(node.asString());
+            }
+            
+            throw new IllegalArgumentException("Cannot deserialize local time from: " + node);
+        }
+    }
+
+    @SuppressWarnings("unused")
     public static class LocalDateTimeSerializer extends ValueSerializer<LocalDateTime> {
         @Override
         public void serialize(LocalDateTime value, JsonGenerator gen, SerializationContext context) throws JacksonException {
             if ("timestamp".equalsIgnoreCase(jsonConfig.getDateTimeFormat())) {
-                gen.writeNumber(value.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli());
+                gen.writeNumber(value.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
             } else {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern(jsonConfig.getDateTimeFormat());
                 gen.writeString(value.format(formatter));
             }
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public static class LocalDateTimeDeserializer extends ValueDeserializer<LocalDateTime> {
+        @Override
+        public LocalDateTime deserialize(JsonParser jsonParser, DeserializationContext context) throws JacksonException {
+            JsonNode node = jsonParser.readValueAsTree();
+            
+            if (node.isLong() || node.isInt()) {
+                // Deserialize from timestamp (milliseconds)
+                long timestamp = node.asLong();
+                return LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault());
+            } else if (node.isString()) {
+                return DateTimeFormats.parseLocalDateTimeFromText(node.asString());
+            }
+            
+            throw new IllegalArgumentException("Cannot deserialize local date time from: " + node);
         }
     }
 
