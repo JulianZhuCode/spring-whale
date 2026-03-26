@@ -32,6 +32,8 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
         messageSource = context.getBean(MessageSource.class);
     }
 
+    // ==================== Date Serialization/Deserialization ====================
+
     @SuppressWarnings("unused")
     public static class DateSerializer extends ValueSerializer<Date> {
         @Override
@@ -61,6 +63,8 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
         }
     }
 
+    // ==================== LocalDate Serialization/Deserialization ====================
+
     @SuppressWarnings("unused")
     public static class LocalDateSerializer extends ValueSerializer<LocalDate> {
         @Override
@@ -88,6 +92,8 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
         }
     }
 
+    // ==================== LocalTime Serialization/Deserialization ====================
+
     @SuppressWarnings("unused")
     public static class LocalTimeSerializer extends ValueSerializer<LocalTime> {
         @Override
@@ -114,6 +120,8 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
             throw new IllegalArgumentException("Cannot deserialize local time from: " + node);
         }
     }
+
+    // ==================== LocalDateTime Serialization/Deserialization ====================
 
     @SuppressWarnings("unused")
     public static class LocalDateTimeSerializer extends ValueSerializer<LocalDateTime> {
@@ -145,6 +153,8 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
             throw new IllegalArgumentException("Cannot deserialize local date time from: " + node);
         }
     }
+
+    // ==================== BaseEnum Serialization/Deserialization ====================
 
     @SuppressWarnings("unused")
     public static class BaseEnumSerializer extends ValueSerializer<BaseEnum> {
