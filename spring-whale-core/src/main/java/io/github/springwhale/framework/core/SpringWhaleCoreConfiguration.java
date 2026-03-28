@@ -1,7 +1,7 @@
 package io.github.springwhale.framework.core;
 
-import io.github.springwhale.framework.core.json.SpringWhaleJsonConfig;
 import io.github.springwhale.framework.core.json.SpringWhaleJacksonComponent;
+import io.github.springwhale.framework.core.json.SpringWhaleJsonConfig;
 import io.github.springwhale.framework.core.utils.SpringContextUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
