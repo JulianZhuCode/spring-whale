@@ -5,6 +5,8 @@ import io.github.springwhale.framework.core.utils.DateTimeFormats;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.BeansException;
 import org.springframework.boot.jackson.JacksonComponent;
+import org.springframework.boot.jackson.ObjectValueDeserializer;
+import org.springframework.boot.jackson.ObjectValueSerializer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.MessageSource;
@@ -53,14 +55,14 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
         @Override
         public Date deserialize(JsonParser jsonParser, DeserializationContext context) throws JacksonException {
             JsonNode node = jsonParser.readValueAsTree();
-            
+
             if (node.isLong() || node.isInt()) {
                 // Deserialize from timestamp (milliseconds)
                 return new Date(node.asLong());
             } else if (node.isString()) {
                 return DateTimeFormats.parseDateFromText(node.asString());
             }
-            
+
             throw new IllegalArgumentException("Cannot deserialize date from: " + node);
         }
     }
@@ -81,7 +83,7 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
         @Override
         public LocalDate deserialize(JsonParser jsonParser, DeserializationContext context) throws JacksonException {
             JsonNode node = jsonParser.readValueAsTree();
-            
+
             if (node.isLong() || node.isInt()) {
                 // Deserialize from timestamp (milliseconds)
                 long timestamp = node.asLong();
@@ -89,7 +91,7 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
             } else if (node.isString()) {
                 return DateTimeFormats.parseLocalDateFromText(node.asString());
             }
-            
+
             throw new IllegalArgumentException("Cannot deserialize local date from: " + node);
         }
     }
@@ -110,7 +112,7 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
         @Override
         public LocalTime deserialize(JsonParser jsonParser, DeserializationContext context) throws JacksonException {
             JsonNode node = jsonParser.readValueAsTree();
-            
+
             if (node.isLong() || node.isInt()) {
                 // Deserialize from timestamp (milliseconds)
                 long timestamp = node.asLong();
@@ -118,7 +120,7 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
             } else if (node.isString()) {
                 return DateTimeFormats.parseLocalTimeFromText(node.asString());
             }
-            
+
             throw new IllegalArgumentException("Cannot deserialize local time from: " + node);
         }
     }
@@ -143,7 +145,7 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
         @Override
         public LocalDateTime deserialize(JsonParser jsonParser, DeserializationContext context) throws JacksonException {
             JsonNode node = jsonParser.readValueAsTree();
-            
+
             if (node.isLong() || node.isInt()) {
                 // Deserialize from timestamp (milliseconds)
                 long timestamp = node.asLong();
@@ -151,7 +153,7 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
             } else if (node.isString()) {
                 return DateTimeFormats.parseLocalDateTimeFromText(node.asString());
             }
-            
+
             throw new IllegalArgumentException("Cannot deserialize local date time from: " + node);
         }
     }
@@ -159,13 +161,11 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
     // ==================== BaseEnum Serialization/Deserialization ====================
 
     @SuppressWarnings("unused")
-    public static class BaseEnumSerializer extends ValueSerializer<BaseEnum> {
+    public static class BaseEnumSerializer extends ObjectValueSerializer<BaseEnum> {
         @Override
-        public void serialize(BaseEnum value, JsonGenerator gen, SerializationContext context) throws JacksonException {
-            gen.writeStartObject();
+        public void serializeObject(BaseEnum value, JsonGenerator gen, @NonNull SerializationContext context) throws JacksonException {
             gen.writeStringProperty("id", value.getId());
             gen.writeStringProperty("desc", resolveDesc(value));
-            gen.writeEndObject();
         }
 
         private String resolveDesc(BaseEnum value) {
@@ -183,7 +183,7 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
         }
     }
 
-    public static class BaseEnumDeserializer extends ValueDeserializer<BaseEnum> {
+    public static class BaseEnumDeserializer extends ObjectValueDeserializer<BaseEnum> {
 
         private Class<? extends BaseEnum> enumClass;
 
@@ -195,10 +195,9 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
         }
 
         @Override
-        public BaseEnum deserialize(JsonParser jsonParser, DeserializationContext context) throws JacksonException {
-            JsonNode node = jsonParser.readValueAsTree();
+        public BaseEnum deserializeObject(@NonNull JsonParser jsonParser, @NonNull DeserializationContext context, @NonNull JsonNode node) throws JacksonException {
             if (node.isObject()) {
-                return findEnumById(enumClass, node.get("id").asString());
+                return findEnumById(enumClass, nullSafeValue(node.get("id"), String.class));
             } else if (node.isString()) {
                 return findEnumById(enumClass, node.asString());
             } else if (node.isInt()) {
