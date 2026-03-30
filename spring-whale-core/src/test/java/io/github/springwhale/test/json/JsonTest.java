@@ -9,6 +9,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -16,6 +17,7 @@ import tools.jackson.databind.DatabindException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -39,6 +41,7 @@ public class JsonTest {
 
     private Locale originalDefaultLocale;
     private Locale originalContextLocale;
+    private final SpringWhaleJsonConfig jsonConfigBackup = new SpringWhaleJsonConfig();
 
     @AllArgsConstructor
     public enum StatusEnum implements BaseEnum {
@@ -53,18 +56,18 @@ public class JsonTest {
         private final String desc;
     }
 
-    public record EnumTestRecord(StatusEnum status) {
-    }
+    public record EnumTestRecord(StatusEnum status) {}
 
-    public record TimeRecord(Date date, LocalDateTime localDateTime, LocalDate localDate, LocalTime localTime) {
+    public record TimeRecord(Date date, LocalDateTime localDateTime, LocalDate localDate, LocalTime localTime) {}
 
-    }
+    public record BigDecimalRecord(BigDecimal decimal) {}
 
     @BeforeEach
     void setUp() {
         // Save original locale settings
         originalDefaultLocale = Locale.getDefault();
         originalContextLocale = LocaleContextHolder.getLocale();
+        BeanUtils.copyProperties(jsonConfig, jsonConfigBackup);
     }
 
     @AfterEach
@@ -73,8 +76,7 @@ public class JsonTest {
         Locale.setDefault(originalDefaultLocale);
         LocaleContextHolder.setLocale(originalContextLocale);
         // Reset config to default values
-        jsonConfig.setUseI18n(true);
-        jsonConfig.setFallbackToDefaultDesc(true);
+        BeanUtils.copyProperties(jsonConfigBackup, jsonConfig);
     }
 
     /**
@@ -542,9 +544,7 @@ public class JsonTest {
     public void testDateDeserializationWithInvalidFormat() {
         String invalidJson = "{\"date\":\"invalid-date-format\"}";
 
-        Exception exception = assertThrows(Exception.class, () -> {
-            mapper.readValue(invalidJson, TimeRecord.class);
-        });
+        Exception exception = assertThrows(Exception.class, () -> mapper.readValue(invalidJson, TimeRecord.class));
 
         assertTrue(exception.getMessage().contains("Cannot parse date"));
     }
@@ -557,9 +557,7 @@ public class JsonTest {
     public void testLocalDateDeserializationWithInvalidFormat() {
         String invalidJson = "{\"localDate\":\"invalid-date-format\"}";
 
-        Exception exception = assertThrows(Exception.class, () -> {
-            mapper.readValue(invalidJson, TimeRecord.class);
-        });
+        Exception exception = assertThrows(Exception.class, () -> mapper.readValue(invalidJson, TimeRecord.class));
 
         assertTrue(exception.getMessage().contains("Cannot parse local date"));
     }
@@ -572,9 +570,7 @@ public class JsonTest {
     public void testLocalTimeDeserializationWithInvalidFormat() {
         String invalidJson = "{\"localTime\":\"invalid-time-format\"}";
 
-        Exception exception = assertThrows(Exception.class, () -> {
-            mapper.readValue(invalidJson, TimeRecord.class);
-        });
+        Exception exception = assertThrows(Exception.class, () -> mapper.readValue(invalidJson, TimeRecord.class));
 
         assertTrue(exception.getMessage().contains("Cannot parse local time"));
     }
@@ -587,10 +583,26 @@ public class JsonTest {
     public void testLocalDateTimeDeserializationWithInvalidFormat() {
         String invalidJson = "{\"localDateTime\":\"invalid-datetime-format\"}";
 
-        Exception exception = assertThrows(Exception.class, () -> {
-            mapper.readValue(invalidJson, TimeRecord.class);
-        });
+        Exception exception = assertThrows(Exception.class, () -> mapper.readValue(invalidJson, TimeRecord.class));
 
         assertTrue(exception.getMessage().contains("Cannot parse local date time"));
+    }
+
+    @Test
+    @DisplayName("Should serialize BigDecimal correctly")
+    public void testBigDecimalSerialization(){
+        BigDecimalRecord record = new BigDecimalRecord(BigDecimal.valueOf(123.456));
+        assertEquals("{\"decimal\":\"123.46\"}", mapper.writeValueAsString(record));
+        jsonConfig.setBigDecimalAsString(false);
+        assertEquals("{\"decimal\":123.46}", mapper.writeValueAsString(record));
+        jsonConfig.setBigDecimalEnabled(false);
+        assertEquals("{\"decimal\":123.456}", mapper.writeValueAsString(record));
+    }
+
+    @Test
+    @DisplayName("Should deserialize BigDecimal correctly")
+    public void testBigDecimalDeserialization(){
+        assertEquals(new BigDecimal("123.123"), mapper.readValue("{\"decimal\":123.123}", BigDecimalRecord.class).decimal);
+        assertEquals(new BigDecimal("123.123"), mapper.readValue("{\"decimal\":\"123.123\"}", BigDecimalRecord.class).decimal);
     }
 }

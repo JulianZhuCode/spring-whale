@@ -15,6 +15,7 @@ import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.JsonParser;
 import tools.jackson.databind.*;
 
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -219,6 +220,52 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
         private BaseEnum findEnumById(Class<?> enumClass, int index) {
             Object[] enumConstants = enumClass.getEnumConstants();
             return (BaseEnum) enumConstants[index];
+        }
+    }
+
+    // ==================== BigDecimal Serialization/Deserialization ====================
+
+    @SuppressWarnings("unused")
+    public static class BigDecimalSerializer extends ValueSerializer<BigDecimal> {
+
+        @Override
+        public void serialize(BigDecimal value, JsonGenerator gen, SerializationContext context) throws JacksonException {
+            if (!jsonConfig.isBigDecimalEnabled()) {
+                gen.writeNumber(value);
+                return;
+            }
+            BigDecimal scaledValue = value.setScale(
+                    jsonConfig.getBigDecimalScale(),
+                    jsonConfig.getBigDecimalRoundingMode()
+            );
+            // Serialize based on configuration
+            if (jsonConfig.isBigDecimalAsString()) {
+                gen.writeString(scaledValue.toPlainString());
+            } else {
+                gen.writeNumber(scaledValue);
+            }
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public static class BigDecimalDeserializer extends ValueDeserializer<BigDecimal> {
+        @Override
+        public BigDecimal deserialize(JsonParser jsonParser, DeserializationContext context) throws JacksonException {
+            JsonNode node = jsonParser.readValueAsTree();
+            BigDecimal value;
+            if (node.isString()) {
+                try {
+                    value = new BigDecimal(node.asString());
+                } catch (NumberFormatException e) {
+                    throw new IllegalArgumentException(
+                            "Cannot deserialize big decimal from string: '" + node.asString() + "'", e);
+                }
+            } else if (node.isNumber()) {
+                value = node.decimalValue();
+            } else {
+                throw new IllegalArgumentException("Cannot deserialize big decimal from: " + node);
+            }
+            return value;
         }
     }
 }

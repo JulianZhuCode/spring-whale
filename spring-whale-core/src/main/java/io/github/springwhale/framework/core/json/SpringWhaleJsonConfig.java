@@ -4,6 +4,8 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import java.math.RoundingMode;
+
 /**
  * Configuration properties for JSON serialization features
  */
@@ -37,5 +39,27 @@ public class SpringWhaleJsonConfig {
      * LocalTime format for serialization, default is "HH:mm:ss"
      */
     private String timeFormat = "HH:mm:ss";
+
+    // ==================== BigDecimal Configuration ====================
+
+    /**
+     * Whether to enable BigDecimal global serialization customization
+     */
+    private boolean bigDecimalEnabled = true;
+
+    /**
+     * BigDecimal scale for serialization, default is 2
+     */
+    private int bigDecimalScale = 2;
+
+    /**
+     * BigDecimal rounding mode, default is HALF_UP
+     */
+    private RoundingMode bigDecimalRoundingMode = RoundingMode.HALF_UP;
+
+    /**
+     * Whether to serialize BigDecimal as string to prevent precision loss in frontend
+     */
+    private boolean bigDecimalAsString = true;
 
 }

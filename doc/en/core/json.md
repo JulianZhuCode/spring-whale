@@ -20,6 +20,7 @@ Spring Whale framework provides powerful JSON serialization and deserialization 
 - ✅ **Multi-format Deserialization** - Automatically recognizes multiple international date/time formats
 - ✅ **Enum Serialization** - Supports serialization of enum types implementing BaseEnum interface
 - ✅ **Internationalization Support** - Enum descriptions support multi-language i18n
+- ✅ **BigDecimal Global Customization** - Supports BigDecimal precision control and string serialization
 - ✅ **Thread-Safe** - All utility classes and methods are designed to be thread-safe
 
 ### Supported Time Formats
@@ -54,6 +55,8 @@ Spring Whale framework provides powerful JSON serialization and deserialization 
 
 ### Configuration File
 
+### Configuration File
+
 Add the following configuration to `application.yml`:
 
 ```yaml
@@ -70,6 +73,15 @@ spring:
       date-format: yyyy-MM-dd
       # Time format (default: HH:mm:ss)
       time-format: HH:mm:ss
+      # ==================== BigDecimal Configuration ====================
+      # Whether to enable BigDecimal global serialization customization (default: true)
+      big-decimal-enabled: true
+      # Number of decimal places to retain for BigDecimal (default: 2)
+      big-decimal-scale: 2
+      # Rounding mode for BigDecimal (default: HALF_UP)
+      big-decimal-rounding-mode: HALF_UP
+      # Whether to serialize as string to prevent precision loss in frontend (default: true)
+      big-decimal-as-string: true
 ```
 
 ### Configuration Items
@@ -81,6 +93,10 @@ spring:
 | `date-time-format` | String | yyyy-MM-dd HH:mm:ss | Format pattern for Date and LocalDateTime, set to `timestamp` for timestamp mode |
 | `date-format` | String | yyyy-MM-dd | Format pattern for LocalDate |
 | `time-format` | String | HH:mm:ss | Format pattern for LocalTime |
+| `big-decimal-enabled` | boolean | true | Whether to enable BigDecimal global serialization customization |
+| `big-decimal-scale` | int | 2 | Number of decimal places to retain for BigDecimal |
+| `big-decimal-rounding-mode` | RoundingMode | HALF_UP | Rounding mode for BigDecimal |
+| `big-decimal-as-string` | boolean | true | Whether to serialize BigDecimal as string (prevents precision loss in frontend) |
 
 ## Time Type Handling
 
@@ -342,6 +358,157 @@ spring:
 
 Throws `NoSuchMessageException` if the corresponding i18n key is not found.
 
+## BigDecimal Handling
+
+### Serialization
+
+#### 1. Default Configuration Serialization
+
+Configuration:
+```yaml
+spring:
+  whale:
+    json:
+      big-decimal-enabled: true
+      big-decimal-scale: 2
+      big-decimal-rounding-mode: HALF_UP
+      big-decimal-as-string: true
+```
+
+Code:
+```java
+public class PriceDTO {
+    private BigDecimal price;
+    private BigDecimal discount;
+}
+```
+
+Output:
+```json
+{
+  "price": "99.99",
+  "discount": "0.15"
+}
+```
+
+#### 2. Different Precision Configuration
+
+Configuration:
+```yaml
+spring:
+  whale:
+    json:
+      big-decimal-scale: 4
+      big-decimal-rounding-mode: HALF_DOWN
+```
+
+Code:
+```java
+BigDecimal value = new BigDecimal("123.456789");
+```
+
+Output:
+```json
+{
+  "value": "123.4568"
+}
+```
+
+#### 3. Numeric Format Serialization
+
+Configuration:
+```yaml
+spring:
+  whale:
+    json:
+      big-decimal-as-string: false
+```
+
+Output:
+```json
+{
+  "price": 99.99,
+  "discount": 0.15
+}
+```
+
+**Note**: Using numeric format may cause precision loss in frontend JavaScript. String format is recommended.
+
+#### 4. Disable Global Customization
+
+Configuration:
+```yaml
+spring:
+  whale:
+    json:
+      big-decimal-enabled: false
+```
+
+Output (keeps original precision):
+```json
+{
+  "price": 99.99123456789
+}
+```
+
+### Deserialization
+
+Supports three deserialization methods:
+
+#### 1. String Format (Recommended)
+
+```json
+{"price": "99.99"}
+```
+
+#### 2. Numeric Format
+
+```json
+{"price": 99.99}
+```
+
+#### 3. Scientific Notation
+
+```json
+{"price": "1.23E+2"}
+```
+
+### Rounding Mode Description
+
+Supported rounding modes (`RoundingMode` enum):
+
+| Rounding Mode | Description | Example (2.5) | Example (2.6) |
+|---------------|-------------|---------------|---------------|
+| `HALF_UP` | Round towards nearest neighbor, unless both neighbors are equidistant, then round up | 3 | 3 |
+| `HALF_DOWN` | Round towards nearest neighbor, unless both neighbors are equidistant, then round down | 2 | 3 |
+| `HALF_EVEN` | Round towards nearest neighbor, unless both neighbors are equidistant, then round towards even neighbor | 2 | 3 |
+| `UP` | Round away from zero | 3 | 3 |
+| `DOWN` | Round towards zero | 2 | 2 |
+| `CEILING` | Round towards positive infinity | 3 | 3 |
+| `FLOOR` | Round towards negative infinity | 2 | 2 |
+| `UNNECESSARY` | Do not round, throw exception if rounding is necessary | Exception | Exception |
+
+### Best Practices
+
+#### 1. Monetary Amount Handling
+
+For monetary amount fields, it is recommended to:
+- Use `big-decimal-as-string: true` to avoid precision loss in frontend
+- Set appropriate precision (usually 2 decimal places)
+- Use `HALF_UP` rounding mode to conform to business practices
+
+#### 2. High-Precision Calculations
+
+For scientific calculations requiring high precision:
+- Increase `big-decimal-scale` to an appropriate value (e.g., 10)
+- Consider using `HALF_EVEN` banker's rounding to reduce cumulative errors
+
+#### 3. Database Integration
+
+Ensure database precision matches configuration:
+- MySQL: `DECIMAL(10,2)` corresponds to `big-decimal-scale: 2`
+- Oracle: `NUMBER(10,4)` corresponds to `big-decimal-scale: 4`
+
 ## Usage Examples
 
 ### Complete Example
@@ -366,6 +533,7 @@ public class UserDTO {
     private Date createTime;
     private LocalDate birthday;
     private LocalDateTime lastLoginTime;
+    private BigDecimal salary;  // New BigDecimal field
 }
 
 @AllArgsConstructor
@@ -415,7 +583,8 @@ public class UserController {
   "status": "ACTIVE",  // or {"id": "ACTIVE", "desc": "Active"} or 0
   "createTime": "2024-03-25T14:30:45",  // or 1711353045000
   "birthday": "2000-01-01",  // or 946684800000
-  "lastLoginTime": "2024-03-25 14:30:45"  // or 1711353045000
+  "lastLoginTime": "2024-03-25 14:30:45",  // or 1711353045000
+  "salary": "12345.67"  // or 12345.67 (string format recommended)
 }
 ```
 
@@ -431,7 +600,8 @@ public class UserController {
   },
   "createTime": "2024-03-25 14:30:45",
   "birthday": "2000-01-01",
-  "lastLoginTime": "2024-03-25 14:30:45"
+  "lastLoginTime": "2024-03-25 14:30:45",
+  "salary": "12345.67"
 }
 ```
 
@@ -562,6 +732,13 @@ public class JsonSerializationTest {
 
 - `null` values are serialized as JSON `null` normally
 - `null` strings are not supported during deserialization; use `@JsonInclude` in DTOs for special handling
+
+### 5. BigDecimal Handling
+
+- BigDecimal global customization is enabled by default, retaining 2 decimal places with HALF_UP rounding
+- It is recommended to enable `big-decimal-as-string: true` to avoid precision loss in frontend
+- For higher precision requirements, adjust the `big-decimal-scale` configuration
+- After disabling global customization, Jackson's default processing method is used
 
 ## Related Resources
 
