@@ -62,4 +62,9 @@ public class SpringWhaleJsonConfig {
      */
     private boolean bigDecimalAsString = true;
 
+    /**
+     * Float precision for serialization, default is 8
+     */
+    private int floatPrecision = 8;
+
 }

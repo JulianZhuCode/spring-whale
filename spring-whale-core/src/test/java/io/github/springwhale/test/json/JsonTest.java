@@ -62,6 +62,11 @@ public class JsonTest {
 
     public record BigDecimalRecord(BigDecimal decimal) {}
 
+    public record LongRecord(Long value) {}
+    public record IntRecord(Integer value) {}
+    public record DoubleRecord(Double value) {}
+    public record FloatRecord(Float value) {}
+
     @BeforeEach
     void setUp() {
         // Save original locale settings
@@ -604,5 +609,36 @@ public class JsonTest {
     public void testBigDecimalDeserialization(){
         assertEquals(new BigDecimal("123.123"), mapper.readValue("{\"decimal\":123.123}", BigDecimalRecord.class).decimal);
         assertEquals(new BigDecimal("123.123"), mapper.readValue("{\"decimal\":\"123.123\"}", BigDecimalRecord.class).decimal);
+    }
+
+    @Test
+    @DisplayName("Should deserialize Long correctly")
+    public void testLongDeserialization(){
+        assertEquals(Long.valueOf(1234567890123456789L), mapper.readValue("{\"value\":1234567890123456789}", LongRecord.class).value);
+        DatabindException illegalArgumentException = assertThrows(DatabindException.class, () -> mapper.readValue("{\"value\":1234567890123456789000000}", LongRecord.class));
+        assertTrue(illegalArgumentException.getMessage().contains("1234567890123456789000000"));
+        illegalArgumentException = assertThrows(DatabindException.class, () -> mapper.readValue("{\"value\":-1234567890123456789000000}", LongRecord.class));
+        assertTrue(illegalArgumentException.getMessage().contains("-1234567890123456789000000"));
+    }
+
+    @Test
+    @DisplayName("Should deserialize Integer correctly")
+    public void testIntegerDeserialization(){
+        assertEquals(Integer.valueOf(123), mapper.readValue("{\"value\":123}", IntRecord.class).value);
+        DatabindException illegalArgumentException = assertThrows(DatabindException.class, () -> mapper.readValue("{\"value\":1234567890123456789000000}", IntRecord.class));
+        assertTrue(illegalArgumentException.getMessage().contains("1234567890123456789000000"));
+        illegalArgumentException = assertThrows(DatabindException.class, () -> mapper.readValue("{\"value\":-1234567890123456789000000}", IntRecord.class));
+        assertTrue(illegalArgumentException.getMessage().contains("-1234567890123456789000000"));
+    }
+
+    @Test
+    @DisplayName("Should serializer double correctly")
+    public void testDoubleSerialization(){
+        assertEquals("{\"value\":123.12345679}", mapper.writeValueAsString(new DoubleRecord(123.123456789)));
+    }
+    @Test
+    @DisplayName("Should serializer float correctly")
+    public void testFloatSerialization(){
+        assertEquals("{\"value\":123.12346}", mapper.writeValueAsString(new FloatRecord(123.123456789f)));
     }
 }
