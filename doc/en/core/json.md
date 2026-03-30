@@ -21,6 +21,8 @@ Spring Whale framework provides powerful JSON serialization and deserialization 
 - ✅ **Enum Serialization** - Supports serialization of enum types implementing BaseEnum interface
 - ✅ **Internationalization Support** - Enum descriptions support multi-language i18n
 - ✅ **BigDecimal Global Customization** - Supports BigDecimal precision control and string serialization
+- ✅ **Numeric Overflow Protection** - Automatic overflow checking for Long and Integer deserialization
+- ✅ **Floating-Point Precision Control** - Automatic precision retention for Double and Float
 - ✅ **Thread-Safe** - All utility classes and methods are designed to be thread-safe
 
 ### Supported Time Formats
@@ -82,6 +84,8 @@ spring:
       big-decimal-rounding-mode: HALF_UP
       # Whether to serialize as string to prevent precision loss in frontend (default: true)
       big-decimal-as-string: true
+      # Number of decimal places for Float/Double (default: 8)
+      float-precision: 8
 ```
 
 ### Configuration Items
@@ -97,6 +101,7 @@ spring:
 | `big-decimal-scale` | int | 2 | Number of decimal places to retain for BigDecimal |
 | `big-decimal-rounding-mode` | RoundingMode | HALF_UP | Rounding mode for BigDecimal |
 | `big-decimal-as-string` | boolean | true | Whether to serialize BigDecimal as string (prevents precision loss in frontend) |
+| `float-precision` | int | 8 | Number of decimal places for Float and Double |
 
 ## Time Type Handling
 
@@ -379,17 +384,142 @@ Code:
 ```java
 public class PriceDTO {
     private BigDecimal price;
-    private BigDecimal discount;
 }
 ```
 
 Output:
 ```json
 {
-  "price": "99.99",
-  "discount": "0.15"
+  "price": "99.99"
 }
 ```
+
+#### 5. Double/Float Precision Control
+
+Configuration:
+```yaml
+spring:
+  whale:
+    json:
+      float-precision: 4
+```
+
+Code:
+```java
+public class MeasurementDTO {
+    private Double temperature;
+    private Float humidity;
+}
+```
+
+Output:
+```json
+{
+  "temperature": 36.5678,
+  "humidity": 65.1234
+}
+```
+
+**Note**: Float and Double will be automatically rounded according to the configured precision to avoid floating-point precision issues.
+
+## Numeric Type Handling
+
+### Long/Integer Overflow Protection
+
+When deserializing Long and Integer, if the input value exceeds the type range, an exception will be thrown.
+
+#### 1. Long Overflow Protection
+
+```json
+// Normal value
+{"value": 1234567890123456789}
+
+// Exceeds Long.MAX_VALUE, throws exception
+{"value": 1234567890123456789000000}
+
+// Exceeds Long.MIN_VALUE, throws exception
+{"value": -1234567890123456789000000}
+```
+
+Exception message:
+```
+DatabindException: Long value overflow: 1234567890123456789000000
+```
+
+#### 2. Integer Overflow Protection
+
+```json
+// Normal value
+{"value": 2147483647}
+
+// Exceeds Integer.MAX_VALUE, throws exception
+{"value": 3000000000}
+
+// Exceeds Integer.MIN_VALUE, throws exception
+{"value": -3000000000}
+```
+
+Exception message:
+```
+DatabindException: Integer value overflow: 3000000000
+```
+
+### Double/Float Precision Control
+
+#### 1. Double Serialization
+
+Configuration:
+```yaml
+spring:
+  whale:
+    json:
+      float-precision: 6
+```
+
+Code:
+```java
+Double value = 123.456789012;
+```
+
+Output:
+```json
+{
+  "value": 123.456789
+}
+```
+
+#### 2. Float Serialization
+
+Configuration:
+```yaml
+spring:
+  whale:
+    json:
+      float-precision: 4
+```
+
+Code:
+```java
+Float value = 0.123456789f;
+```
+
+Output:
+```json
+{
+  "value": 0.1235
+}
+```
+
+**Notes**:
+- Precision control uses `BigDecimal` for accurate calculations
+- Rounding mode uses the configured `big-decimal-rounding-mode` (default HALF_UP)
+- Automatically strips trailing zeros (stripTrailingZeros)
+
+## Usage Examples
+
+### Complete Example
+
+#### 1. Entity Class Definition
 
 #### 2. Different Precision Configuration
 
@@ -509,11 +639,11 @@ Ensure database precision matches configuration:
 - MySQL: `DECIMAL(10,2)` corresponds to `big-decimal-scale: 2`
 - Oracle: `NUMBER(10,4)` corresponds to `big-decimal-scale: 4`
 
-## Usage Examples
+## BigDecimal Handling
 
-### Complete Example
+### Serialization
 
-#### 1. Entity Class Definition
+#### 1. Default Configuration Serialization
 
 ```java
 import io.github.springwhale.framework.core.enums.BaseEnum;
@@ -533,7 +663,9 @@ public class UserDTO {
     private Date createTime;
     private LocalDate birthday;
     private LocalDateTime lastLoginTime;
-    private BigDecimal salary;  // New BigDecimal field
+    private BigDecimal salary;
+    private Double latitude;
+    private Float accuracy;
 }
 
 @AllArgsConstructor
@@ -584,7 +716,9 @@ public class UserController {
   "createTime": "2024-03-25T14:30:45",  // or 1711353045000
   "birthday": "2000-01-01",  // or 946684800000
   "lastLoginTime": "2024-03-25 14:30:45",  // or 1711353045000
-  "salary": "12345.67"  // or 12345.67 (string format recommended)
+  "salary": "12345.67",  // or 12345.67 (string format recommended)
+  "latitude": 39.9042,  // automatically retains configured precision
+  "accuracy": 10.5  // automatically retains configured precision
 }
 ```
 
@@ -601,7 +735,9 @@ public class UserController {
   "createTime": "2024-03-25 14:30:45",
   "birthday": "2000-01-01",
   "lastLoginTime": "2024-03-25 14:30:45",
-  "salary": "12345.67"
+  "salary": "12345.67",
+  "latitude": 39.9042,
+  "accuracy": 10.5
 }
 ```
 
@@ -739,6 +875,18 @@ public class JsonSerializationTest {
 - It is recommended to enable `big-decimal-as-string: true` to avoid precision loss in frontend
 - For higher precision requirements, adjust the `big-decimal-scale` configuration
 - After disabling global customization, Jackson's default processing method is used
+
+### 6. Numeric Overflow Protection
+
+- Long and Integer automatically check for overflow during deserialization
+- A `DatabindException` exception is thrown when overflow occurs
+- It is recommended to handle exceptions properly when receiving numeric parameters from frontend
+
+### 7. Floating-Point Precision
+
+- Double and Float automatically retain precision according to `float-precision` configuration
+- Precision control uses BigDecimal for accurate calculations
+- Avoids floating-point precision issues in languages like JavaScript
 
 ## Related Resources
 
