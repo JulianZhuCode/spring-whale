@@ -1,6 +1,7 @@
 # Spring Whale JSON 直列化
 
-Spring Whale フレームワークは、Spring Boot と Tools Jackson をベースにした強力な JSON 直列化・逆直列化機能を提供し、カスタム時間形式、列挙型処理、国際化などの機能をサポートしています。
+Spring Whale フレームワークは、Spring Boot と Tools Jackson をベースにした強力な JSON
+直列化・逆直列化機能を提供し、カスタム時間形式、列挙型処理、国際化などの機能をサポートしています。
 
 ## 目次
 
@@ -90,18 +91,18 @@ spring:
 
 ### 設定項目
 
-| 項目 | 型 | デフォルト | 説明 |
-|------|------|----------|------|
-| `use-i18n` | boolean | false | 列挙型の説明に国際化を有効にするかどうか |
-| `fallback-to-default-desc` | boolean | false | i18n キーが見つからない場合に列挙型のデフォルトの説明にフォールバックするかどうか |
-| `date-time-format` | String | yyyy-MM-dd HH:mm:ss | Date と LocalDateTime の形式パターン、タイムスタンプモードには `timestamp` を設定 |
-| `date-format` | String | yyyy-MM-dd | LocalDate の形式パターン |
-| `time-format` | String | HH:mm:ss | LocalTime の形式パターン |
-| `big-decimal-enabled` | boolean | true | BigDecimal グローバル直列化カスタマイズを有効にするかどうか |
-| `big-decimal-scale` | int | 2 | BigDecimal の小数点以下の桁数 |
-| `big-decimal-rounding-mode` | RoundingMode | HALF_UP | BigDecimal の丸めモード |
-| `big-decimal-as-string` | boolean | true | フロントエンドでの精度低下を防ぐために文字列として直列化するかどうか |
-| `float-precision` | int | 8 | Float と Double の小数点以下の桁数 |
+| 項目                          | 型            | デフォルト               | 説明                                                        |
+|-----------------------------|--------------|---------------------|-----------------------------------------------------------|
+| `use-i18n`                  | boolean      | false               | 列挙型の説明に国際化を有効にするかどうか                                      |
+| `fallback-to-default-desc`  | boolean      | false               | i18n キーが見つからない場合に列挙型のデフォルトの説明にフォールバックするかどうか               |
+| `date-time-format`          | String       | yyyy-MM-dd HH:mm:ss | Date と LocalDateTime の形式パターン、タイムスタンプモードには `timestamp` を設定 |
+| `date-format`               | String       | yyyy-MM-dd          | LocalDate の形式パターン                                         |
+| `time-format`               | String       | HH:mm:ss            | LocalTime の形式パターン                                         |
+| `big-decimal-enabled`       | boolean      | true                | BigDecimal グローバル直列化カスタマイズを有効にするかどうか                       |
+| `big-decimal-scale`         | int          | 2                   | BigDecimal の小数点以下の桁数                                      |
+| `big-decimal-rounding-mode` | RoundingMode | HALF_UP             | BigDecimal の丸めモード                                         |
+| `big-decimal-as-string`     | boolean      | true                | フロントエンドでの精度低下を防ぐために文字列として直列化するかどうか                        |
+| `float-precision`           | int          | 8                   | Float と Double の小数点以下の桁数                                  |
 
 ## 時間型の処理
 
@@ -119,6 +120,7 @@ public class TimeRecord {
 ```
 
 設定：
+
 ```yaml
 spring:
   whale:
@@ -129,6 +131,7 @@ spring:
 ```
 
 出力：
+
 ```json
 {
   "date": "2024-03-25 14:30:45",
@@ -141,6 +144,7 @@ spring:
 #### 2. タイムスタンプの直列化
 
 設定：
+
 ```yaml
 spring:
   whale:
@@ -149,6 +153,7 @@ spring:
 ```
 
 出力：
+
 ```json
 {
   "date": 1711353045000,
@@ -159,6 +164,7 @@ spring:
 #### 3. カスタム形式の直列化
 
 設定：
+
 ```yaml
 spring:
   whale:
@@ -169,6 +175,7 @@ spring:
 ```
 
 出力：
+
 ```json
 {
   "date": "25/03/2024 14:30",
@@ -247,6 +254,7 @@ public enum StatusEnum implements BaseEnum {
 #### 1. 国際化なしの場合
 
 設定：
+
 ```yaml
 spring:
   whale:
@@ -255,6 +263,7 @@ spring:
 ```
 
 出力：
+
 ```json
 {
   "status": {
@@ -267,6 +276,7 @@ spring:
 #### 2. 国際化ありの場合
 
 設定：
+
 ```yaml
 spring:
   whale:
@@ -276,6 +286,7 @@ spring:
 ```
 
 i18n リソースファイル `messages.properties` を作成：
+
 ```properties
 ACTIVE=Active
 INACTIVE=Inactive
@@ -284,6 +295,7 @@ DELETED=Deleted
 ```
 
 出力（英語ロケール）：
+
 ```json
 {
   "status": {
@@ -294,6 +306,7 @@ DELETED=Deleted
 ```
 
 出力（中国語ロケール、翻訳がある場合）：
+
 ```json
 {
   "status": {
@@ -334,6 +347,7 @@ DELETED=Deleted
 ```
 
 例外をスロー：
+
 ```
 IllegalArgumentException: No enum constant with id: INVALID_ID in class: com.example.StatusEnum
 ```
@@ -346,6 +360,7 @@ IllegalArgumentException: No enum constant with id: INVALID_ID in class: com.exa
 ```
 
 例外をスロー：
+
 ```
 ArrayIndexOutOfBoundsException / IllegalArgumentException
 ```
@@ -353,6 +368,7 @@ ArrayIndexOutOfBoundsException / IllegalArgumentException
 #### 3. i18n キーが不足していてフォールバックが無効
 
 設定：
+
 ```yaml
 spring:
   whale:
@@ -370,6 +386,7 @@ spring:
 #### 1. デフォルト設定の直列化
 
 設定：
+
 ```yaml
 spring:
   whale:
@@ -381,6 +398,7 @@ spring:
 ```
 
 コード：
+
 ```java
 public class PriceDTO {
     private BigDecimal price;
@@ -388,6 +406,7 @@ public class PriceDTO {
 ```
 
 出力：
+
 ```json
 {
   "price": "99.99"
@@ -397,6 +416,7 @@ public class PriceDTO {
 #### 5. Double/Float 精度制御
 
 設定：
+
 ```yaml
 spring:
   whale:
@@ -405,6 +425,7 @@ spring:
 ```
 
 コード：
+
 ```java
 public class MeasurementDTO {
     private Double temperature;
@@ -413,6 +434,7 @@ public class MeasurementDTO {
 ```
 
 出力：
+
 ```json
 {
   "temperature": 36.5678,
@@ -442,6 +464,7 @@ Long と Integer の逆直列化時、入力値が型の範囲を超えた場合
 ```
 
 例外メッセージ：
+
 ```
 DatabindException: Long value overflow: 1234567890123456789000000
 ```
@@ -460,6 +483,7 @@ DatabindException: Long value overflow: 1234567890123456789000000
 ```
 
 例外メッセージ：
+
 ```
 DatabindException: Integer value overflow: 3000000000
 ```
@@ -469,6 +493,7 @@ DatabindException: Integer value overflow: 3000000000
 #### 1. Double の直列化
 
 設定：
+
 ```yaml
 spring:
   whale:
@@ -477,11 +502,13 @@ spring:
 ```
 
 コード：
+
 ```java
 Double value = 123.456789012;
 ```
 
 出力：
+
 ```json
 {
   "value": 123.456789
@@ -491,6 +518,7 @@ Double value = 123.456789012;
 #### 2. Float の直列化
 
 設定：
+
 ```yaml
 spring:
   whale:
@@ -499,11 +527,13 @@ spring:
 ```
 
 コード：
+
 ```java
 Float value = 0.123456789f;
 ```
 
 出力：
+
 ```json
 {
   "value": 0.1235
@@ -511,6 +541,7 @@ Float value = 0.123456789f;
 ```
 
 **説明**:
+
 - 精度制御には `BigDecimal` を使用して正確な計算を行います
 - 丸めモードは設定された `big-decimal-rounding-mode` を使用します（デフォルト：HALF_UP）
 - 自動的に末尾のゼロを削除します（stripTrailingZeros）
@@ -524,6 +555,7 @@ Float value = 0.123456789f;
 #### 2. 異なる精度設定
 
 設定：
+
 ```yaml
 spring:
   whale:
@@ -533,11 +565,13 @@ spring:
 ```
 
 コード：
+
 ```java
 BigDecimal value = new BigDecimal("123.456789");
 ```
 
 出力：
+
 ```json
 {
   "value": "123.4568"
@@ -547,6 +581,7 @@ BigDecimal value = new BigDecimal("123.456789");
 #### 3. 数値形式の直列化
 
 設定：
+
 ```yaml
 spring:
   whale:
@@ -555,6 +590,7 @@ spring:
 ```
 
 出力：
+
 ```json
 {
   "price": 99.99,
@@ -567,6 +603,7 @@ spring:
 #### 4. グローバルカスタマイズの無効化
 
 設定：
+
 ```yaml
 spring:
   whale:
@@ -575,6 +612,7 @@ spring:
 ```
 
 出力（元の精度を維持）：
+
 ```json
 {
   "price": 99.99123456789
@@ -607,22 +645,23 @@ spring:
 
 サポートされている丸めモード（`RoundingMode` 列挙型）：
 
-| 丸めモード | 説明 | 例 (2.5) | 例 (2.6) |
-|-----------|------|---------|---------|
-| `HALF_UP` | 最も近い値に丸める。両方が等距離の場合は大きい方に丸める | 3 | 3 |
-| `HALF_DOWN` | 最も近い値に丸める。両方が等距離の場合は小さい方に丸める | 2 | 3 |
-| `HALF_EVEN` | 最も近い値に丸める。両方が等距離の場合は偶数の方に丸める（銀行家丸め） | 2 | 3 |
-| `UP` | ゼロから遠ざかる方向に丸める | 3 | 3 |
-| `DOWN` | ゼロに近づく方向に丸める | 2 | 2 |
-| `CEILING` | 正の無限大方向に丸める | 3 | 3 |
-| `FLOOR` | 負の無限大方向に丸める | 2 | 2 |
-| `UNNECESSARY` | 丸め不要。必要な場合は例外をスロー | 例外 | 例外 |
+| 丸めモード         | 説明                                  | 例 (2.5) | 例 (2.6) |
+|---------------|-------------------------------------|---------|---------|
+| `HALF_UP`     | 最も近い値に丸める。両方が等距離の場合は大きい方に丸める        | 3       | 3       |
+| `HALF_DOWN`   | 最も近い値に丸める。両方が等距離の場合は小さい方に丸める        | 2       | 3       |
+| `HALF_EVEN`   | 最も近い値に丸める。両方が等距離の場合は偶数の方に丸める（銀行家丸め） | 2       | 3       |
+| `UP`          | ゼロから遠ざかる方向に丸める                      | 3       | 3       |
+| `DOWN`        | ゼロに近づく方向に丸める                        | 2       | 2       |
+| `CEILING`     | 正の無限大方向に丸める                         | 3       | 3       |
+| `FLOOR`       | 負の無限大方向に丸める                         | 2       | 2       |
+| `UNNECESSARY` | 丸め不要。必要な場合は例外をスロー                   | 例外      | 例外      |
 
 ### ベストプラクティス
 
 #### 1. 金額フィールドの扱い
 
 金額フィールドの場合、以下を推奨：
+
 - `big-decimal-as-string: true` を使用してフロントエンドでの精度低下を防止
 - 適切な精度（通常 2 桁）を設定
 - 商業慣習に合わせて `HALF_UP` 丸めモードを使用
@@ -630,12 +669,14 @@ spring:
 #### 2. 高精度計算
 
 高精度が必要な科学計算の場合：
+
 - `big-decimal-scale` を適切な値（例：10）に増やす
 - 累積誤差を減らすために `HALF_EVEN` 銀行家丸めを検討
 
 #### 3. データベース連携
 
 データベースの精度が設定と一致することを確認：
+
 - MySQL: `DECIMAL(10,2)` は `big-decimal-scale: 2` に対応
 - Oracle: `NUMBER(10,4)` は `big-decimal-scale: 4` に対応
 
@@ -746,6 +787,7 @@ public class UserController {
 #### 1. I18N リソースファイルの作成
 
 `resources/messages.properties` (デフォルト):
+
 ```properties
 ACTIVE=Active
 INACTIVE=Inactive
@@ -754,6 +796,7 @@ DELETED=Deleted
 ```
 
 `resources/messages_zh_CN.properties` (中国語):
+
 ```properties
 ACTIVE=活跃
 INACTIVE=非活跃
@@ -762,6 +805,7 @@ DELETED=已删除
 ```
 
 `resources/messages_ja_JP.properties` (日本語):
+
 ```properties
 ACTIVE=アクティブ
 INACTIVE=非アクティブ

@@ -90,18 +90,18 @@ spring:
 
 ### 配置项说明
 
-| 配置项 | 类型 | 默认值 | 说明 |
-|--------|------|--------|------|
-| `use-i18n` | boolean | false | 是否启用枚举描述的国际化 |
-| `fallback-to-default-desc` | boolean | false | 当找不到国际化 key 时，是否回退到枚举的默认描述 |
-| `date-time-format` | String | yyyy-MM-dd HH:mm:ss | Date 和 LocalDateTime 的格式化模式，设置为 `timestamp` 使用时间戳 |
-| `date-format` | String | yyyy-MM-dd | LocalDate 的格式化模式 |
-| `time-format` | String | HH:mm:ss | LocalTime 的格式化模式 |
-| `big-decimal-enabled` | boolean | true | 是否启用 BigDecimal 全局序列化定制 |
-| `big-decimal-scale` | int | 2 | BigDecimal 的保留小数位数 |
-| `big-decimal-rounding-mode` | RoundingMode | HALF_UP | BigDecimal 的舍入模式 |
-| `big-decimal-as-string` | boolean | true | 是否将 BigDecimal 序列化为字符串（防止前端精度丢失） |
-| `float-precision` | int | 8 | Float 和 Double 的保留小数位数 |
+| 配置项                         | 类型           | 默认值                 | 说明                                                |
+|-----------------------------|--------------|---------------------|---------------------------------------------------|
+| `use-i18n`                  | boolean      | false               | 是否启用枚举描述的国际化                                      |
+| `fallback-to-default-desc`  | boolean      | false               | 当找不到国际化 key 时，是否回退到枚举的默认描述                        |
+| `date-time-format`          | String       | yyyy-MM-dd HH:mm:ss | Date 和 LocalDateTime 的格式化模式，设置为 `timestamp` 使用时间戳 |
+| `date-format`               | String       | yyyy-MM-dd          | LocalDate 的格式化模式                                  |
+| `time-format`               | String       | HH:mm:ss            | LocalTime 的格式化模式                                  |
+| `big-decimal-enabled`       | boolean      | true                | 是否启用 BigDecimal 全局序列化定制                           |
+| `big-decimal-scale`         | int          | 2                   | BigDecimal 的保留小数位数                                |
+| `big-decimal-rounding-mode` | RoundingMode | HALF_UP             | BigDecimal 的舍入模式                                  |
+| `big-decimal-as-string`     | boolean      | true                | 是否将 BigDecimal 序列化为字符串（防止前端精度丢失）                  |
+| `float-precision`           | int          | 8                   | Float 和 Double 的保留小数位数                            |
 
 ## 时间类型处理
 
@@ -119,6 +119,7 @@ public class TimeRecord {
 ```
 
 配置：
+
 ```yaml
 spring:
   whale:
@@ -129,6 +130,7 @@ spring:
 ```
 
 输出：
+
 ```json
 {
   "date": "2024-03-25 14:30:45",
@@ -141,6 +143,7 @@ spring:
 #### 2. 时间戳序列化
 
 配置：
+
 ```yaml
 spring:
   whale:
@@ -149,6 +152,7 @@ spring:
 ```
 
 输出：
+
 ```json
 {
   "date": 1711353045000,
@@ -159,6 +163,7 @@ spring:
 #### 3. 自定义格式序列化
 
 配置：
+
 ```yaml
 spring:
   whale:
@@ -169,6 +174,7 @@ spring:
 ```
 
 输出：
+
 ```json
 {
   "date": "25/03/2024 14:30",
@@ -184,10 +190,14 @@ spring:
 
 ```json
 // 数字时间戳
-{"date": 1711353045000}
+{
+  "date": 1711353045000
+}
 
 // 字符串时间戳
-{"date": "1711353045000"}
+{
+  "date": "1711353045000"
+}
 ```
 
 #### 2. 字符串格式反序列化
@@ -196,27 +206,49 @@ spring:
 
 ```json
 // ISO 格式
-{"date": "2024-03-25T14:30:45"}
-{"localDate": "2024-03-25"}
-{"localTime": "14:30:45"}
+{
+  "date": "2024-03-25T14:30:45"
+}
+{
+  "localDate": "2024-03-25"
+}
+{
+  "localTime": "14:30:45"
+}
 
 // 中国格式
-{"date": "2024/03/25 14:30:45"}
-{"localDate": "2024/03/25"}
+{
+  "date": "2024/03/25 14:30:45"
+}
+{
+  "localDate": "2024/03/25"
+}
 
 // 欧洲格式
-{"date": "25-03-2024 14:30:45"}
-{"localDate": "25-03-2024"}
+{
+  "date": "25-03-2024 14:30:45"
+}
+{
+  "localDate": "25-03-2024"
+}
 
 // 美国格式
-{"localDate": "03/25/2024"}
+{
+  "localDate": "03/25/2024"
+}
 
 // 无秒格式
-{"localTime": "14:30"}
-{"localDateTime": "2024-03-25 14:30"}
+{
+  "localTime": "14:30"
+}
+{
+  "localDateTime": "2024-03-25 14:30"
+}
 
 // 带毫秒格式
-{"localTime": "14:30:45.123"}
+{
+  "localTime": "14:30:45.123"
+}
 ```
 
 反序列化逻辑会自动尝试所有支持的格式，直到找到匹配的格式为止。
@@ -228,6 +260,7 @@ spring:
 实现 `BaseEnum` 接口：
 
 ```java
+
 @AllArgsConstructor
 public enum StatusEnum implements BaseEnum {
     ACTIVE("ACTIVE", "Active"),
@@ -247,6 +280,7 @@ public enum StatusEnum implements BaseEnum {
 #### 1. 不使用国际化
 
 配置：
+
 ```yaml
 spring:
   whale:
@@ -255,6 +289,7 @@ spring:
 ```
 
 输出：
+
 ```json
 {
   "status": {
@@ -267,6 +302,7 @@ spring:
 #### 2. 使用国际化
 
 配置：
+
 ```yaml
 spring:
   whale:
@@ -276,6 +312,7 @@ spring:
 ```
 
 创建国际化资源文件 `messages_zh_CN.properties`：
+
 ```properties
 ACTIVE=活跃
 INACTIVE=非活跃
@@ -284,6 +321,7 @@ DELETED=已删除
 ```
 
 输出（中文环境）：
+
 ```json
 {
   "status": {
@@ -294,6 +332,7 @@ DELETED=已删除
 ```
 
 输出（英文环境，无翻译时回退）：
+
 ```json
 {
   "status": {
@@ -310,19 +349,28 @@ DELETED=已删除
 #### 1. 对象格式
 
 ```json
-{"status": {"id": "ACTIVE", "desc": "Active"}}
+{
+  "status": {
+    "id": "ACTIVE",
+    "desc": "Active"
+  }
+}
 ```
 
 #### 2. 字符串格式（使用 id）
 
 ```json
-{"status": "ACTIVE"}
+{
+  "status": "ACTIVE"
+}
 ```
 
 #### 3. 整数格式（使用 ordinal）
 
 ```json
-{"status": 0}
+{
+  "status": 0
+}
 ```
 
 ### 错误处理
@@ -330,10 +378,13 @@ DELETED=已删除
 #### 1. 无效的 ID
 
 ```json
-{"status": "INVALID_ID"}
+{
+  "status": "INVALID_ID"
+}
 ```
 
 抛出异常：
+
 ```
 IllegalArgumentException: No enum constant with id: INVALID_ID in class: com.example.StatusEnum
 ```
@@ -341,11 +392,16 @@ IllegalArgumentException: No enum constant with id: INVALID_ID in class: com.exa
 #### 2. 无效的序号
 
 ```json
-{"status": -1}
-{"status": 999}
+{
+  "status": -1
+}
+{
+  "status": 999
+}
 ```
 
 抛出异常：
+
 ```
 ArrayIndexOutOfBoundsException / IllegalArgumentException
 ```
@@ -353,6 +409,7 @@ ArrayIndexOutOfBoundsException / IllegalArgumentException
 #### 3. 缺少国际化 key 且禁用回退
 
 配置：
+
 ```yaml
 spring:
   whale:
@@ -370,6 +427,7 @@ spring:
 #### 1. 默认配置序列化
 
 配置：
+
 ```yaml
 spring:
   whale:
@@ -381,6 +439,7 @@ spring:
 ```
 
 代码：
+
 ```java
 public class PriceDTO {
     private BigDecimal price;
@@ -388,6 +447,7 @@ public class PriceDTO {
 ```
 
 输出：
+
 ```json
 {
   "price": "99.99"
@@ -397,6 +457,7 @@ public class PriceDTO {
 #### 5. Double/Float 精度控制
 
 配置：
+
 ```yaml
 spring:
   whale:
@@ -405,6 +466,7 @@ spring:
 ```
 
 代码：
+
 ```java
 public class MeasurementDTO {
     private Double temperature;
@@ -413,6 +475,7 @@ public class MeasurementDTO {
 ```
 
 输出：
+
 ```json
 {
   "temperature": 36.5678,
@@ -432,16 +495,23 @@ public class MeasurementDTO {
 
 ```json
 // 正常值
-{"value": 1234567890123456789}
+{
+  "value": 1234567890123456789
+}
 
 // 超出 Long.MAX_VALUE，抛出异常
-{"value": 1234567890123456789000000}
+{
+  "value": 1234567890123456789000000
+}
 
 // 超出 Long.MIN_VALUE，抛出异常
-{"value": -1234567890123456789000000}
+{
+  "value": -1234567890123456789000000
+}
 ```
 
 异常信息：
+
 ```
 DatabindException: Long value overflow: 1234567890123456789000000
 ```
@@ -450,16 +520,23 @@ DatabindException: Long value overflow: 1234567890123456789000000
 
 ```json
 // 正常值
-{"value": 2147483647}
+{
+  "value": 2147483647
+}
 
 // 超出 Integer.MAX_VALUE，抛出异常
-{"value": 3000000000}
+{
+  "value": 3000000000
+}
 
 // 超出 Integer.MIN_VALUE，抛出异常
-{"value": -3000000000}
+{
+  "value": -3000000000
+}
 ```
 
 异常信息：
+
 ```
 DatabindException: Integer value overflow: 3000000000
 ```
@@ -469,6 +546,7 @@ DatabindException: Integer value overflow: 3000000000
 #### 1. Double 序列化
 
 配置：
+
 ```yaml
 spring:
   whale:
@@ -477,11 +555,13 @@ spring:
 ```
 
 代码：
+
 ```java
 Double value = 123.456789012;
 ```
 
 输出：
+
 ```json
 {
   "value": 123.456789
@@ -491,6 +571,7 @@ Double value = 123.456789012;
 #### 2. Float 序列化
 
 配置：
+
 ```yaml
 spring:
   whale:
@@ -499,11 +580,13 @@ spring:
 ```
 
 代码：
+
 ```java
 Float value = 0.123456789f;
 ```
 
 输出：
+
 ```json
 {
   "value": 0.1235
@@ -511,6 +594,7 @@ Float value = 0.123456789f;
 ```
 
 **说明**：
+
 - 精度控制使用 `BigDecimal` 进行精确计算
 - 舍入模式使用配置的 `big-decimal-rounding-mode`（默认 HALF_UP）
 - 会自动去除末尾的零（stripTrailingZeros）
@@ -524,6 +608,7 @@ Float value = 0.123456789f;
 #### 2. 不同精度配置
 
 配置：
+
 ```yaml
 spring:
   whale:
@@ -533,11 +618,13 @@ spring:
 ```
 
 代码：
+
 ```java
 BigDecimal value = new BigDecimal("123.456789");
 ```
 
 输出：
+
 ```json
 {
   "value": "123.4568"
@@ -547,6 +634,7 @@ BigDecimal value = new BigDecimal("123.456789");
 #### 3. 数字格式序列化
 
 配置：
+
 ```yaml
 spring:
   whale:
@@ -555,6 +643,7 @@ spring:
 ```
 
 输出：
+
 ```json
 {
   "price": 99.99,
@@ -567,6 +656,7 @@ spring:
 #### 4. 禁用全局定制
 
 配置：
+
 ```yaml
 spring:
   whale:
@@ -575,6 +665,7 @@ spring:
 ```
 
 输出（保持原始精度）：
+
 ```json
 {
   "price": 99.99123456789
@@ -588,41 +679,48 @@ spring:
 #### 1. 字符串格式（推荐）
 
 ```json
-{"price": "99.99"}
+{
+  "price": "99.99"
+}
 ```
 
 #### 2. 数字格式
 
 ```json
-{"price": 99.99}
+{
+  "price": 99.99
+}
 ```
 
 #### 3. 科学计数法
 
 ```json
-{"price": "1.23E+2"}
+{
+  "price": "1.23E+2"
+}
 ```
 
 ### 舍入模式说明
 
 支持的舍入模式（`RoundingMode` 枚举）：
 
-| 舍入模式 | 说明 | 示例 (2.5) | 示例 (2.6) |
-|---------|------|-----------|-----------|
-| `HALF_UP` | 四舍五入 | 3 | 3 |
-| `HALF_DOWN` | 五舍六入 | 2 | 3 |
-| `HALF_EVEN` | 银行家舍入法 | 2 | 3 |
-| `UP` | 远离零方向舍入 | 3 | 3 |
-| `DOWN` | 向零方向舍入 | 2 | 2 |
-| `CEILING` | 向正无穷方向舍入 | 3 | 3 |
-| `FLOOR` | 向负无穷方向舍入 | 2 | 2 |
-| `UNNECESSARY` | 不需要舍入，否则抛异常 | 异常 | 异常 |
+| 舍入模式          | 说明          | 示例 (2.5) | 示例 (2.6) |
+|---------------|-------------|----------|----------|
+| `HALF_UP`     | 四舍五入        | 3        | 3        |
+| `HALF_DOWN`   | 五舍六入        | 2        | 3        |
+| `HALF_EVEN`   | 银行家舍入法      | 2        | 3        |
+| `UP`          | 远离零方向舍入     | 3        | 3        |
+| `DOWN`        | 向零方向舍入      | 2        | 2        |
+| `CEILING`     | 向正无穷方向舍入    | 3        | 3        |
+| `FLOOR`       | 向负无穷方向舍入    | 2        | 2        |
+| `UNNECESSARY` | 不需要舍入，否则抛异常 | 异常       | 异常       |
 
 ### 最佳实践
 
 #### 1. 金额字段处理
 
 对于金额字段，建议：
+
 - 使用 `big-decimal-as-string: true` 避免前端精度丢失
 - 设置合适的精度（通常 2 位小数）
 - 使用 `HALF_UP` 舍入模式符合商业习惯
@@ -630,12 +728,14 @@ spring:
 #### 2. 高精度计算
 
 对于需要高精度的科学计算：
+
 - 增加 `big-decimal-scale` 到合适的值（如 10）
 - 考虑使用 `HALF_EVEN` 银行家舍入法减少累积误差
 
 #### 3. 数据库对接
 
 确保数据库精度与配置一致：
+
 - MySQL: `DECIMAL(10,2)` 对应 `big-decimal-scale: 2`
 - Oracle: `NUMBER(10,4)` 对应 `big-decimal-scale: 4`
 
@@ -683,10 +783,11 @@ public enum StatusEnum implements BaseEnum {
 #### 2. Controller 使用
 
 ```java
+
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    
+
     @PostMapping
     public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO userDTO) {
         // 接收的 JSON 会自动反序列化为 UserDTO
@@ -694,7 +795,7 @@ public class UserController {
         // 枚举字段支持对象、字符串、整数格式
         return ResponseEntity.ok(userDTO);
     }
-    
+
     @GetMapping("/{id}")
     public ResponseEntity<UserDTO> getUser(@PathVariable Long id) {
         UserDTO userDTO = userService.getUser(id);
@@ -746,6 +847,7 @@ public class UserController {
 #### 1. 创建国际化资源文件
 
 `resources/messages.properties` (默认):
+
 ```properties
 ACTIVE=Active
 INACTIVE=Inactive
@@ -754,6 +856,7 @@ DELETED=Deleted
 ```
 
 `resources/messages_zh_CN.properties` (中文):
+
 ```properties
 ACTIVE=活跃
 INACTIVE=非活跃
@@ -762,6 +865,7 @@ DELETED=已删除
 ```
 
 `resources/messages_ja_JP.properties` (日文):
+
 ```properties
 ACTIVE=アクティブ
 INACTIVE=非アクティブ
@@ -815,12 +919,13 @@ public ResponseEntity<UserDTO> getUserJapanese(@PathVariable Long id) {
 ### 5. 测试建议
 
 ```java
+
 @SpringBootTest
 public class JsonSerializationTest {
-    
+
     @Autowired
     private ObjectMapper objectMapper;
-    
+
     @Test
     public void testUserDTOSerialization() throws Exception {
         UserDTO user = new UserDTO();
@@ -828,12 +933,12 @@ public class JsonSerializationTest {
         user.setUsername("test");
         user.setStatus(StatusEnum.ACTIVE);
         user.setCreateTime(new Date());
-        
+
         String json = objectMapper.writeValueAsString(user);
         assertNotNull(json);
         assertTrue(json.contains("\"status\""));
     }
-    
+
     @Test
     public void testUserDTODeserialization() throws Exception {
         String json = "{\"username\":\"test\",\"status\":\"ACTIVE\"}";

@@ -31,7 +31,7 @@ class SpringContextUtilsTest {
     void testGetBeanByClassName() {
         String beanName = SpringWhaleJsonConfig.class.getName();
         Object bean = SpringContextUtils.getBean(beanName);
-        
+
         assertNotNull(bean, "Bean should be found by class name");
         assertInstanceOf(SpringWhaleJsonConfig.class, bean, "Bean should be instance of SpringWhaleJsonConfig");
     }
@@ -40,7 +40,7 @@ class SpringContextUtilsTest {
     @DisplayName("Should get bean by simple bean name")
     void testGetBeanBySimpleBeanName() {
         Object bean = SpringContextUtils.getBean(SpringWhaleJsonConfig.class.getName());
-        
+
         assertNotNull(bean, "Bean should be found by simple name");
         assertInstanceOf(SpringWhaleJsonConfig.class, bean, "Bean should be instance of SpringWhaleJsonConfig");
     }
@@ -49,7 +49,7 @@ class SpringContextUtilsTest {
     @DisplayName("Should get bean by type")
     void testGetBeanByType() {
         SpringWhaleJsonConfig config = SpringContextUtils.getBean(SpringWhaleJsonConfig.class);
-        
+
         assertNotNull(config, "Bean should be found by type");
         assertTrue(config.isUseI18n(), "Default useI18n should be true");
         assertTrue(config.isFallbackToDefaultDesc(), "Default fallbackToDefaultDesc should be false");
@@ -59,7 +59,7 @@ class SpringContextUtilsTest {
     @DisplayName("Should get bean by name and type")
     void testGetBeanByNameAndType() {
         SpringWhaleJsonConfig config = SpringContextUtils.getBean(SpringWhaleJsonConfig.class.getName(), SpringWhaleJsonConfig.class);
-        
+
         assertNotNull(config, "Bean should be found by name and type");
         assertInstanceOf(SpringWhaleJsonConfig.class, config, "Bean should be instance of SpringWhaleJsonConfig");
     }
@@ -80,7 +80,7 @@ class SpringContextUtilsTest {
     @DisplayName("Should have same ApplicationContext instance as autowired one")
     void testSetApplicationContext() {
         ApplicationContext context = SpringContextUtils.getApplicationContext();
-        
+
         assertNotNull(context, "ApplicationContext should be set by Spring");
         assertSame(applicationContext, context, "ApplicationContext should be the same instance as autowired one");
     }

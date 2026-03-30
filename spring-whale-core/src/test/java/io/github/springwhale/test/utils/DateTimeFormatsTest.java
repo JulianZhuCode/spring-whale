@@ -22,7 +22,7 @@ public class DateTimeFormatsTest {
     public void testParseDateFromNumericTimestamp() {
         long timestamp = 1711353045000L; // 2024-03-25 14:30:45 UTC
         Date date = DateTimeFormats.parseDateFromText(String.valueOf(timestamp));
-        
+
         assertNotNull(date);
         assertEquals(timestamp, date.getTime());
     }
@@ -32,7 +32,7 @@ public class DateTimeFormatsTest {
     public void testParseDateFromNumericStringTimestamp() {
         String timestampString = "1711353045000";
         Date date = DateTimeFormats.parseDateFromText(timestampString);
-        
+
         assertNotNull(date);
         assertEquals(1711353045000L, date.getTime());
     }
@@ -42,7 +42,7 @@ public class DateTimeFormatsTest {
     public void testParseDateFromISOFormat() {
         String isoFormat = "2024-03-25T14:30:45";
         Date date = DateTimeFormats.parseDateFromText(isoFormat);
-        
+
         assertNotNull(date);
         assertEquals(2024, date.toInstant().atZone(java.time.ZoneId.systemDefault()).getYear());
         assertEquals(3, date.toInstant().atZone(java.time.ZoneId.systemDefault()).getMonthValue());
@@ -54,7 +54,7 @@ public class DateTimeFormatsTest {
     public void testParseDateFromChineseFormat() {
         String chineseFormat = "2024/03/25 14:30:45";
         Date date = DateTimeFormats.parseDateFromText(chineseFormat);
-        
+
         assertNotNull(date);
     }
 
@@ -63,7 +63,7 @@ public class DateTimeFormatsTest {
     public void testParseDateFromEuropeanFormat() {
         String europeanFormat = "25-03-2024 14:30:45";
         Date date = DateTimeFormats.parseDateFromText(europeanFormat);
-        
+
         assertNotNull(date);
     }
 
@@ -71,11 +71,9 @@ public class DateTimeFormatsTest {
     @DisplayName("Should throw exception when Date format is invalid")
     public void testParseDateWithInvalidFormat() {
         String invalidFormat = "invalid-date-format";
-        
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            DateTimeFormats.parseDateFromText(invalidFormat);
-        });
-        
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> DateTimeFormats.parseDateFromText(invalidFormat));
+
         assertTrue(exception.getMessage().contains("Cannot parse date"));
     }
 
@@ -84,7 +82,7 @@ public class DateTimeFormatsTest {
     public void testParseLocalDateFromNumericTimestamp() {
         long timestamp = 1711353045000L;
         LocalDate localDate = DateTimeFormats.parseLocalDateFromText(String.valueOf(timestamp));
-        
+
         assertNotNull(localDate);
         assertEquals(2024, localDate.getYear());
         assertEquals(3, localDate.getMonthValue());
@@ -96,7 +94,7 @@ public class DateTimeFormatsTest {
     public void testParseLocalDateFromNumericStringTimestamp() {
         String timestampString = "1711353045000";
         LocalDate localDate = DateTimeFormats.parseLocalDateFromText(timestampString);
-        
+
         assertNotNull(localDate);
         assertEquals(2024, localDate.getYear());
         assertEquals(3, localDate.getMonthValue());
@@ -108,7 +106,7 @@ public class DateTimeFormatsTest {
     public void testParseLocalDateFromISOFormat() {
         String isoFormat = "2024-03-25";
         LocalDate localDate = DateTimeFormats.parseLocalDateFromText(isoFormat);
-        
+
         assertNotNull(localDate);
         assertEquals(2024, localDate.getYear());
         assertEquals(3, localDate.getMonthValue());
@@ -120,7 +118,7 @@ public class DateTimeFormatsTest {
     public void testParseLocalDateFromChineseFormat() {
         String chineseFormat = "2024/03/25";
         LocalDate localDate = DateTimeFormats.parseLocalDateFromText(chineseFormat);
-        
+
         assertNotNull(localDate);
         assertEquals(2024, localDate.getYear());
         assertEquals(3, localDate.getMonthValue());
@@ -132,7 +130,7 @@ public class DateTimeFormatsTest {
     public void testParseLocalDateFromEuropeanFormat() {
         String europeanFormat = "25-03-2024";
         LocalDate localDate = DateTimeFormats.parseLocalDateFromText(europeanFormat);
-        
+
         assertNotNull(localDate);
         assertEquals(2024, localDate.getYear());
         assertEquals(3, localDate.getMonthValue());
@@ -144,7 +142,7 @@ public class DateTimeFormatsTest {
     public void testParseLocalDateFromUSFormat() {
         String usFormat = "03/25/2024";
         LocalDate localDate = DateTimeFormats.parseLocalDateFromText(usFormat);
-        
+
         assertNotNull(localDate);
         assertEquals(2024, localDate.getYear());
         assertEquals(3, localDate.getMonthValue());
@@ -155,11 +153,9 @@ public class DateTimeFormatsTest {
     @DisplayName("Should throw exception when LocalDate format is invalid")
     public void testParseLocalDateWithInvalidFormat() {
         String invalidFormat = "invalid-date";
-        
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            DateTimeFormats.parseLocalDateFromText(invalidFormat);
-        });
-        
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> DateTimeFormats.parseLocalDateFromText(invalidFormat));
+
         assertTrue(exception.getMessage().contains("Cannot parse local date"));
     }
 
@@ -168,7 +164,7 @@ public class DateTimeFormatsTest {
     public void testParseLocalTimeFromNumericTimestamp() {
         long timestamp = 1711353045000L;
         LocalTime localTime = DateTimeFormats.parseLocalTimeFromText(String.valueOf(timestamp));
-        
+
         assertNotNull(localTime);
     }
 
@@ -177,7 +173,7 @@ public class DateTimeFormatsTest {
     public void testParseLocalTimeFromNumericStringTimestamp() {
         String timestampString = "1711353045000";
         LocalTime localTime = DateTimeFormats.parseLocalTimeFromText(timestampString);
-        
+
         assertNotNull(localTime);
     }
 
@@ -186,7 +182,7 @@ public class DateTimeFormatsTest {
     public void testParseLocalTimeFromISOFormat() {
         String isoFormat = "14:30:45";
         LocalTime localTime = DateTimeFormats.parseLocalTimeFromText(isoFormat);
-        
+
         assertNotNull(localTime);
         assertEquals(14, localTime.getHour());
         assertEquals(30, localTime.getMinute());
@@ -198,7 +194,7 @@ public class DateTimeFormatsTest {
     public void testParseLocalTimeWithoutSeconds() {
         String noSecondsFormat = "14:30";
         LocalTime localTime = DateTimeFormats.parseLocalTimeFromText(noSecondsFormat);
-        
+
         assertNotNull(localTime);
         assertEquals(14, localTime.getHour());
         assertEquals(30, localTime.getMinute());
@@ -209,7 +205,7 @@ public class DateTimeFormatsTest {
     public void testParseLocalTimeWithMilliseconds() {
         String withMillisFormat = "14:30:45.123";
         LocalTime localTime = DateTimeFormats.parseLocalTimeFromText(withMillisFormat);
-        
+
         assertNotNull(localTime);
         assertEquals(14, localTime.getHour());
         assertEquals(30, localTime.getMinute());
@@ -219,11 +215,9 @@ public class DateTimeFormatsTest {
     @DisplayName("Should throw exception when LocalTime format is invalid")
     public void testParseLocalTimeWithInvalidFormat() {
         String invalidFormat = "invalid-time";
-        
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            DateTimeFormats.parseLocalTimeFromText(invalidFormat);
-        });
-        
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> DateTimeFormats.parseLocalTimeFromText(invalidFormat));
+
         assertTrue(exception.getMessage().contains("Cannot parse local time"));
     }
 
@@ -232,7 +226,7 @@ public class DateTimeFormatsTest {
     public void testParseLocalDateTimeFromNumericTimestamp() {
         long timestamp = 1711353045000L;
         LocalDateTime localDateTime = DateTimeFormats.parseLocalDateTimeFromText(String.valueOf(timestamp));
-        
+
         assertNotNull(localDateTime);
         assertEquals(2024, localDateTime.getYear());
         assertEquals(3, localDateTime.getMonthValue());
@@ -244,7 +238,7 @@ public class DateTimeFormatsTest {
     public void testParseLocalDateTimeFromNumericStringTimestamp() {
         String timestampString = "1711353045000";
         LocalDateTime localDateTime = DateTimeFormats.parseLocalDateTimeFromText(timestampString);
-        
+
         assertNotNull(localDateTime);
         assertEquals(2024, localDateTime.getYear());
         assertEquals(3, localDateTime.getMonthValue());
@@ -256,7 +250,7 @@ public class DateTimeFormatsTest {
     public void testParseLocalDateTimeFromISOFormat() {
         String isoFormat = "2024-03-25T14:30:45";
         LocalDateTime localDateTime = DateTimeFormats.parseLocalDateTimeFromText(isoFormat);
-        
+
         assertNotNull(localDateTime);
         assertEquals(2024, localDateTime.getYear());
         assertEquals(3, localDateTime.getMonthValue());
@@ -270,7 +264,7 @@ public class DateTimeFormatsTest {
     public void testParseLocalDateTimeFromChineseFormat() {
         String chineseFormat = "2024/03/25 14:30:45";
         LocalDateTime localDateTime = DateTimeFormats.parseLocalDateTimeFromText(chineseFormat);
-        
+
         assertNotNull(localDateTime);
         assertEquals(2024, localDateTime.getYear());
         assertEquals(3, localDateTime.getMonthValue());
@@ -282,7 +276,7 @@ public class DateTimeFormatsTest {
     public void testParseLocalDateTimeFromEuropeanFormat() {
         String europeanFormat = "25-03-2024 14:30:45";
         LocalDateTime localDateTime = DateTimeFormats.parseLocalDateTimeFromText(europeanFormat);
-        
+
         assertNotNull(localDateTime);
         assertEquals(2024, localDateTime.getYear());
         assertEquals(3, localDateTime.getMonthValue());
@@ -294,7 +288,7 @@ public class DateTimeFormatsTest {
     public void testParseLocalDateTimeWithoutSeconds() {
         String noSecondsFormat = "2024-03-25 14:30";
         LocalDateTime localDateTime = DateTimeFormats.parseLocalDateTimeFromText(noSecondsFormat);
-        
+
         assertNotNull(localDateTime);
         assertEquals(2024, localDateTime.getYear());
         assertEquals(3, localDateTime.getMonthValue());
@@ -307,11 +301,9 @@ public class DateTimeFormatsTest {
     @DisplayName("Should throw exception when LocalDateTime format is invalid")
     public void testParseLocalDateTimeWithInvalidFormat() {
         String invalidFormat = "invalid-datetime";
-        
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            DateTimeFormats.parseLocalDateTimeFromText(invalidFormat);
-        });
-        
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> DateTimeFormats.parseLocalDateTimeFromText(invalidFormat));
+
         assertTrue(exception.getMessage().contains("Cannot parse local date time"));
     }
 

@@ -1,6 +1,7 @@
 # Spring Whale JSON Serialization
 
-Spring Whale framework provides powerful JSON serialization and deserialization capabilities, based on Spring Boot and Tools Jackson, supporting custom time formats, enum handling, and internationalization features.
+Spring Whale framework provides powerful JSON serialization and deserialization capabilities, based on Spring Boot and
+Tools Jackson, supporting custom time formats, enum handling, and internationalization features.
 
 ## Table of Contents
 
@@ -15,7 +16,8 @@ Spring Whale framework provides powerful JSON serialization and deserialization 
 
 ### Core Features
 
-- ✅ **Multiple Time Format Support** - Supports serialization and deserialization of Date, LocalDate, LocalTime, LocalDateTime
+- ✅ **Multiple Time Format Support** - Supports serialization and deserialization of Date, LocalDate, LocalTime,
+  LocalDateTime
 - ✅ **Flexible Time Format Configuration** - Supports custom time formats or timestamp mode
 - ✅ **Multi-format Deserialization** - Automatically recognizes multiple international date/time formats
 - ✅ **Enum Serialization** - Supports serialization of enum types implementing BaseEnum interface
@@ -90,18 +92,18 @@ spring:
 
 ### Configuration Items
 
-| Item | Type | Default | Description |
-|------|------|---------|-------------|
-| `use-i18n` | boolean | false | Whether to enable internationalization for enum descriptions |
-| `fallback-to-default-desc` | boolean | false | Whether to fallback to enum's default description when i18n key is not found |
-| `date-time-format` | String | yyyy-MM-dd HH:mm:ss | Format pattern for Date and LocalDateTime, set to `timestamp` for timestamp mode |
-| `date-format` | String | yyyy-MM-dd | Format pattern for LocalDate |
-| `time-format` | String | HH:mm:ss | Format pattern for LocalTime |
-| `big-decimal-enabled` | boolean | true | Whether to enable BigDecimal global serialization customization |
-| `big-decimal-scale` | int | 2 | Number of decimal places to retain for BigDecimal |
-| `big-decimal-rounding-mode` | RoundingMode | HALF_UP | Rounding mode for BigDecimal |
-| `big-decimal-as-string` | boolean | true | Whether to serialize BigDecimal as string (prevents precision loss in frontend) |
-| `float-precision` | int | 8 | Number of decimal places for Float and Double |
+| Item                        | Type         | Default             | Description                                                                      |
+|-----------------------------|--------------|---------------------|----------------------------------------------------------------------------------|
+| `use-i18n`                  | boolean      | false               | Whether to enable internationalization for enum descriptions                     |
+| `fallback-to-default-desc`  | boolean      | false               | Whether to fallback to enum's default description when i18n key is not found     |
+| `date-time-format`          | String       | yyyy-MM-dd HH:mm:ss | Format pattern for Date and LocalDateTime, set to `timestamp` for timestamp mode |
+| `date-format`               | String       | yyyy-MM-dd          | Format pattern for LocalDate                                                     |
+| `time-format`               | String       | HH:mm:ss            | Format pattern for LocalTime                                                     |
+| `big-decimal-enabled`       | boolean      | true                | Whether to enable BigDecimal global serialization customization                  |
+| `big-decimal-scale`         | int          | 2                   | Number of decimal places to retain for BigDecimal                                |
+| `big-decimal-rounding-mode` | RoundingMode | HALF_UP             | Rounding mode for BigDecimal                                                     |
+| `big-decimal-as-string`     | boolean      | true                | Whether to serialize BigDecimal as string (prevents precision loss in frontend)  |
+| `float-precision`           | int          | 8                   | Number of decimal places for Float and Double                                    |
 
 ## Time Type Handling
 
@@ -119,6 +121,7 @@ public class TimeRecord {
 ```
 
 Configuration:
+
 ```yaml
 spring:
   whale:
@@ -129,6 +132,7 @@ spring:
 ```
 
 Output:
+
 ```json
 {
   "date": "2024-03-25 14:30:45",
@@ -141,6 +145,7 @@ Output:
 #### 2. Timestamp Serialization
 
 Configuration:
+
 ```yaml
 spring:
   whale:
@@ -149,6 +154,7 @@ spring:
 ```
 
 Output:
+
 ```json
 {
   "date": 1711353045000,
@@ -159,6 +165,7 @@ Output:
 #### 3. Custom Format Serialization
 
 Configuration:
+
 ```yaml
 spring:
   whale:
@@ -169,6 +176,7 @@ spring:
 ```
 
 Output:
+
 ```json
 {
   "date": "25/03/2024 14:30",
@@ -184,10 +192,14 @@ Output:
 
 ```json
 // Numeric timestamp
-{"date": 1711353045000}
+{
+  "date": 1711353045000
+}
 
 // String timestamp
-{"date": "1711353045000"}
+{
+  "date": "1711353045000"
+}
 ```
 
 #### 2. String Format Deserialization
@@ -196,27 +208,49 @@ Supports automatic recognition of multiple formats:
 
 ```json
 // ISO format
-{"date": "2024-03-25T14:30:45"}
-{"localDate": "2024-03-25"}
-{"localTime": "14:30:45"}
+{
+  "date": "2024-03-25T14:30:45"
+}
+{
+  "localDate": "2024-03-25"
+}
+{
+  "localTime": "14:30:45"
+}
 
 // Chinese format
-{"date": "2024/03/25 14:30:45"}
-{"localDate": "2024/03/25"}
+{
+  "date": "2024/03/25 14:30:45"
+}
+{
+  "localDate": "2024/03/25"
+}
 
 // European format
-{"date": "25-03-2024 14:30:45"}
-{"localDate": "25-03-2024"}
+{
+  "date": "25-03-2024 14:30:45"
+}
+{
+  "localDate": "25-03-2024"
+}
 
 // US format
-{"localDate": "03/25/2024"}
+{
+  "localDate": "03/25/2024"
+}
 
 // Without seconds
-{"localTime": "14:30"}
-{"localDateTime": "2024-03-25 14:30"}
+{
+  "localTime": "14:30"
+}
+{
+  "localDateTime": "2024-03-25 14:30"
+}
 
 // With milliseconds
-{"localTime": "14:30:45.123"}
+{
+  "localTime": "14:30:45.123"
+}
 ```
 
 The deserialization logic automatically tries all supported formats until it finds a matching one.
@@ -228,6 +262,7 @@ The deserialization logic automatically tries all supported formats until it fin
 Implement the `BaseEnum` interface:
 
 ```java
+
 @AllArgsConstructor
 public enum StatusEnum implements BaseEnum {
     ACTIVE("ACTIVE", "Active"),
@@ -247,6 +282,7 @@ public enum StatusEnum implements BaseEnum {
 #### 1. Without Internationalization
 
 Configuration:
+
 ```yaml
 spring:
   whale:
@@ -255,6 +291,7 @@ spring:
 ```
 
 Output:
+
 ```json
 {
   "status": {
@@ -267,6 +304,7 @@ Output:
 #### 2. With Internationalization
 
 Configuration:
+
 ```yaml
 spring:
   whale:
@@ -276,6 +314,7 @@ spring:
 ```
 
 Create i18n resource file `messages.properties`:
+
 ```properties
 ACTIVE=Active
 INACTIVE=Inactive
@@ -284,6 +323,7 @@ DELETED=Deleted
 ```
 
 Output (English locale):
+
 ```json
 {
   "status": {
@@ -294,6 +334,7 @@ Output (English locale):
 ```
 
 Output (Chinese locale with translations):
+
 ```json
 {
   "status": {
@@ -310,19 +351,28 @@ Supports three deserialization methods:
 #### 1. Object Format
 
 ```json
-{"status": {"id": "ACTIVE", "desc": "Active"}}
+{
+  "status": {
+    "id": "ACTIVE",
+    "desc": "Active"
+  }
+}
 ```
 
 #### 2. String Format (using id)
 
 ```json
-{"status": "ACTIVE"}
+{
+  "status": "ACTIVE"
+}
 ```
 
 #### 3. Integer Format (using ordinal)
 
 ```json
-{"status": 0}
+{
+  "status": 0
+}
 ```
 
 ### Error Handling
@@ -330,10 +380,13 @@ Supports three deserialization methods:
 #### 1. Invalid ID
 
 ```json
-{"status": "INVALID_ID"}
+{
+  "status": "INVALID_ID"
+}
 ```
 
 Throws exception:
+
 ```
 IllegalArgumentException: No enum constant with id: INVALID_ID in class: com.example.StatusEnum
 ```
@@ -341,11 +394,16 @@ IllegalArgumentException: No enum constant with id: INVALID_ID in class: com.exa
 #### 2. Invalid Ordinal
 
 ```json
-{"status": -1}
-{"status": 999}
+{
+  "status": -1
+}
+{
+  "status": 999
+}
 ```
 
 Throws exception:
+
 ```
 ArrayIndexOutOfBoundsException / IllegalArgumentException
 ```
@@ -353,6 +411,7 @@ ArrayIndexOutOfBoundsException / IllegalArgumentException
 #### 3. Missing i18n Key with Fallback Disabled
 
 Configuration:
+
 ```yaml
 spring:
   whale:
@@ -370,6 +429,7 @@ Throws `NoSuchMessageException` if the corresponding i18n key is not found.
 #### 1. Default Configuration Serialization
 
 Configuration:
+
 ```yaml
 spring:
   whale:
@@ -381,6 +441,7 @@ spring:
 ```
 
 Code:
+
 ```java
 public class PriceDTO {
     private BigDecimal price;
@@ -388,6 +449,7 @@ public class PriceDTO {
 ```
 
 Output:
+
 ```json
 {
   "price": "99.99"
@@ -397,6 +459,7 @@ Output:
 #### 5. Double/Float Precision Control
 
 Configuration:
+
 ```yaml
 spring:
   whale:
@@ -405,6 +468,7 @@ spring:
 ```
 
 Code:
+
 ```java
 public class MeasurementDTO {
     private Double temperature;
@@ -413,6 +477,7 @@ public class MeasurementDTO {
 ```
 
 Output:
+
 ```json
 {
   "temperature": 36.5678,
@@ -420,7 +485,8 @@ Output:
 }
 ```
 
-**Note**: Float and Double will be automatically rounded according to the configured precision to avoid floating-point precision issues.
+**Note**: Float and Double will be automatically rounded according to the configured precision to avoid floating-point
+precision issues.
 
 ## Numeric Type Handling
 
@@ -432,16 +498,23 @@ When deserializing Long and Integer, if the input value exceeds the type range, 
 
 ```json
 // Normal value
-{"value": 1234567890123456789}
+{
+  "value": 1234567890123456789
+}
 
 // Exceeds Long.MAX_VALUE, throws exception
-{"value": 1234567890123456789000000}
+{
+  "value": 1234567890123456789000000
+}
 
 // Exceeds Long.MIN_VALUE, throws exception
-{"value": -1234567890123456789000000}
+{
+  "value": -1234567890123456789000000
+}
 ```
 
 Exception message:
+
 ```
 DatabindException: Long value overflow: 1234567890123456789000000
 ```
@@ -450,16 +523,23 @@ DatabindException: Long value overflow: 1234567890123456789000000
 
 ```json
 // Normal value
-{"value": 2147483647}
+{
+  "value": 2147483647
+}
 
 // Exceeds Integer.MAX_VALUE, throws exception
-{"value": 3000000000}
+{
+  "value": 3000000000
+}
 
 // Exceeds Integer.MIN_VALUE, throws exception
-{"value": -3000000000}
+{
+  "value": -3000000000
+}
 ```
 
 Exception message:
+
 ```
 DatabindException: Integer value overflow: 3000000000
 ```
@@ -469,6 +549,7 @@ DatabindException: Integer value overflow: 3000000000
 #### 1. Double Serialization
 
 Configuration:
+
 ```yaml
 spring:
   whale:
@@ -477,11 +558,13 @@ spring:
 ```
 
 Code:
+
 ```java
 Double value = 123.456789012;
 ```
 
 Output:
+
 ```json
 {
   "value": 123.456789
@@ -491,6 +574,7 @@ Output:
 #### 2. Float Serialization
 
 Configuration:
+
 ```yaml
 spring:
   whale:
@@ -499,11 +583,13 @@ spring:
 ```
 
 Code:
+
 ```java
 Float value = 0.123456789f;
 ```
 
 Output:
+
 ```json
 {
   "value": 0.1235
@@ -511,6 +597,7 @@ Output:
 ```
 
 **Notes**:
+
 - Precision control uses `BigDecimal` for accurate calculations
 - Rounding mode uses the configured `big-decimal-rounding-mode` (default HALF_UP)
 - Automatically strips trailing zeros (stripTrailingZeros)
@@ -524,6 +611,7 @@ Output:
 #### 2. Different Precision Configuration
 
 Configuration:
+
 ```yaml
 spring:
   whale:
@@ -533,11 +621,13 @@ spring:
 ```
 
 Code:
+
 ```java
 BigDecimal value = new BigDecimal("123.456789");
 ```
 
 Output:
+
 ```json
 {
   "value": "123.4568"
@@ -547,6 +637,7 @@ Output:
 #### 3. Numeric Format Serialization
 
 Configuration:
+
 ```yaml
 spring:
   whale:
@@ -555,6 +646,7 @@ spring:
 ```
 
 Output:
+
 ```json
 {
   "price": 99.99,
@@ -567,6 +659,7 @@ Output:
 #### 4. Disable Global Customization
 
 Configuration:
+
 ```yaml
 spring:
   whale:
@@ -575,6 +668,7 @@ spring:
 ```
 
 Output (keeps original precision):
+
 ```json
 {
   "price": 99.99123456789
@@ -588,41 +682,48 @@ Supports three deserialization methods:
 #### 1. String Format (Recommended)
 
 ```json
-{"price": "99.99"}
+{
+  "price": "99.99"
+}
 ```
 
 #### 2. Numeric Format
 
 ```json
-{"price": 99.99}
+{
+  "price": 99.99
+}
 ```
 
 #### 3. Scientific Notation
 
 ```json
-{"price": "1.23E+2"}
+{
+  "price": "1.23E+2"
+}
 ```
 
 ### Rounding Mode Description
 
 Supported rounding modes (`RoundingMode` enum):
 
-| Rounding Mode | Description | Example (2.5) | Example (2.6) |
-|---------------|-------------|---------------|---------------|
-| `HALF_UP` | Round towards nearest neighbor, unless both neighbors are equidistant, then round up | 3 | 3 |
-| `HALF_DOWN` | Round towards nearest neighbor, unless both neighbors are equidistant, then round down | 2 | 3 |
-| `HALF_EVEN` | Round towards nearest neighbor, unless both neighbors are equidistant, then round towards even neighbor | 2 | 3 |
-| `UP` | Round away from zero | 3 | 3 |
-| `DOWN` | Round towards zero | 2 | 2 |
-| `CEILING` | Round towards positive infinity | 3 | 3 |
-| `FLOOR` | Round towards negative infinity | 2 | 2 |
-| `UNNECESSARY` | Do not round, throw exception if rounding is necessary | Exception | Exception |
+| Rounding Mode | Description                                                                                             | Example (2.5) | Example (2.6) |
+|---------------|---------------------------------------------------------------------------------------------------------|---------------|---------------|
+| `HALF_UP`     | Round towards nearest neighbor, unless both neighbors are equidistant, then round up                    | 3             | 3             |
+| `HALF_DOWN`   | Round towards nearest neighbor, unless both neighbors are equidistant, then round down                  | 2             | 3             |
+| `HALF_EVEN`   | Round towards nearest neighbor, unless both neighbors are equidistant, then round towards even neighbor | 2             | 3             |
+| `UP`          | Round away from zero                                                                                    | 3             | 3             |
+| `DOWN`        | Round towards zero                                                                                      | 2             | 2             |
+| `CEILING`     | Round towards positive infinity                                                                         | 3             | 3             |
+| `FLOOR`       | Round towards negative infinity                                                                         | 2             | 2             |
+| `UNNECESSARY` | Do not round, throw exception if rounding is necessary                                                  | Exception     | Exception     |
 
 ### Best Practices
 
 #### 1. Monetary Amount Handling
 
 For monetary amount fields, it is recommended to:
+
 - Use `big-decimal-as-string: true` to avoid precision loss in frontend
 - Set appropriate precision (usually 2 decimal places)
 - Use `HALF_UP` rounding mode to conform to business practices
@@ -630,12 +731,14 @@ For monetary amount fields, it is recommended to:
 #### 2. High-Precision Calculations
 
 For scientific calculations requiring high precision:
+
 - Increase `big-decimal-scale` to an appropriate value (e.g., 10)
 - Consider using `HALF_EVEN` banker's rounding to reduce cumulative errors
 
 #### 3. Database Integration
 
 Ensure database precision matches configuration:
+
 - MySQL: `DECIMAL(10,2)` corresponds to `big-decimal-scale: 2`
 - Oracle: `NUMBER(10,4)` corresponds to `big-decimal-scale: 4`
 
@@ -683,10 +786,11 @@ public enum StatusEnum implements BaseEnum {
 #### 2. Controller Usage
 
 ```java
+
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    
+
     @PostMapping
     public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO userDTO) {
         // Received JSON will be automatically deserialized to UserDTO
@@ -694,7 +798,7 @@ public class UserController {
         // Enum fields support object, string, and integer formats
         return ResponseEntity.ok(userDTO);
     }
-    
+
     @GetMapping("/{id}")
     public ResponseEntity<UserDTO> getUser(@PathVariable Long id) {
         UserDTO userDTO = userService.getUser(id);
@@ -746,6 +850,7 @@ public class UserController {
 #### 1. Create I18N Resource Files
 
 `resources/messages.properties` (Default):
+
 ```properties
 ACTIVE=Active
 INACTIVE=Inactive
@@ -754,6 +859,7 @@ DELETED=Deleted
 ```
 
 `resources/messages_zh_CN.properties` (Chinese):
+
 ```properties
 ACTIVE=活跃
 INACTIVE=非活跃
@@ -762,6 +868,7 @@ DELETED=已删除
 ```
 
 `resources/messages_ja_JP.properties` (Japanese):
+
 ```properties
 ACTIVE=アクティブ
 INACTIVE=非アクティブ
@@ -815,12 +922,13 @@ public ResponseEntity<UserDTO> getUserJapanese(@PathVariable Long id) {
 ### 5. Testing Recommendations
 
 ```java
+
 @SpringBootTest
 public class JsonSerializationTest {
-    
+
     @Autowired
     private ObjectMapper objectMapper;
-    
+
     @Test
     public void testUserDTOSerialization() throws Exception {
         UserDTO user = new UserDTO();
@@ -828,12 +936,12 @@ public class JsonSerializationTest {
         user.setUsername("test");
         user.setStatus(StatusEnum.ACTIVE);
         user.setCreateTime(new Date());
-        
+
         String json = objectMapper.writeValueAsString(user);
         assertNotNull(json);
         assertTrue(json.contains("\"status\""));
     }
-    
+
     @Test
     public void testUserDTODeserialization() throws Exception {
         String json = "{\"username\":\"test\",\"status\":\"ACTIVE\"}";
