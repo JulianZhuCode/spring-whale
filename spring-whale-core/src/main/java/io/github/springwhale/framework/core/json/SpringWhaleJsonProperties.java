@@ -12,7 +12,7 @@ import java.math.RoundingMode;
 @Data
 @Component
 @ConfigurationProperties(prefix = "spring.whale.json")
-public class SpringWhaleJsonConfig {
+public class SpringWhaleJsonProperties {
 
     /**
      * Whether to use internationalization for enum descriptions

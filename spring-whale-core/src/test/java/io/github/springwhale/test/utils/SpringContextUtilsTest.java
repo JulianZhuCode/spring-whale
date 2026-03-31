@@ -1,6 +1,6 @@
 package io.github.springwhale.test.utils;
 
-import io.github.springwhale.framework.core.json.SpringWhaleJsonConfig;
+import io.github.springwhale.framework.core.json.SpringWhaleJsonProperties;
 import io.github.springwhale.framework.core.utils.SpringContextUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,26 +29,26 @@ class SpringContextUtilsTest {
     @Test
     @DisplayName("Should get bean by fully qualified class name")
     void testGetBeanByClassName() {
-        String beanName = SpringWhaleJsonConfig.class.getName();
+        String beanName = SpringWhaleJsonProperties.class.getName();
         Object bean = SpringContextUtils.getBean(beanName);
 
         assertNotNull(bean, "Bean should be found by class name");
-        assertInstanceOf(SpringWhaleJsonConfig.class, bean, "Bean should be instance of SpringWhaleJsonConfig");
+        assertInstanceOf(SpringWhaleJsonProperties.class, bean, "Bean should be instance of SpringWhaleJsonConfig");
     }
 
     @Test
     @DisplayName("Should get bean by simple bean name")
     void testGetBeanBySimpleBeanName() {
-        Object bean = SpringContextUtils.getBean(SpringWhaleJsonConfig.class.getName());
+        Object bean = SpringContextUtils.getBean(SpringWhaleJsonProperties.class.getName());
 
         assertNotNull(bean, "Bean should be found by simple name");
-        assertInstanceOf(SpringWhaleJsonConfig.class, bean, "Bean should be instance of SpringWhaleJsonConfig");
+        assertInstanceOf(SpringWhaleJsonProperties.class, bean, "Bean should be instance of SpringWhaleJsonConfig");
     }
 
     @Test
     @DisplayName("Should get bean by type")
     void testGetBeanByType() {
-        SpringWhaleJsonConfig config = SpringContextUtils.getBean(SpringWhaleJsonConfig.class);
+        SpringWhaleJsonProperties config = SpringContextUtils.getBean(SpringWhaleJsonProperties.class);
 
         assertNotNull(config, "Bean should be found by type");
         assertTrue(config.isUseI18n(), "Default useI18n should be true");
@@ -58,10 +58,10 @@ class SpringContextUtilsTest {
     @Test
     @DisplayName("Should get bean by name and type")
     void testGetBeanByNameAndType() {
-        SpringWhaleJsonConfig config = SpringContextUtils.getBean(SpringWhaleJsonConfig.class.getName(), SpringWhaleJsonConfig.class);
+        SpringWhaleJsonProperties config = SpringContextUtils.getBean(SpringWhaleJsonProperties.class.getName(), SpringWhaleJsonProperties.class);
 
         assertNotNull(config, "Bean should be found by name and type");
-        assertInstanceOf(SpringWhaleJsonConfig.class, config, "Bean should be instance of SpringWhaleJsonConfig");
+        assertInstanceOf(SpringWhaleJsonProperties.class, config, "Bean should be instance of SpringWhaleJsonConfig");
     }
 
     @Test

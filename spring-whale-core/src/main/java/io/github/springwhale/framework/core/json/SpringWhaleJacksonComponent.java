@@ -27,12 +27,12 @@ import java.util.Date;
 @JacksonComponent
 public class SpringWhaleJacksonComponent implements ApplicationContextAware {
 
-    private static SpringWhaleJsonConfig jsonConfig = null;
+    private static SpringWhaleJsonProperties jsonConfig = null;
     private static MessageSource messageSource = null;
 
     @Override
     public void setApplicationContext(@NonNull ApplicationContext context) throws BeansException {
-        jsonConfig = context.getBean(SpringWhaleJsonConfig.class);
+        jsonConfig = context.getBean(SpringWhaleJsonProperties.class);
         messageSource = context.getBean(MessageSource.class);
     }
 

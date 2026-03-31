@@ -2,7 +2,7 @@ package io.github.springwhale.test.json;
 
 
 import io.github.springwhale.framework.core.enums.BaseEnum;
-import io.github.springwhale.framework.core.json.SpringWhaleJsonConfig;
+import io.github.springwhale.framework.core.json.SpringWhaleJsonProperties;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.junit.jupiter.api.AfterEach;
@@ -33,11 +33,11 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 public class JsonTest {
 
-    private final SpringWhaleJsonConfig jsonConfigBackup = new SpringWhaleJsonConfig();
+    private final SpringWhaleJsonProperties jsonConfigBackup = new SpringWhaleJsonProperties();
     @Autowired
     private ObjectMapper mapper;
     @Autowired
-    private SpringWhaleJsonConfig jsonConfig;
+    private SpringWhaleJsonProperties jsonProperties;
     private Locale originalDefaultLocale;
     private Locale originalContextLocale;
 
@@ -46,7 +46,7 @@ public class JsonTest {
         // Save original locale settings
         originalDefaultLocale = Locale.getDefault();
         originalContextLocale = LocaleContextHolder.getLocale();
-        BeanUtils.copyProperties(jsonConfig, jsonConfigBackup);
+        BeanUtils.copyProperties(jsonProperties, jsonConfigBackup);
     }
 
     @AfterEach
@@ -55,7 +55,7 @@ public class JsonTest {
         Locale.setDefault(originalDefaultLocale);
         LocaleContextHolder.setLocale(originalContextLocale);
         // Reset config to default values
-        BeanUtils.copyProperties(jsonConfigBackup, jsonConfig);
+        BeanUtils.copyProperties(jsonConfigBackup, jsonProperties);
     }
 
     /**
@@ -64,7 +64,7 @@ public class JsonTest {
     @Test
     @DisplayName("Should serialize enum with default description when i18n is disabled")
     public void testEnumSerializationWithoutI18n() {
-        jsonConfig.setUseI18n(false);
+        jsonProperties.setUseI18n(false);
         EnumTestRecord record = new EnumTestRecord(StatusEnum.ACTIVE);
         String json = mapper.writeValueAsString(record);
         JsonNode node = mapper.readTree(json).get("status");
@@ -79,7 +79,7 @@ public class JsonTest {
     @Test
     @DisplayName("Should throw exception when i18n key is missing and fallback is disabled")
     public void testEnumSerializationWithMissingI18nKeyAndNoFallback() {
-        jsonConfig.setFallbackToDefaultDesc(false);
+        jsonProperties.setFallbackToDefaultDesc(false);
         EnumTestRecord record = new EnumTestRecord(StatusEnum.DELETED);
 
         assertThrows(DatabindException.class, () -> mapper.writeValueAsString(record));
@@ -200,7 +200,7 @@ public class JsonTest {
     @Test
     @DisplayName("Should serialize LocalDate with configured format")
     public void testLocalDateSerialization() {
-        jsonConfig.setDateFormat("yyyy-MM-dd");
+        jsonProperties.setDateFormat("yyyy-MM-dd");
         LocalDate date = LocalDate.of(2024, 3, 25);
         TimeRecord record = new TimeRecord(null, null, date, null);
 
@@ -216,7 +216,7 @@ public class JsonTest {
     @Test
     @DisplayName("Should serialize LocalDate with custom format")
     public void testLocalDateSerializationWithCustomFormat() {
-        jsonConfig.setDateFormat("dd/MM/yyyy");
+        jsonProperties.setDateFormat("dd/MM/yyyy");
         LocalDate date = LocalDate.of(2024, 3, 25);
         TimeRecord record = new TimeRecord(null, null, date, null);
 
@@ -232,7 +232,7 @@ public class JsonTest {
     @Test
     @DisplayName("Should serialize LocalTime with configured format")
     public void testLocalTimeSerialization() {
-        jsonConfig.setTimeFormat("HH:mm:ss");
+        jsonProperties.setTimeFormat("HH:mm:ss");
         LocalTime time = LocalTime.of(14, 30, 45);
         TimeRecord record = new TimeRecord(null, null, null, time);
 
@@ -248,7 +248,7 @@ public class JsonTest {
     @Test
     @DisplayName("Should serialize LocalTime with custom format")
     public void testLocalTimeSerializationWithCustomFormat() {
-        jsonConfig.setTimeFormat("HH:mm");
+        jsonProperties.setTimeFormat("HH:mm");
         LocalTime time = LocalTime.of(14, 30, 45);
         TimeRecord record = new TimeRecord(null, null, null, time);
 
@@ -264,7 +264,7 @@ public class JsonTest {
     @Test
     @DisplayName("Should serialize LocalDateTime with configured format")
     public void testLocalDateTimeSerialization() {
-        jsonConfig.setDateTimeFormat("yyyy-MM-dd HH:mm:ss");
+        jsonProperties.setDateTimeFormat("yyyy-MM-dd HH:mm:ss");
         LocalDateTime dateTime = LocalDateTime.of(2024, 3, 25, 14, 30, 45);
         TimeRecord record = new TimeRecord(null, dateTime, null, null);
 
@@ -280,7 +280,7 @@ public class JsonTest {
     @Test
     @DisplayName("Should serialize LocalDateTime with custom format")
     public void testLocalDateTimeSerializationWithCustomFormat() {
-        jsonConfig.setDateTimeFormat("dd/MM/yyyy HH:mm");
+        jsonProperties.setDateTimeFormat("dd/MM/yyyy HH:mm");
         LocalDateTime dateTime = LocalDateTime.of(2024, 3, 25, 14, 30, 45);
         TimeRecord record = new TimeRecord(null, dateTime, null, null);
 
@@ -296,7 +296,7 @@ public class JsonTest {
     @Test
     @DisplayName("Should serialize LocalDateTime as timestamp when configured")
     public void testLocalDateTimeSerializationAsTimestamp() {
-        jsonConfig.setDateTimeFormat("timestamp");
+        jsonProperties.setDateTimeFormat("timestamp");
         LocalDateTime dateTime = LocalDateTime.of(2024, 3, 25, 14, 30, 45);
         TimeRecord record = new TimeRecord(null, dateTime, null, null);
 
@@ -315,7 +315,7 @@ public class JsonTest {
     @Test
     @DisplayName("Should serialize Date with configured format")
     public void testDateSerialization() {
-        jsonConfig.setDateTimeFormat("yyyy-MM-dd HH:mm:ss");
+        jsonProperties.setDateTimeFormat("yyyy-MM-dd HH:mm:ss");
         // Use a specific date and verify the format (not the exact time)
         Date date = new Date(1711353045000L); // 2024-03-25 14:30:45 UTC
         TimeRecord record = new TimeRecord(date, null, null, null);
@@ -335,7 +335,7 @@ public class JsonTest {
     @Test
     @DisplayName("Should serialize Date with custom format")
     public void testDateSerializationWithCustomFormat() {
-        jsonConfig.setDateTimeFormat("dd/MM/yyyy HH:mm");
+        jsonProperties.setDateTimeFormat("dd/MM/yyyy HH:mm");
         Date date = new Date(1711353045000L); // 2024-03-25 14:30:45 UTC
         TimeRecord record = new TimeRecord(date, null, null, null);
 
@@ -354,7 +354,7 @@ public class JsonTest {
     @Test
     @DisplayName("Should serialize Date as timestamp when configured")
     public void testDateSerializationAsTimestamp() {
-        jsonConfig.setDateTimeFormat("timestamp");
+        jsonProperties.setDateTimeFormat("timestamp");
         Date date = new Date(1711353045000L); // 2024-03-25 14:30:45 UTC
         TimeRecord record = new TimeRecord(date, null, null, null);
 
@@ -572,9 +572,9 @@ public class JsonTest {
     public void testBigDecimalSerialization() {
         BigDecimalRecord record = new BigDecimalRecord(BigDecimal.valueOf(123.456));
         assertEquals("{\"decimal\":\"123.46\"}", mapper.writeValueAsString(record));
-        jsonConfig.setBigDecimalAsString(false);
+        jsonProperties.setBigDecimalAsString(false);
         assertEquals("{\"decimal\":123.46}", mapper.writeValueAsString(record));
-        jsonConfig.setBigDecimalEnabled(false);
+        jsonProperties.setBigDecimalEnabled(false);
         assertEquals("{\"decimal\":123.456}", mapper.writeValueAsString(record));
     }
 
