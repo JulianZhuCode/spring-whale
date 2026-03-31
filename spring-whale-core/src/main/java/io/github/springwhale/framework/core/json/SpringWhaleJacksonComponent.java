@@ -27,12 +27,12 @@ import java.util.Date;
 @JacksonComponent
 public class SpringWhaleJacksonComponent implements ApplicationContextAware {
 
-    private static SpringWhaleJsonProperties jsonConfig = null;
+    private static SpringWhaleJsonProperties properties = null;
     private static MessageSource messageSource = null;
 
     @Override
     public void setApplicationContext(@NonNull ApplicationContext context) throws BeansException {
-        jsonConfig = context.getBean(SpringWhaleJsonProperties.class);
+        properties = context.getBean(SpringWhaleJsonProperties.class);
         messageSource = context.getBean(MessageSource.class);
     }
 
@@ -42,10 +42,10 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
     public static class DateSerializer extends ValueSerializer<Date> {
         @Override
         public void serialize(Date value, JsonGenerator gen, SerializationContext context) throws JacksonException {
-            if ("timestamp".equalsIgnoreCase(jsonConfig.getDateTimeFormat())) {
+            if ("timestamp".equalsIgnoreCase(properties.getDateTimeFormat())) {
                 gen.writeNumber(value.getTime());
             } else {
-                gen.writeString(new SimpleDateFormat(jsonConfig.getDateTimeFormat()).format(value));
+                gen.writeString(new SimpleDateFormat(properties.getDateTimeFormat()).format(value));
             }
         }
     }
@@ -73,7 +73,7 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
     public static class LocalDateSerializer extends ValueSerializer<LocalDate> {
         @Override
         public void serialize(LocalDate value, JsonGenerator gen, SerializationContext context) throws JacksonException {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(jsonConfig.getDateFormat());
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(properties.getDateFormat());
             gen.writeString(value.format(formatter));
         }
     }
@@ -102,7 +102,7 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
     public static class LocalTimeSerializer extends ValueSerializer<LocalTime> {
         @Override
         public void serialize(LocalTime value, JsonGenerator gen, SerializationContext context) throws JacksonException {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(jsonConfig.getTimeFormat());
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(properties.getTimeFormat());
             gen.writeString(value.format(formatter));
         }
     }
@@ -131,10 +131,10 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
     public static class LocalDateTimeSerializer extends ValueSerializer<LocalDateTime> {
         @Override
         public void serialize(LocalDateTime value, JsonGenerator gen, SerializationContext context) throws JacksonException {
-            if ("timestamp".equalsIgnoreCase(jsonConfig.getDateTimeFormat())) {
+            if ("timestamp".equalsIgnoreCase(properties.getDateTimeFormat())) {
                 gen.writeNumber(value.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
             } else {
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern(jsonConfig.getDateTimeFormat());
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern(properties.getDateTimeFormat());
                 gen.writeString(value.format(formatter));
             }
         }
@@ -169,11 +169,11 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
         }
 
         private String resolveDesc(BaseEnum value) {
-            if (jsonConfig.isUseI18n()) {
+            if (properties.isUseI18n()) {
                 try {
                     return messageSource.getMessage(value.getId(), null, LocaleContextHolder.getLocale());
                 } catch (NoSuchMessageException e) {
-                    if (jsonConfig.isFallbackToDefaultDesc()) {
+                    if (properties.isFallbackToDefaultDesc()) {
                         return value.getDesc();
                     }
                     throw e;
@@ -230,16 +230,16 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
 
         @Override
         public void serialize(BigDecimal value, JsonGenerator gen, SerializationContext context) throws JacksonException {
-            if (!jsonConfig.isBigDecimalEnabled()) {
+            if (!properties.isBigDecimalEnabled()) {
                 gen.writeNumber(value);
                 return;
             }
             BigDecimal scaledValue = value.setScale(
-                    jsonConfig.getBigDecimalScale(),
-                    jsonConfig.getBigDecimalRoundingMode()
+                    properties.getBigDecimalScale(),
+                    properties.getBigDecimalRoundingMode()
             );
             // Serialize based on configuration
-            if (jsonConfig.isBigDecimalAsString()) {
+            if (properties.isBigDecimalAsString()) {
                 gen.writeString(scaledValue.toPlainString());
             } else {
                 gen.writeNumber(scaledValue);
@@ -309,7 +309,7 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
     public static class DoubleSerializer extends ValueSerializer<Double> {
         @Override
         public void serialize(Double value, JsonGenerator gen, SerializationContext context) {
-            BigDecimal bd = new BigDecimal(value).setScale(jsonConfig.getFloatPrecision(), jsonConfig.getBigDecimalRoundingMode());
+            BigDecimal bd = new BigDecimal(value).setScale(properties.getFloatPrecision(), properties.getBigDecimalRoundingMode());
             gen.writeNumber(bd.stripTrailingZeros());
         }
     }
@@ -318,7 +318,7 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
     public static class FloatSerializer extends ValueSerializer<Float> {
         @Override
         public void serialize(Float value, JsonGenerator gen, SerializationContext context) {
-            BigDecimal bd = new BigDecimal(value.toString()).setScale(jsonConfig.getFloatPrecision(), jsonConfig.getBigDecimalRoundingMode());
+            BigDecimal bd = new BigDecimal(value.toString()).setScale(properties.getFloatPrecision(), properties.getBigDecimalRoundingMode());
             gen.writeNumber(bd.stripTrailingZeros());
         }
     }
