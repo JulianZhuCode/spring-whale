@@ -14,7 +14,6 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Unit tests for DateTimeFormats utility class
  */
-@DisplayName("DateTimeFormats Utility Tests")
 public class DateTimeFormatsTest {
 
     @Test

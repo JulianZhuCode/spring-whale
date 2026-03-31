@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Tests for JSON serialization and deserialization of enums
  */
 @SpringBootTest
-public class JsonTest {
+public class SpringWhaleJacksonComponentTest {
 
     private final SpringWhaleJsonProperties jsonConfigBackup = new SpringWhaleJsonProperties();
     @Autowired
