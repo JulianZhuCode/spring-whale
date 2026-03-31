@@ -34,9 +34,9 @@ class BusinessExceptionTest {
         data.put("username", "test");
 
         BusinessException ex = BusinessException.create(
-            "USER_NOT_FOUND", 
-            "User not found", 
-            data
+                "USER_NOT_FOUND",
+                "User not found",
+                data
         );
 
         assertEquals("USER_NOT_FOUND", ex.getErrorCode());
@@ -49,9 +49,9 @@ class BusinessExceptionTest {
     @DisplayName("Should create exception with module information")
     void testCreateWithModule() {
         BusinessException ex = BusinessException.createWithModule(
-            "USER_NOT_FOUND", 
-            "user-module", 
-            "User not found"
+                "USER_NOT_FOUND",
+                "user-module",
+                "User not found"
         );
 
         assertEquals("USER_NOT_FOUND", ex.getErrorCode());
@@ -67,10 +67,10 @@ class BusinessExceptionTest {
         Map<String, Object> data = Map.of("orderId", "ORD-001");
 
         BusinessException ex = BusinessException.createWithModule(
-            "ORDER_NOT_FOUND", 
-            "order-module", 
-            "Order not found", 
-            data
+                "ORDER_NOT_FOUND",
+                "order-module",
+                "Order not found",
+                data
         );
 
         assertEquals("ORDER_NOT_FOUND", ex.getErrorCode());
@@ -83,8 +83,8 @@ class BusinessExceptionTest {
     @DisplayName("Should create exception with i18n key only")
     void testCreateWithI18nKeyOnly() {
         BusinessException ex = BusinessException.createWithI18n(
-            "USER_NOT_FOUND", 
-            "error.user.notfound"
+                "USER_NOT_FOUND",
+                "error.user.notfound"
         );
 
         assertEquals("USER_NOT_FOUND", ex.getErrorCode());
@@ -98,9 +98,9 @@ class BusinessExceptionTest {
     @DisplayName("Should create exception with i18n and fallback message")
     void testCreateWithI18nAndFallbackMessage() {
         BusinessException ex = BusinessException.createWithI18n(
-            "USER_NOT_FOUND", 
-            "error.user.notfound", 
-            "User not found"
+                "USER_NOT_FOUND",
+                "error.user.notfound",
+                "User not found"
         );
 
         assertEquals("USER_NOT_FOUND", ex.getErrorCode());
@@ -116,9 +116,9 @@ class BusinessExceptionTest {
         Map<String, Object> data = Map.of("userId", 456L);
 
         BusinessException ex = BusinessException.createWithI18n(
-            "USER_NOT_FOUND", 
-            "error.user.notfound", 
-            data
+                "USER_NOT_FOUND",
+                "error.user.notfound",
+                data
         );
 
         assertEquals("USER_NOT_FOUND", ex.getErrorCode());
@@ -133,10 +133,10 @@ class BusinessExceptionTest {
         Map<String, Object> data = Map.of("userId", 789L);
 
         BusinessException ex = BusinessException.createWithI18n(
-            "USER_NOT_FOUND", 
-            "error.user.notfound", 
-            "User not found", 
-            data
+                "USER_NOT_FOUND",
+                "error.user.notfound",
+                "User not found",
+                data
         );
 
         assertEquals("USER_NOT_FOUND", ex.getErrorCode());
@@ -149,9 +149,9 @@ class BusinessExceptionTest {
     @DisplayName("Should create exception with i18n and module")
     void testCreateI18nWithModule() {
         BusinessException ex = BusinessException.createI18nWithModule(
-            "USER_NOT_FOUND", 
-            "error.user.notfound", 
-            "user-module"
+                "USER_NOT_FOUND",
+                "error.user.notfound",
+                "user-module"
         );
 
         assertEquals("USER_NOT_FOUND", ex.getErrorCode());
@@ -167,10 +167,10 @@ class BusinessExceptionTest {
         Map<String, Object> data = Map.of("userId", 999L);
 
         BusinessException ex = BusinessException.createI18nWithModule(
-            "USER_NOT_FOUND", 
-            "error.user.notfound", 
-            "user-module", 
-            data
+                "USER_NOT_FOUND",
+                "error.user.notfound",
+                "user-module",
+                data
         );
 
         assertEquals("USER_NOT_FOUND", ex.getErrorCode());
@@ -184,10 +184,10 @@ class BusinessExceptionTest {
     @DisplayName("Should create exception with i18n, module and fallback message")
     void testCreateI18nWithModuleAndMessage() {
         BusinessException ex = BusinessException.createI18nWithModule(
-            "USER_NOT_FOUND", 
-            "error.user.notfound", 
-            "user-module", 
-            "User not found"
+                "USER_NOT_FOUND",
+                "error.user.notfound",
+                "user-module",
+                "User not found"
         );
 
         assertEquals("USER_NOT_FOUND", ex.getErrorCode());
@@ -205,11 +205,11 @@ class BusinessExceptionTest {
         data.put("attemptedEmail", "test@example.com");
 
         BusinessException ex = BusinessException.createI18nWithModule(
-            "USER_NOT_FOUND", 
-            "error.user.notfound", 
-            "user-module", 
-            "User not found", 
-            data
+                "USER_NOT_FOUND",
+                "error.user.notfound",
+                "user-module",
+                "User not found",
+                data
         );
 
         assertEquals("USER_NOT_FOUND", ex.getErrorCode());
@@ -227,12 +227,12 @@ class BusinessExceptionTest {
         Map<String, Object> data = Map.of("key", "value");
 
         BusinessException ex = BusinessException.builder()
-            .errorCode("CUSTOM_ERROR")
-            .errorMessage("Custom error message")
-            .messageCode("error.custom")
-            .module("custom-module")
-            .data(data)
-            .build();
+                .errorCode("CUSTOM_ERROR")
+                .errorMessage("Custom error message")
+                .messageCode("error.custom")
+                .module("custom-module")
+                .data(data)
+                .build();
 
         assertEquals("CUSTOM_ERROR", ex.getErrorCode());
         assertEquals("Custom error message", ex.getErrorMessage());
