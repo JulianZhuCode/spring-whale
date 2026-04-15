@@ -2,12 +2,6 @@
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.5</version>
-        <relativePath/> <!-- lookup parent from repository -->
-    </parent>
     <groupId>io.github.julianzhucode</groupId>
     <artifactId>spring-whale</artifactId>
     <version>0.0.1</version>
@@ -15,6 +9,7 @@
     <description>spring-whale</description>
     <modules>
         <module>spring-whale-core</module>
+        <module>spring-whale-cloud</module>
         <module>spring-whale-webmvc</module>
     </modules>
     <packaging>pom</packaging>
@@ -40,15 +35,44 @@
 
     <properties>
         <java.version>25</java.version>
-        <jakarta.validation-api.version>3.1.1</jakarta.validation-api.version>
+        <jakarta.validation-api.version>4.0.0-M1</jakarta.validation-api.version>
+        <spring-cloud-dependencies.version>2025.1.1</spring-cloud-dependencies.version>
+        <spring-cloud-kubernetes-dependencies.version>5.0.1</spring-cloud-kubernetes-dependencies.version>
+        <spring-boot-dependencies.version>4.0.5</spring-boot-dependencies.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot-dependencies.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud-dependencies.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-kubernetes-dependencies</artifactId>
+                <version>${spring-cloud-kubernetes-dependencies.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
                 <groupId>jakarta.validation</groupId>
                 <artifactId>jakarta.validation-api</artifactId>
                 <version>${jakarta.validation-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.julianzhucode</groupId>
+                <artifactId>spring-whale-core</artifactId>
+                <version>${project.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
