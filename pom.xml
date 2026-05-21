@@ -4,13 +4,14 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.julianzhucode</groupId>
     <artifactId>spring-whale</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
     <name>spring-whale</name>
     <description>spring-whale</description>
     <modules>
         <module>spring-whale-core</module>
         <module>spring-whale-cloud</module>
         <module>spring-whale-webmvc</module>
+        <module>spring-whale-database</module>
     </modules>
     <packaging>pom</packaging>
     <url>https://github.com/JulianZhuCode/spring-whale</url>
@@ -34,15 +35,39 @@
     </scm>
 
     <properties>
+        <gpg.skip>true</gpg.skip>
         <java.version>25</java.version>
         <jakarta.validation-api.version>4.0.0-M1</jakarta.validation-api.version>
         <spring-cloud-dependencies.version>2025.1.1</spring-cloud-dependencies.version>
         <spring-cloud-kubernetes-dependencies.version>5.0.1</spring-cloud-kubernetes-dependencies.version>
         <spring-boot-dependencies.version>4.0.6</spring-boot-dependencies.version>
+        <druid-spring-boot-starter.version>1.2.28</druid-spring-boot-starter.version>
+        <postgresql.version>42.7.11</postgresql.version>
+        <mapstruct.version>1.6.3</mapstruct.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>io.github.julianzhucode</groupId>
+                <artifactId>spring-whale-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.julianzhucode</groupId>
+                <artifactId>spring-whale-database</artifactId>
+                <version>${version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.julianzhucode</groupId>
+                <artifactId>spring-whale-webmvc</artifactId>
+                <version>${version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.julianzhucode</groupId>
+                <artifactId>spring-whale-cloud</artifactId>
+                <version>${version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
@@ -70,9 +95,24 @@
                 <version>${jakarta.validation-api.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.github.julianzhucode</groupId>
-                <artifactId>spring-whale-core</artifactId>
-                <version>${project.version}</version>
+                <groupId>com.alibaba</groupId>
+                <artifactId>druid-spring-boot-starter</artifactId>
+                <version>${druid-spring-boot-starter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>${postgresql.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct</artifactId>
+                <version>${mapstruct.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct-processor</artifactId>
+                <version>${mapstruct.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -142,6 +182,9 @@
                         <goals>
                             <goal>sign</goal>
                         </goals>
+                        <configuration>
+                            <skip>${gpg.skip}</skip>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

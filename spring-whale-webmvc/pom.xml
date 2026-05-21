@@ -6,7 +6,7 @@
     <parent>
         <groupId>io.github.julianzhucode</groupId>
         <artifactId>spring-whale</artifactId>
-        <version>0.0.1</version>
+        <version>0.0.2</version>
     </parent>
 
     <artifactId>spring-whale-webmvc</artifactId>
