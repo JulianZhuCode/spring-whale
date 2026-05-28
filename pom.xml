@@ -12,6 +12,7 @@
         <module>spring-whale-cloud</module>
         <module>spring-whale-webmvc</module>
         <module>spring-whale-database</module>
+        <module>spring-whale-rbac</module>
     </modules>
     <packaging>pom</packaging>
     <url>https://github.com/JulianZhuCode/spring-whale</url>
