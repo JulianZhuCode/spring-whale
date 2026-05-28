@@ -17,4 +17,15 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <dependencies>
+        <dependency>
+            <groupId>io.github.julianzhucode</groupId>
+            <artifactId>spring-whale-webmvc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.github.julianzhucode</groupId>
+            <artifactId>spring-whale-database</artifactId>
+        </dependency>
+    </dependencies>
+
 </project>
