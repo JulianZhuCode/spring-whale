@@ -15,7 +15,4 @@ import org.springframework.context.annotation.Import;
 })
 @Slf4j
 public class SpringWhaleWebMvcConfiguration {
-    static {
-        log.info("SpringWhaleWebMvcConfiguration loaded");
-    }
 }
