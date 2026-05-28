@@ -26,6 +26,11 @@
             <groupId>io.github.julianzhucode</groupId>
             <artifactId>spring-whale-database</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
 </project>
