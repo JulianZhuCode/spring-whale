@@ -12,7 +12,7 @@ import lombok.EqualsAndHashCode;
  * 用户实体
  */
 @Entity
-@Table(name = "rbac_user", schema = "rbac", indexes = {
+@Table(name = "rbac_user", indexes = {
         @Index(name = "idx_user_username", columnList = "username"),
         @Index(name = "idx_user_email", columnList = "email"),
         @Index(name = "idx_user_phone", columnList = "phone")
@@ -66,6 +66,5 @@ public class UserEntity extends BaseEntity {
     /**
      * 所属部门ID
      */
-    @Column(name = "group_id")
     private Integer groupId;
 }

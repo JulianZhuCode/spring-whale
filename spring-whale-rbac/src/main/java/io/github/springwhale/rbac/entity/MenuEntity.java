@@ -12,7 +12,7 @@ import lombok.EqualsAndHashCode;
  * 菜单实体
  */
 @Entity
-@Table(name = "rbac_menu", schema = "rbac", indexes = {
+@Table(name = "rbac_menu", indexes = {
         @Index(name = "idx_menu_parent_id", columnList = "parent_id"),
         @Index(name = "idx_menu_code", columnList = "code")
 })
@@ -23,7 +23,6 @@ public class MenuEntity extends BaseEntity {
     /**
      * 父菜单ID
      */
-    @Column(name = "parent_id")
     private Integer parentId;
 
     /**

@@ -12,7 +12,7 @@ import lombok.EqualsAndHashCode;
  * 角色菜单关联实体
  */
 @Entity
-@Table(name = "rbac_role_menu", schema = "rbac", uniqueConstraints = {
+@Table(name = "rbac_role_menu", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"role_id", "menu_id"})
 })
 @Data

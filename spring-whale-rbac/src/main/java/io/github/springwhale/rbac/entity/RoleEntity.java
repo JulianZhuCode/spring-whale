@@ -12,7 +12,7 @@ import lombok.EqualsAndHashCode;
  * 角色实体
  */
 @Entity
-@Table(name = "rbac_role", schema = "rbac", indexes = {
+@Table(name = "rbac_role", indexes = {
         @Index(name = "idx_role_code", columnList = "code")
 })
 @Data

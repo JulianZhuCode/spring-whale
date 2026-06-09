@@ -12,7 +12,7 @@ import lombok.EqualsAndHashCode;
  * 用户角色关联实体
  */
 @Entity
-@Table(name = "rbac_user_role", schema = "rbac", uniqueConstraints = {
+@Table(name = "rbac_user_role", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"user_id", "role_id"})
 })
 @Data

@@ -12,7 +12,7 @@ import lombok.EqualsAndHashCode;
  * 分组（部门）实体
  */
 @Entity
-@Table(name = "rbac_group", schema = "rbac", indexes = {
+@Table(name = "rbac_group", indexes = {
         @Index(name = "idx_group_parent_id", columnList = "parent_id"),
         @Index(name = "idx_group_code", columnList = "code")
 })
@@ -23,7 +23,6 @@ public class GroupEntity extends BaseEntity {
     /**
      * 父部门ID
      */
-    @Column(name = "parent_id")
     private Integer parentId;
 
     /**
