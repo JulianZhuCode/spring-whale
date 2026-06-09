@@ -1,12 +1,11 @@
 package io.github.springwhale.rbac.controller;
 
-import io.github.springwhale.rbac.dto.MenuDTO;
+import io.github.springwhale.rbac.dto.vo.MenuVO;
 import io.github.springwhale.rbac.service.MenuService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,11 +25,11 @@ public class MenuController {
      * GET /api/rbac/menus?page=0&size=20
      */
     @GetMapping
-    public ResponseEntity<Page<MenuDTO>> findAll(
+    public Page<MenuVO> findAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok(menuService.findAll(pageable));
+        return menuService.findAll(pageable);
     }
 
     /**
@@ -38,10 +37,9 @@ public class MenuController {
      * GET /api/rbac/menus/{id}
      */
     @GetMapping("/{id}")
-    public ResponseEntity<MenuDTO> findById(@PathVariable Integer id) {
+    public MenuVO findById(@PathVariable Integer id) {
         return menuService.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new IllegalArgumentException("菜单不存在: " + id));
     }
 
     /**
@@ -49,10 +47,9 @@ public class MenuController {
      * GET /api/rbac/menus/by-code?code=system:user
      */
     @GetMapping("/by-code")
-    public ResponseEntity<MenuDTO> findByCode(@RequestParam String code) {
+    public MenuVO findByCode(@RequestParam String code) {
         return menuService.findByCode(code)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new IllegalArgumentException("菜单不存在: " + code));
     }
 
     /**
@@ -60,8 +57,8 @@ public class MenuController {
      * GET /api/rbac/menus/by-parent?parentId=0
      */
     @GetMapping("/by-parent")
-    public ResponseEntity<List<MenuDTO>> findByParentId(@RequestParam Integer parentId) {
-        return ResponseEntity.ok(menuService.findByParentId(parentId));
+    public List<MenuVO> findByParentId(@RequestParam Integer parentId) {
+        return menuService.findByParentId(parentId);
     }
 
     /**
@@ -69,8 +66,8 @@ public class MenuController {
      * GET /api/rbac/menus/search?keyword=用户
      */
     @GetMapping("/search")
-    public ResponseEntity<List<MenuDTO>> search(@RequestParam String keyword) {
-        return ResponseEntity.ok(menuService.search(keyword));
+    public List<MenuVO> search(@RequestParam String keyword) {
+        return menuService.search(keyword);
     }
 
     /**
@@ -78,8 +75,8 @@ public class MenuController {
      * GET /api/rbac/menus/by-type?type=2
      */
     @GetMapping("/by-type")
-    public ResponseEntity<List<MenuDTO>> findByType(@RequestParam Integer type) {
-        return ResponseEntity.ok(menuService.findByType(type));
+    public List<MenuVO> findByType(@RequestParam Integer type) {
+        return menuService.findByType(type);
     }
 
     /**
@@ -87,8 +84,8 @@ public class MenuController {
      * GET /api/rbac/menus/by-status?status=1
      */
     @GetMapping("/by-status")
-    public ResponseEntity<List<MenuDTO>> findByStatus(@RequestParam Integer status) {
-        return ResponseEntity.ok(menuService.findByStatus(status));
+    public List<MenuVO> findByStatus(@RequestParam Integer status) {
+        return menuService.findByStatus(status);
     }
 
     /**
@@ -96,8 +93,8 @@ public class MenuController {
      * GET /api/rbac/menus/by-visible?visible=1
      */
     @GetMapping("/by-visible")
-    public ResponseEntity<List<MenuDTO>> findByVisible(@RequestParam Integer visible) {
-        return ResponseEntity.ok(menuService.findByVisible(visible));
+    public List<MenuVO> findByVisible(@RequestParam Integer visible) {
+        return menuService.findByVisible(visible);
     }
 
     /**
@@ -105,8 +102,8 @@ public class MenuController {
      * GET /api/rbac/menus/root
      */
     @GetMapping("/root")
-    public ResponseEntity<List<MenuDTO>> findRootMenus() {
-        return ResponseEntity.ok(menuService.findRootMenus());
+    public List<MenuVO> findRootMenus() {
+        return menuService.findRootMenus();
     }
 
     /**
@@ -114,8 +111,8 @@ public class MenuController {
      * POST /api/rbac/menus
      */
     @PostMapping
-    public ResponseEntity<MenuDTO> create(@RequestBody MenuDTO menuDTO) {
-        return ResponseEntity.ok(menuService.create(menuDTO));
+    public MenuVO create(@RequestBody MenuVO menuVO) {
+        return menuService.create(menuVO);
     }
 
     /**
@@ -123,8 +120,8 @@ public class MenuController {
      * PUT /api/rbac/menus/{id}
      */
     @PutMapping("/{id}")
-    public ResponseEntity<MenuDTO> update(@PathVariable Integer id, @RequestBody MenuDTO menuDTO) {
-        return ResponseEntity.ok(menuService.update(id, menuDTO));
+    public MenuVO update(@PathVariable Integer id, @RequestBody MenuVO menuVO) {
+        return menuService.update(id, menuVO);
     }
 
     /**
@@ -132,8 +129,7 @@ public class MenuController {
      * DELETE /api/rbac/menus/{id}
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Integer id) {
+    public void delete(@PathVariable Integer id) {
         menuService.delete(id);
-        return ResponseEntity.noContent().build();
     }
 }

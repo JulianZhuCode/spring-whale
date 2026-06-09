@@ -1,12 +1,12 @@
-package io.github.springwhale.rbac.dto;
+package io.github.springwhale.rbac.dto.vo;
 
 import lombok.Data;
 
 /**
- * 用户数据传输对象
+ * 用户视图对象
  */
 @Data
-public class UserDTO {
+public class UserVO {
     private Integer id;
     private String username;
     private String realName;

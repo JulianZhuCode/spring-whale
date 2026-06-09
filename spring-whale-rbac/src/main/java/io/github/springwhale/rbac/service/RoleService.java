@@ -1,6 +1,6 @@
 package io.github.springwhale.rbac.service;
 
-import io.github.springwhale.rbac.dto.RoleDTO;
+import io.github.springwhale.rbac.dto.vo.RoleVO;
 import io.github.springwhale.rbac.entity.RoleEntity;
 import io.github.springwhale.rbac.mapper.RoleMapper;
 import io.github.springwhale.rbac.repository.RoleRepository;
@@ -27,65 +27,65 @@ public class RoleService {
     /**
      * 分页查询所有角色
      */
-    public Page<RoleDTO> findAll(Pageable pageable) {
-        return roleRepository.findAll(pageable).map(roleMapper::toDTO);
+    public Page<RoleVO> findAll(Pageable pageable) {
+        return roleRepository.findAll(pageable).map(roleMapper::toVO);
     }
 
     /**
      * 根据ID查询角色
      */
-    public Optional<RoleDTO> findById(Integer id) {
-        return roleRepository.findById(id).map(roleMapper::toDTO);
+    public Optional<RoleVO> findById(Integer id) {
+        return roleRepository.findById(id).map(roleMapper::toVO);
     }
 
     /**
      * 根据角色编码精确查询
      */
-    public Optional<RoleDTO> findByCode(String code) {
-        return roleRepository.findByCode(code).map(roleMapper::toDTO);
+    public Optional<RoleVO> findByCode(String code) {
+        return roleRepository.findByCode(code).map(roleMapper::toVO);
     }
 
     /**
      * 搜索角色（支持角色名称模糊查询）
      */
-    public List<RoleDTO> search(String keyword) {
+    public List<RoleVO> search(String keyword) {
         if (keyword == null || keyword.trim().isEmpty()) {
             return List.of();
         }
-        return roleMapper.toDTOList(roleRepository.findByNameContaining(keyword));
+        return roleMapper.toVOList(roleRepository.findByNameContaining(keyword));
     }
 
     /**
      * 根据状态查询
      */
-    public List<RoleDTO> findByStatus(Integer status) {
-        return roleMapper.toDTOList(roleRepository.findByStatus(status));
+    public List<RoleVO> findByStatus(Integer status) {
+        return roleMapper.toVOList(roleRepository.findByStatus(status));
     }
 
     /**
      * 创建角色
      */
     @Transactional
-    public RoleDTO create(RoleDTO roleDTO) {
-        RoleEntity entity = roleMapper.toEntity(roleDTO);
-        return roleMapper.toDTO(roleRepository.save(entity));
+    public RoleVO create(RoleVO roleVO) {
+        RoleEntity entity = roleMapper.toEntity(roleVO);
+        return roleMapper.toVO(roleRepository.save(entity));
     }
 
     /**
      * 更新角色
      */
     @Transactional
-    public RoleDTO update(Integer id, RoleDTO roleDTO) {
+    public RoleVO update(Integer id, RoleVO roleVO) {
         RoleEntity role = roleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("角色不存在，ID: " + id));
 
-        role.setCode(roleDTO.getCode());
-        role.setName(roleDTO.getName());
-        role.setDescription(roleDTO.getDescription());
-        role.setStatus(roleDTO.getStatus());
-        role.setSort(roleDTO.getSort());
+        role.setCode(roleVO.getCode());
+        role.setName(roleVO.getName());
+        role.setDescription(roleVO.getDescription());
+        role.setStatus(roleVO.getStatus());
+        role.setSort(roleVO.getSort());
 
-        return roleMapper.toDTO(roleRepository.save(role));
+        return roleMapper.toVO(roleRepository.save(role));
     }
 
     /**

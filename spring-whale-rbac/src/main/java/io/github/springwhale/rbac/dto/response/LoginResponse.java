@@ -1,4 +1,4 @@
-package io.github.springwhale.rbac.dto;
+package io.github.springwhale.rbac.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

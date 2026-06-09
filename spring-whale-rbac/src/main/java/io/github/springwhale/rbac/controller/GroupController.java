@@ -1,12 +1,11 @@
 package io.github.springwhale.rbac.controller;
 
-import io.github.springwhale.rbac.dto.GroupDTO;
+import io.github.springwhale.rbac.dto.vo.GroupVO;
 import io.github.springwhale.rbac.service.GroupService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,11 +25,11 @@ public class GroupController {
      * GET /api/rbac/groups?page=0&size=20
      */
     @GetMapping
-    public ResponseEntity<Page<GroupDTO>> findAll(
+    public Page<GroupVO> findAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok(groupService.findAll(pageable));
+        return groupService.findAll(pageable);
     }
 
     /**
@@ -38,10 +37,9 @@ public class GroupController {
      * GET /api/rbac/groups/{id}
      */
     @GetMapping("/{id}")
-    public ResponseEntity<GroupDTO> findById(@PathVariable Integer id) {
+    public GroupVO findById(@PathVariable Integer id) {
         return groupService.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new IllegalArgumentException("部门不存在: " + id));
     }
 
     /**
@@ -49,10 +47,9 @@ public class GroupController {
      * GET /api/rbac/groups/by-code?code=IT
      */
     @GetMapping("/by-code")
-    public ResponseEntity<GroupDTO> findByCode(@RequestParam String code) {
+    public GroupVO findByCode(@RequestParam String code) {
         return groupService.findByCode(code)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new IllegalArgumentException("部门不存在: " + code));
     }
 
     /**
@@ -60,8 +57,8 @@ public class GroupController {
      * GET /api/rbac/groups/by-parent?parentId=0
      */
     @GetMapping("/by-parent")
-    public ResponseEntity<List<GroupDTO>> findByParentId(@RequestParam Integer parentId) {
-        return ResponseEntity.ok(groupService.findByParentId(parentId));
+    public List<GroupVO> findByParentId(@RequestParam Integer parentId) {
+        return groupService.findByParentId(parentId);
     }
 
     /**
@@ -69,8 +66,8 @@ public class GroupController {
      * GET /api/rbac/groups/search?keyword=技术
      */
     @GetMapping("/search")
-    public ResponseEntity<List<GroupDTO>> search(@RequestParam String keyword) {
-        return ResponseEntity.ok(groupService.search(keyword));
+    public List<GroupVO> search(@RequestParam String keyword) {
+        return groupService.search(keyword);
     }
 
     /**
@@ -78,8 +75,8 @@ public class GroupController {
      * GET /api/rbac/groups/by-status?status=1
      */
     @GetMapping("/by-status")
-    public ResponseEntity<List<GroupDTO>> findByStatus(@RequestParam Integer status) {
-        return ResponseEntity.ok(groupService.findByStatus(status));
+    public List<GroupVO> findByStatus(@RequestParam Integer status) {
+        return groupService.findByStatus(status);
     }
 
     /**
@@ -87,8 +84,8 @@ public class GroupController {
      * GET /api/rbac/groups/root
      */
     @GetMapping("/root")
-    public ResponseEntity<List<GroupDTO>> findRootGroups() {
-        return ResponseEntity.ok(groupService.findRootGroups());
+    public List<GroupVO> findRootGroups() {
+        return groupService.findRootGroups();
     }
 
     /**
@@ -96,8 +93,8 @@ public class GroupController {
      * POST /api/rbac/groups
      */
     @PostMapping
-    public ResponseEntity<GroupDTO> create(@RequestBody GroupDTO groupDTO) {
-        return ResponseEntity.ok(groupService.create(groupDTO));
+    public GroupVO create(@RequestBody GroupVO groupVO) {
+        return groupService.create(groupVO);
     }
 
     /**
@@ -105,8 +102,8 @@ public class GroupController {
      * PUT /api/rbac/groups/{id}
      */
     @PutMapping("/{id}")
-    public ResponseEntity<GroupDTO> update(@PathVariable Integer id, @RequestBody GroupDTO groupDTO) {
-        return ResponseEntity.ok(groupService.update(id, groupDTO));
+    public GroupVO update(@PathVariable Integer id, @RequestBody GroupVO groupVO) {
+        return groupService.update(id, groupVO);
     }
 
     /**
@@ -114,8 +111,7 @@ public class GroupController {
      * DELETE /api/rbac/groups/{id}
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Integer id) {
+    public void delete(@PathVariable Integer id) {
         groupService.delete(id);
-        return ResponseEntity.noContent().build();
     }
 }

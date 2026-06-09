@@ -1,12 +1,12 @@
-package io.github.springwhale.rbac.dto;
+package io.github.springwhale.rbac.dto.vo;
 
 import lombok.Data;
 
 /**
- * 分组（部门）数据传输对象
+ * 分组（部门）视图对象
  */
 @Data
-public class GroupDTO {
+public class GroupVO {
     private Integer id;
     private Integer parentId;
     private String code;

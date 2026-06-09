@@ -1,6 +1,6 @@
 package io.github.springwhale.rbac.mapper;
 
-import io.github.springwhale.rbac.dto.MenuDTO;
+import io.github.springwhale.rbac.dto.vo.MenuVO;
 import io.github.springwhale.rbac.entity.MenuEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -8,7 +8,7 @@ import org.mapstruct.factory.Mappers;
 import java.util.List;
 
 /**
- * 菜单实体与DTO转换器（MapStruct）
+ * 菜单实体与VO转换器（MapStruct）
  */
 @Mapper(componentModel = "spring")
 public interface MenuMapper {
@@ -16,17 +16,17 @@ public interface MenuMapper {
     MenuMapper INSTANCE = Mappers.getMapper(MenuMapper.class);
 
     /**
-     * Entity → DTO
+     * Entity → VO
      */
-    MenuDTO toDTO(MenuEntity entity);
+    MenuVO toVO(MenuEntity entity);
 
     /**
-     * DTO → Entity
+     * VO → Entity
      */
-    MenuEntity toEntity(MenuDTO dto);
+    MenuEntity toEntity(MenuVO vo);
 
     /**
-     * Entity列表 → DTO列表
+     * Entity列表 → VO列表
      */
-    List<MenuDTO> toDTOList(List<MenuEntity> entities);
+    List<MenuVO> toVOList(List<MenuEntity> entities);
 }

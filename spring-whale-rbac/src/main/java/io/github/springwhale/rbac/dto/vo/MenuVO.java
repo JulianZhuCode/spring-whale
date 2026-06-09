@@ -1,12 +1,12 @@
-package io.github.springwhale.rbac.dto;
+package io.github.springwhale.rbac.dto.vo;
 
 import lombok.Data;
 
 /**
- * 菜单数据传输对象
+ * 菜单视图对象
  */
 @Data
-public class MenuDTO {
+public class MenuVO {
     private Integer id;
     private Integer parentId;
     private String code;

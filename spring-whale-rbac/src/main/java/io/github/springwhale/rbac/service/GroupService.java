@@ -1,6 +1,6 @@
 package io.github.springwhale.rbac.service;
 
-import io.github.springwhale.rbac.dto.GroupDTO;
+import io.github.springwhale.rbac.dto.vo.GroupVO;
 import io.github.springwhale.rbac.entity.GroupEntity;
 import io.github.springwhale.rbac.mapper.GroupMapper;
 import io.github.springwhale.rbac.repository.GroupRepository;
@@ -27,83 +27,83 @@ public class GroupService {
     /**
      * 分页查询所有部门
      */
-    public Page<GroupDTO> findAll(Pageable pageable) {
-        return groupRepository.findAll(pageable).map(groupMapper::toDTO);
+    public Page<GroupVO> findAll(Pageable pageable) {
+        return groupRepository.findAll(pageable).map(groupMapper::toVO);
     }
 
     /**
      * 根据ID查询部门
      */
-    public Optional<GroupDTO> findById(Integer id) {
-        return groupRepository.findById(id).map(groupMapper::toDTO);
+    public Optional<GroupVO> findById(Integer id) {
+        return groupRepository.findById(id).map(groupMapper::toVO);
     }
 
     /**
      * 根据部门编码精确查询
      */
-    public Optional<GroupDTO> findByCode(String code) {
-        return groupRepository.findByCode(code).map(groupMapper::toDTO);
+    public Optional<GroupVO> findByCode(String code) {
+        return groupRepository.findByCode(code).map(groupMapper::toVO);
     }
 
     /**
      * 根据父部门ID查询
      */
-    public List<GroupDTO> findByParentId(Integer parentId) {
-        return groupMapper.toDTOList(groupRepository.findByParentId(parentId));
+    public List<GroupVO> findByParentId(Integer parentId) {
+        return groupMapper.toVOList(groupRepository.findByParentId(parentId));
     }
 
     /**
      * 搜索部门（支持部门名称模糊查询）
      */
-    public List<GroupDTO> search(String keyword) {
+    public List<GroupVO> search(String keyword) {
         if (keyword == null || keyword.trim().isEmpty()) {
             return List.of();
         }
-        return groupMapper.toDTOList(groupRepository.findByNameContaining(keyword));
+        return groupMapper.toVOList(groupRepository.findByNameContaining(keyword));
     }
 
     /**
      * 根据状态查询
      */
-    public List<GroupDTO> findByStatus(Integer status) {
-        return groupMapper.toDTOList(groupRepository.findByStatus(status));
+    public List<GroupVO> findByStatus(Integer status) {
+        return groupMapper.toVOList(groupRepository.findByStatus(status));
     }
 
     /**
      * 获取所有根部门（parentId为null）
      */
-    public List<GroupDTO> findRootGroups() {
-        return groupMapper.toDTOList(groupRepository.findByParentId(null));
+    public List<GroupVO> findRootGroups() {
+        return groupMapper.toVOList(groupRepository.findByParentId(null));
     }
 
     /**
      * 创建部门
      */
     @Transactional
-    public GroupDTO create(GroupDTO groupDTO) {
-        GroupEntity entity = groupMapper.toEntity(groupDTO);
-        return groupMapper.toDTO(groupRepository.save(entity));
+    public GroupVO create(GroupVO groupVO) {
+        GroupEntity entity = groupMapper.toEntity(groupVO);
+        return groupMapper.toVO(groupRepository.save(entity));
     }
 
     /**
      * 更新部门
      */
     @Transactional
-    public GroupDTO update(Integer id, GroupDTO groupDTO) {
+    public GroupVO update(Integer id, GroupVO groupVO) {
         GroupEntity group = groupRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("部门不存在，ID: " + id));
 
-        group.setParentId(groupDTO.getParentId());
-        group.setCode(groupDTO.getCode());
-        group.setName(groupDTO.getName());
-        group.setDescription(groupDTO.getDescription());
-        group.setLeader(groupDTO.getLeader());
-        group.setPhone(groupDTO.getPhone());
-        group.setEmail(groupDTO.getEmail());
-        group.setSort(groupDTO.getSort());
-        group.setStatus(groupDTO.getStatus());
+        group.setParentId(groupVO.getParentId());
+        group.setCode(groupVO.getCode());
+        group.setName(groupVO.getName());
+        group.setDescription(groupVO.getDescription());
+        group.setLeader(groupVO.getLeader());
+        group.setPhone(groupVO.getPhone());
+        group.setEmail(groupVO.getEmail());
+        group.setSort(groupVO.getSort());
+        group.setStatus(groupVO.getStatus());
 
-        return groupMapper.toDTO(groupRepository.save(group));
+        return groupMapper.toVO(groupRepository.save(group));
     }
 
     /**

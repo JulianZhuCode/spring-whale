@@ -1,12 +1,11 @@
 package io.github.springwhale.rbac.controller;
 
-import io.github.springwhale.rbac.dto.UserDTO;
+import io.github.springwhale.rbac.dto.vo.UserVO;
 import io.github.springwhale.rbac.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,11 +25,11 @@ public class UserController {
      * GET /api/rbac/users?page=0&size=20
      */
     @GetMapping
-    public ResponseEntity<Page<UserDTO>> findAll(
+    public Page<UserVO> findAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok(userService.findAll(pageable));
+        return userService.findAll(pageable);
     }
 
     /**
@@ -38,10 +37,9 @@ public class UserController {
      * GET /api/rbac/users/{id}
      */
     @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> findById(@PathVariable Integer id) {
+    public UserVO findById(@PathVariable Integer id) {
         return userService.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new IllegalArgumentException("用户不存在: " + id));
     }
 
     /**
@@ -49,10 +47,9 @@ public class UserController {
      * GET /api/rbac/users/by-username?username=admin
      */
     @GetMapping("/by-username")
-    public ResponseEntity<UserDTO> findByUsername(@RequestParam String username) {
+    public UserVO findByUsername(@RequestParam String username) {
         return userService.findByUsername(username)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new IllegalArgumentException("用户不存在: " + username));
     }
 
     /**
@@ -60,10 +57,9 @@ public class UserController {
      * GET /api/rbac/users/by-email?email=admin@example.com
      */
     @GetMapping("/by-email")
-    public ResponseEntity<UserDTO> findByEmail(@RequestParam String email) {
+    public UserVO findByEmail(@RequestParam String email) {
         return userService.findByEmail(email)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new IllegalArgumentException("用户不存在: " + email));
     }
 
     /**
@@ -71,10 +67,9 @@ public class UserController {
      * GET /api/rbac/users/by-phone?phone=13800138000
      */
     @GetMapping("/by-phone")
-    public ResponseEntity<UserDTO> findByPhone(@RequestParam String phone) {
+    public UserVO findByPhone(@RequestParam String phone) {
         return userService.findByPhone(phone)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new IllegalArgumentException("用户不存在: " + phone));
     }
 
     /**
@@ -82,8 +77,8 @@ public class UserController {
      * GET /api/rbac/users/search?keyword=admin
      */
     @GetMapping("/search")
-    public ResponseEntity<List<UserDTO>> search(@RequestParam String keyword) {
-        return ResponseEntity.ok(userService.search(keyword));
+    public List<UserVO> search(@RequestParam String keyword) {
+        return userService.search(keyword);
     }
 
     /**
@@ -91,8 +86,8 @@ public class UserController {
      * GET /api/rbac/users/by-group?groupId=1
      */
     @GetMapping("/by-group")
-    public ResponseEntity<List<UserDTO>> findByGroupId(@RequestParam Integer groupId) {
-        return ResponseEntity.ok(userService.findByGroupId(groupId));
+    public List<UserVO> findByGroupId(@RequestParam Integer groupId) {
+        return userService.findByGroupId(groupId);
     }
 
     /**
@@ -100,8 +95,8 @@ public class UserController {
      * GET /api/rbac/users/by-status?status=1
      */
     @GetMapping("/by-status")
-    public ResponseEntity<List<UserDTO>> findByStatus(@RequestParam Integer status) {
-        return ResponseEntity.ok(userService.findByStatus(status));
+    public List<UserVO> findByStatus(@RequestParam Integer status) {
+        return userService.findByStatus(status);
     }
 
     /**
@@ -109,8 +104,8 @@ public class UserController {
      * POST /api/rbac/users
      */
     @PostMapping
-    public ResponseEntity<UserDTO> create(@RequestBody UserDTO userDTO) {
-        return ResponseEntity.ok(userService.create(userDTO));
+    public UserVO create(@RequestBody UserVO userVO) {
+        return userService.create(userVO);
     }
 
     /**
@@ -118,8 +113,8 @@ public class UserController {
      * PUT /api/rbac/users/{id}
      */
     @PutMapping("/{id}")
-    public ResponseEntity<UserDTO> update(@PathVariable Integer id, @RequestBody UserDTO userDTO) {
-        return ResponseEntity.ok(userService.update(id, userDTO));
+    public UserVO update(@PathVariable Integer id, @RequestBody UserVO userVO) {
+        return userService.update(id, userVO);
     }
 
     /**
@@ -127,8 +122,7 @@ public class UserController {
      * DELETE /api/rbac/users/{id}
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Integer id) {
+    public void delete(@PathVariable Integer id) {
         userService.delete(id);
-        return ResponseEntity.noContent().build();
     }
 }

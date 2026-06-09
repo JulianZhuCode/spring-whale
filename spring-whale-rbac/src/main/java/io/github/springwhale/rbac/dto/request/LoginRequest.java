@@ -1,4 +1,4 @@
-package io.github.springwhale.rbac.dto;
+package io.github.springwhale.rbac.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

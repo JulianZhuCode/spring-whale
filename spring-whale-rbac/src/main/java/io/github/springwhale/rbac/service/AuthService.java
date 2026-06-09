@@ -1,8 +1,12 @@
 package io.github.springwhale.rbac.service;
 
-import io.github.springwhale.rbac.dto.LoginRequest;
-import io.github.springwhale.rbac.dto.LoginResponse;
+import io.github.springwhale.rbac.dto.request.ChangePasswordRequest;
+import io.github.springwhale.rbac.dto.request.LoginRequest;
+import io.github.springwhale.rbac.dto.request.RegisterRequest;
+import io.github.springwhale.rbac.dto.response.LoginResponse;
+import io.github.springwhale.rbac.dto.vo.UserVO;
 import io.github.springwhale.rbac.entity.UserEntity;
+import io.github.springwhale.rbac.mapper.UserMapper;
 import io.github.springwhale.rbac.repository.UserRepository;
 import io.github.springwhale.framework.webmvc.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +30,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
 
     /**
      * 用户登录
@@ -66,37 +71,47 @@ public class AuthService {
     /**
      * 用户注册
      */
-    public UserEntity register(UserEntity user) {
+    public UserVO register(RegisterRequest request) {
         // 检查用户名是否已存在
-        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
             throw new RuntimeException("用户名已存在");
         }
 
-        // 加密密码
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        // 转换为 Entity
+        UserEntity user = userMapper.toEntity(new UserVO());
+        user.setUsername(request.getUsername());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRealName(request.getRealName());
+        user.setEmail(request.getEmail());
+        user.setPhone(request.getPhone());
+        user.setAvatar(request.getAvatar());
+        user.setGroupId(request.getGroupId());
         
         // 设置默认状态
         if (user.getStatus() == null) {
             user.setStatus(1);
         }
 
-        return userRepository.save(user);
+        UserEntity savedUser = userRepository.save(user);
+        
+        // 转换为 VO
+        return userMapper.toVO(savedUser);
     }
 
     /**
      * 修改密码
      */
-    public void changePassword(Integer userId, String oldPassword, String newPassword) {
+    public void changePassword(Integer userId, ChangePasswordRequest request) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
 
         // 验证旧密码
-        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
             throw new RuntimeException("旧密码错误");
         }
 
         // 更新新密码
-        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
         
         log.info("User {} changed password", userId);

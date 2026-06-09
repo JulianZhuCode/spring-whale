@@ -1,6 +1,6 @@
 package io.github.springwhale.rbac.mapper;
 
-import io.github.springwhale.rbac.dto.UserDTO;
+import io.github.springwhale.rbac.dto.vo.UserVO;
 import io.github.springwhale.rbac.entity.UserEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -8,7 +8,7 @@ import org.mapstruct.factory.Mappers;
 import java.util.List;
 
 /**
- * 用户实体与DTO转换器（MapStruct）
+ * 用户实体与VO转换器（MapStruct）
  */
 @Mapper(componentModel = "spring")
 public interface UserMapper {
@@ -16,17 +16,17 @@ public interface UserMapper {
     UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
 
     /**
-     * Entity → DTO
+     * Entity → VO
      */
-    UserDTO toDTO(UserEntity entity);
+    UserVO toVO(UserEntity entity);
 
     /**
-     * DTO → Entity
+     * VO → Entity
      */
-    UserEntity toEntity(UserDTO dto);
+    UserEntity toEntity(UserVO vo);
 
     /**
-     * Entity列表 → DTO列表
+     * Entity列表 → VO列表
      */
-    List<UserDTO> toDTOList(List<UserEntity> entities);
+    List<UserVO> toVOList(List<UserEntity> entities);
 }

@@ -1,6 +1,8 @@
 package io.github.springwhale.rbac.service;
 
+import io.github.springwhale.rbac.dto.vo.UserRoleVO;
 import io.github.springwhale.rbac.entity.UserRoleEntity;
+import io.github.springwhale.rbac.mapper.UserRoleMapper;
 import io.github.springwhale.rbac.repository.UserRoleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,19 +19,22 @@ import java.util.List;
 public class UserRoleService {
 
     private final UserRoleRepository userRoleRepository;
+    private final UserRoleMapper userRoleMapper;
 
     /**
      * 根据用户ID查询所有角色关联
      */
-    public List<UserRoleEntity> findByUserId(Integer userId) {
-        return userRoleRepository.findByUserId(userId);
+    public List<UserRoleVO> findByUserId(Integer userId) {
+        List<UserRoleEntity> entities = userRoleRepository.findByUserId(userId);
+        return userRoleMapper.toVOList(entities);
     }
 
     /**
      * 根据角色ID查询所有用户关联
      */
-    public List<UserRoleEntity> findByRoleId(Integer roleId) {
-        return userRoleRepository.findByRoleId(roleId);
+    public List<UserRoleVO> findByRoleId(Integer roleId) {
+        List<UserRoleEntity> entities = userRoleRepository.findByRoleId(roleId);
+        return userRoleMapper.toVOList(entities);
     }
 
     /**

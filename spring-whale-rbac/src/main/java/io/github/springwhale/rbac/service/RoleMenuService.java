@@ -1,6 +1,8 @@
 package io.github.springwhale.rbac.service;
 
+import io.github.springwhale.rbac.dto.vo.RoleMenuVO;
 import io.github.springwhale.rbac.entity.RoleMenuEntity;
+import io.github.springwhale.rbac.mapper.RoleMenuMapper;
 import io.github.springwhale.rbac.repository.RoleMenuRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,19 +19,22 @@ import java.util.List;
 public class RoleMenuService {
 
     private final RoleMenuRepository roleMenuRepository;
+    private final RoleMenuMapper roleMenuMapper;
 
     /**
      * 根据角色ID查询所有菜单关联
      */
-    public List<RoleMenuEntity> findByRoleId(Integer roleId) {
-        return roleMenuRepository.findByRoleId(roleId);
+    public List<RoleMenuVO> findByRoleId(Integer roleId) {
+        List<RoleMenuEntity> entities = roleMenuRepository.findByRoleId(roleId);
+        return roleMenuMapper.toVOList(entities);
     }
 
     /**
      * 根据菜单ID查询所有角色关联
      */
-    public List<RoleMenuEntity> findByMenuId(Integer menuId) {
-        return roleMenuRepository.findByMenuId(menuId);
+    public List<RoleMenuVO> findByMenuId(Integer menuId) {
+        List<RoleMenuEntity> entities = roleMenuRepository.findByMenuId(menuId);
+        return roleMenuMapper.toVOList(entities);
     }
 
     /**
