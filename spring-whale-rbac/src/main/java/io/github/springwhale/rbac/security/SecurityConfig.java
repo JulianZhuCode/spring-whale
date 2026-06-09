@@ -76,38 +76,25 @@ public class SecurityConfig {
         log.info("Permit all URLs: {}", permitAllUrls);
 
         http
-                // CSRF 配置
                 .csrf(csrf -> {
                     if (!securityProperties.isCsrfEnabled()) {
                         csrf.disable();
                     }
                 })
-
-                // CORS 配置
                 .cors(cors -> {
                     if (securityProperties.isCorsEnabled()) {
                         cors.configurationSource(corsConfigurationSource);
                     }
                 })
-
-                // 设置会话策略为无状态
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-                // 授权规则
                 .authorizeHttpRequests(auth -> {
-                    // 配置的匿名访问接口
                     for (String url : permitAllUrls) {
                         auth.requestMatchers(url).permitAll();
                     }
-
-                    // 其他请求需要认证
                     auth.anyRequest().authenticated();
                 })
-
-                // 添加 JWT 过滤器
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-        // 应用提供者的自定义配置
         applyCustomConfigurations(http);
 
         return http.build();
