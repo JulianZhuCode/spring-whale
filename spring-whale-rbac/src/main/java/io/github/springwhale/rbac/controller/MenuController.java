@@ -1,7 +1,10 @@
 package io.github.springwhale.rbac.controller;
 
+import io.github.springwhale.framework.core.exception.BusinessException;
+import io.github.springwhale.rbac.dto.request.MenuRequest;
 import io.github.springwhale.rbac.dto.vo.MenuVO;
 import io.github.springwhale.rbac.service.MenuService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -39,7 +42,7 @@ public class MenuController {
     @GetMapping("/{id}")
     public MenuVO findById(@PathVariable Integer id) {
         return menuService.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("菜单不存在: " + id));
+                .orElseThrow(() -> BusinessException.create("MENU_NOT_FOUND", "菜单不存在: " + id));
     }
 
     /**
@@ -49,7 +52,7 @@ public class MenuController {
     @GetMapping("/by-code")
     public MenuVO findByCode(@RequestParam String code) {
         return menuService.findByCode(code)
-                .orElseThrow(() -> new IllegalArgumentException("菜单不存在: " + code));
+                .orElseThrow(() -> BusinessException.create("MENU_NOT_FOUND", "菜单不存在: " + code));
     }
 
     /**
@@ -111,8 +114,8 @@ public class MenuController {
      * POST /api/rbac/menus
      */
     @PostMapping
-    public MenuVO create(@RequestBody MenuVO menuVO) {
-        return menuService.create(menuVO);
+    public MenuVO create(@Valid @RequestBody MenuRequest request) {
+        return menuService.create(request);
     }
 
     /**
@@ -120,8 +123,8 @@ public class MenuController {
      * PUT /api/rbac/menus/{id}
      */
     @PutMapping("/{id}")
-    public MenuVO update(@PathVariable Integer id, @RequestBody MenuVO menuVO) {
-        return menuService.update(id, menuVO);
+    public MenuVO update(@PathVariable Integer id, @Valid @RequestBody MenuRequest request) {
+        return menuService.update(id, request);
     }
 
     /**

@@ -1,5 +1,7 @@
 package io.github.springwhale.rbac.service;
 
+import io.github.springwhale.framework.core.exception.BusinessException;
+import io.github.springwhale.rbac.dto.request.RoleRequest;
 import io.github.springwhale.rbac.dto.vo.RoleVO;
 import io.github.springwhale.rbac.entity.RoleEntity;
 import io.github.springwhale.rbac.mapper.RoleMapper;
@@ -66,8 +68,13 @@ public class RoleService {
      * 创建角色
      */
     @Transactional
-    public RoleVO create(RoleVO roleVO) {
-        RoleEntity entity = roleMapper.toEntity(roleVO);
+    public RoleVO create(RoleRequest request) {
+        RoleEntity entity = new RoleEntity();
+        entity.setCode(request.getCode());
+        entity.setName(request.getName());
+        entity.setDescription(request.getDescription());
+        entity.setStatus(request.getStatus());
+        entity.setSort(request.getSort());
         return roleMapper.toVO(roleRepository.save(entity));
     }
 
@@ -75,15 +82,15 @@ public class RoleService {
      * 更新角色
      */
     @Transactional
-    public RoleVO update(Integer id, RoleVO roleVO) {
+    public RoleVO update(Integer id, RoleRequest request) {
         RoleEntity role = roleRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("角色不存在，ID: " + id));
+                .orElseThrow(() -> BusinessException.create("ROLE_NOT_FOUND", "角色不存在，ID: " + id));
 
-        role.setCode(roleVO.getCode());
-        role.setName(roleVO.getName());
-        role.setDescription(roleVO.getDescription());
-        role.setStatus(roleVO.getStatus());
-        role.setSort(roleVO.getSort());
+        role.setCode(request.getCode());
+        role.setName(request.getName());
+        role.setDescription(request.getDescription());
+        role.setStatus(request.getStatus());
+        role.setSort(request.getSort());
 
         return roleMapper.toVO(roleRepository.save(role));
     }
@@ -94,7 +101,7 @@ public class RoleService {
     @Transactional
     public void delete(Integer id) {
         RoleEntity role = roleRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("角色不存在，ID: " + id));
+                .orElseThrow(() -> BusinessException.create("ROLE_NOT_FOUND", "角色不存在，ID: " + id));
         roleRepository.delete(role);
     }
 }

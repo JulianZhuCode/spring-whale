@@ -1,7 +1,10 @@
 package io.github.springwhale.rbac.controller;
 
+import io.github.springwhale.framework.core.exception.BusinessException;
+import io.github.springwhale.rbac.dto.request.RoleRequest;
 import io.github.springwhale.rbac.dto.vo.RoleVO;
 import io.github.springwhale.rbac.service.RoleService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -39,7 +42,7 @@ public class RoleController {
     @GetMapping("/{id}")
     public RoleVO findById(@PathVariable Integer id) {
         return roleService.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("角色不存在: " + id));
+                .orElseThrow(() -> BusinessException.create("ROLE_NOT_FOUND", "角色不存在: " + id));
     }
 
     /**
@@ -49,7 +52,7 @@ public class RoleController {
     @GetMapping("/by-code")
     public RoleVO findByCode(@RequestParam String code) {
         return roleService.findByCode(code)
-                .orElseThrow(() -> new IllegalArgumentException("角色不存在: " + code));
+                .orElseThrow(() -> BusinessException.create("ROLE_NOT_FOUND", "角色不存在: " + code));
     }
 
     /**
@@ -75,8 +78,8 @@ public class RoleController {
      * POST /api/rbac/roles
      */
     @PostMapping
-    public RoleVO create(@RequestBody RoleVO roleVO) {
-        return roleService.create(roleVO);
+    public RoleVO create(@Valid @RequestBody RoleRequest request) {
+        return roleService.create(request);
     }
 
     /**
@@ -84,8 +87,8 @@ public class RoleController {
      * PUT /api/rbac/roles/{id}
      */
     @PutMapping("/{id}")
-    public RoleVO update(@PathVariable Integer id, @RequestBody RoleVO roleVO) {
-        return roleService.update(id, roleVO);
+    public RoleVO update(@PathVariable Integer id, @Valid @RequestBody RoleRequest request) {
+        return roleService.update(id, request);
     }
 
     /**

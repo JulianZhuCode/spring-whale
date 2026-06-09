@@ -1,7 +1,10 @@
 package io.github.springwhale.rbac.controller;
 
+import io.github.springwhale.framework.core.exception.BusinessException;
+import io.github.springwhale.rbac.dto.request.GroupRequest;
 import io.github.springwhale.rbac.dto.vo.GroupVO;
 import io.github.springwhale.rbac.service.GroupService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -39,7 +42,7 @@ public class GroupController {
     @GetMapping("/{id}")
     public GroupVO findById(@PathVariable Integer id) {
         return groupService.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("部门不存在: " + id));
+                .orElseThrow(() -> BusinessException.create("GROUP_NOT_FOUND", "部门不存在: " + id));
     }
 
     /**
@@ -49,7 +52,7 @@ public class GroupController {
     @GetMapping("/by-code")
     public GroupVO findByCode(@RequestParam String code) {
         return groupService.findByCode(code)
-                .orElseThrow(() -> new IllegalArgumentException("部门不存在: " + code));
+                .orElseThrow(() -> BusinessException.create("GROUP_NOT_FOUND", "部门不存在: " + code));
     }
 
     /**
@@ -93,8 +96,8 @@ public class GroupController {
      * POST /api/rbac/groups
      */
     @PostMapping
-    public GroupVO create(@RequestBody GroupVO groupVO) {
-        return groupService.create(groupVO);
+    public GroupVO create(@Valid @RequestBody GroupRequest request) {
+        return groupService.create(request);
     }
 
     /**
@@ -102,8 +105,8 @@ public class GroupController {
      * PUT /api/rbac/groups/{id}
      */
     @PutMapping("/{id}")
-    public GroupVO update(@PathVariable Integer id, @RequestBody GroupVO groupVO) {
-        return groupService.update(id, groupVO);
+    public GroupVO update(@PathVariable Integer id, @Valid @RequestBody GroupRequest request) {
+        return groupService.update(id, request);
     }
 
     /**

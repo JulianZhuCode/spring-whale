@@ -1,5 +1,6 @@
 package io.github.springwhale.rbac.service;
 
+import io.github.springwhale.framework.core.exception.BusinessException;
 import io.github.springwhale.rbac.dto.vo.UserRoleVO;
 import io.github.springwhale.rbac.entity.UserRoleEntity;
 import io.github.springwhale.rbac.mapper.UserRoleMapper;
@@ -44,7 +45,7 @@ public class UserRoleService {
     public void assignRoleToUser(Integer userId, Integer roleId) {
         // 检查是否已存在
         if (userRoleRepository.findByUserIdAndRoleId(userId, roleId).isPresent()) {
-            throw new RuntimeException("用户已拥有该角色");
+            throw BusinessException.create("USER_ROLE_ALREADY_EXISTS", "用户已拥有该角色");
         }
         
         UserRoleEntity userRole = new UserRoleEntity();
@@ -76,7 +77,7 @@ public class UserRoleService {
     @Transactional
     public void removeRoleFromUser(Integer userId, Integer roleId) {
         UserRoleEntity userRole = userRoleRepository.findByUserIdAndRoleId(userId, roleId)
-                .orElseThrow(() -> new RuntimeException("用户角色关联不存在"));
+                .orElseThrow(() -> BusinessException.create("USER_ROLE_NOT_FOUND", "用户角色关联不存在"));
         userRoleRepository.delete(userRole);
     }
 

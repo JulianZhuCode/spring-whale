@@ -1,5 +1,6 @@
 package io.github.springwhale.rbac.service;
 
+import io.github.springwhale.framework.core.exception.BusinessException;
 import io.github.springwhale.rbac.dto.vo.RoleMenuVO;
 import io.github.springwhale.rbac.entity.RoleMenuEntity;
 import io.github.springwhale.rbac.mapper.RoleMenuMapper;
@@ -44,7 +45,7 @@ public class RoleMenuService {
     public void assignMenuToRole(Integer roleId, Integer menuId) {
         // 检查是否已存在
         if (roleMenuRepository.findByRoleIdAndMenuId(roleId, menuId).isPresent()) {
-            throw new RuntimeException("角色已拥有该菜单权限");
+            throw BusinessException.create("ROLE_MENU_ALREADY_EXISTS", "角色已拥有该菜单权限");
         }
         
         RoleMenuEntity roleMenu = new RoleMenuEntity();
@@ -76,7 +77,7 @@ public class RoleMenuService {
     @Transactional
     public void removeMenuFromRole(Integer roleId, Integer menuId) {
         RoleMenuEntity roleMenu = roleMenuRepository.findByRoleIdAndMenuId(roleId, menuId)
-                .orElseThrow(() -> new RuntimeException("角色菜单关联不存在"));
+                .orElseThrow(() -> BusinessException.create("ROLE_MENU_NOT_FOUND", "角色菜单关联不存在"));
         roleMenuRepository.delete(roleMenu);
     }
 

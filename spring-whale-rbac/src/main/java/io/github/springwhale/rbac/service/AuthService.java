@@ -1,5 +1,6 @@
 package io.github.springwhale.rbac.service;
 
+import io.github.springwhale.framework.core.exception.BusinessException;
 import io.github.springwhale.rbac.dto.request.ChangePasswordRequest;
 import io.github.springwhale.rbac.dto.request.LoginRequest;
 import io.github.springwhale.rbac.dto.request.RegisterRequest;
@@ -14,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -37,8 +37,8 @@ public class AuthService {
      */
     public LoginResponse login(LoginRequest request) {
         try {
-            // 1. 验证用户名和密码
-            Authentication authentication = authenticationManager.authenticate(
+            // 1. 验证用户名和密码（如果失败会抛出 BadCredentialsException）
+            authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             request.getUsername(),
                             request.getPassword()
@@ -74,7 +74,7 @@ public class AuthService {
     public UserVO register(RegisterRequest request) {
         // 检查用户名是否已存在
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
-            throw new RuntimeException("用户名已存在");
+            throw BusinessException.create("USER_ALREADY_EXISTS", "用户名已存在");
         }
 
         // 转换为 Entity
@@ -103,11 +103,11 @@ public class AuthService {
      */
     public void changePassword(Integer userId, ChangePasswordRequest request) {
         UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("用户不存在"));
+                .orElseThrow(() -> BusinessException.create("USER_NOT_FOUND", "用户不存在"));
 
         // 验证旧密码
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
-            throw new RuntimeException("旧密码错误");
+            throw BusinessException.create("OLD_PASSWORD_INCORRECT", "旧密码错误");
         }
 
         // 更新新密码

@@ -1,5 +1,7 @@
 package io.github.springwhale.rbac.service;
 
+import io.github.springwhale.framework.core.exception.BusinessException;
+import io.github.springwhale.rbac.dto.request.GroupRequest;
 import io.github.springwhale.rbac.dto.vo.GroupVO;
 import io.github.springwhale.rbac.entity.GroupEntity;
 import io.github.springwhale.rbac.mapper.GroupMapper;
@@ -80,8 +82,17 @@ public class GroupService {
      * 创建部门
      */
     @Transactional
-    public GroupVO create(GroupVO groupVO) {
-        GroupEntity entity = groupMapper.toEntity(groupVO);
+    public GroupVO create(GroupRequest request) {
+        GroupEntity entity = new GroupEntity();
+        entity.setParentId(request.getParentId());
+        entity.setCode(request.getCode());
+        entity.setName(request.getName());
+        entity.setDescription(request.getDescription());
+        entity.setLeader(request.getLeader());
+        entity.setPhone(request.getPhone());
+        entity.setEmail(request.getEmail());
+        entity.setSort(request.getSort());
+        entity.setStatus(request.getStatus());
         return groupMapper.toVO(groupRepository.save(entity));
     }
 
@@ -89,19 +100,19 @@ public class GroupService {
      * 更新部门
      */
     @Transactional
-    public GroupVO update(Integer id, GroupVO groupVO) {
+    public GroupVO update(Integer id, GroupRequest request) {
         GroupEntity group = groupRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("部门不存在，ID: " + id));
+                .orElseThrow(() -> BusinessException.create("GROUP_NOT_FOUND", "部门不存在，ID: " + id));
 
-        group.setParentId(groupVO.getParentId());
-        group.setCode(groupVO.getCode());
-        group.setName(groupVO.getName());
-        group.setDescription(groupVO.getDescription());
-        group.setLeader(groupVO.getLeader());
-        group.setPhone(groupVO.getPhone());
-        group.setEmail(groupVO.getEmail());
-        group.setSort(groupVO.getSort());
-        group.setStatus(groupVO.getStatus());
+        group.setParentId(request.getParentId());
+        group.setCode(request.getCode());
+        group.setName(request.getName());
+        group.setDescription(request.getDescription());
+        group.setLeader(request.getLeader());
+        group.setPhone(request.getPhone());
+        group.setEmail(request.getEmail());
+        group.setSort(request.getSort());
+        group.setStatus(request.getStatus());
 
         return groupMapper.toVO(groupRepository.save(group));
     }
@@ -112,7 +123,7 @@ public class GroupService {
     @Transactional
     public void delete(Integer id) {
         GroupEntity group = groupRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("部门不存在，ID: " + id));
+                .orElseThrow(() -> BusinessException.create("GROUP_NOT_FOUND", "部门不存在，ID: " + id));
         groupRepository.delete(group);
     }
 }

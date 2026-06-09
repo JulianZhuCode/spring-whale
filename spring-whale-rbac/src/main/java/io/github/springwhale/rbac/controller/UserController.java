@@ -1,7 +1,10 @@
 package io.github.springwhale.rbac.controller;
 
+import io.github.springwhale.framework.core.exception.BusinessException;
+import io.github.springwhale.rbac.dto.request.UserRequest;
 import io.github.springwhale.rbac.dto.vo.UserVO;
 import io.github.springwhale.rbac.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -39,7 +42,7 @@ public class UserController {
     @GetMapping("/{id}")
     public UserVO findById(@PathVariable Integer id) {
         return userService.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("用户不存在: " + id));
+                .orElseThrow(() -> BusinessException.create("USER_NOT_FOUND", "用户不存在: " + id));
     }
 
     /**
@@ -49,7 +52,7 @@ public class UserController {
     @GetMapping("/by-username")
     public UserVO findByUsername(@RequestParam String username) {
         return userService.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("用户不存在: " + username));
+                .orElseThrow(() -> BusinessException.create("USER_NOT_FOUND", "用户不存在: " + username));
     }
 
     /**
@@ -59,7 +62,7 @@ public class UserController {
     @GetMapping("/by-email")
     public UserVO findByEmail(@RequestParam String email) {
         return userService.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("用户不存在: " + email));
+                .orElseThrow(() -> BusinessException.create("USER_NOT_FOUND", "用户不存在: " + email));
     }
 
     /**
@@ -69,7 +72,7 @@ public class UserController {
     @GetMapping("/by-phone")
     public UserVO findByPhone(@RequestParam String phone) {
         return userService.findByPhone(phone)
-                .orElseThrow(() -> new IllegalArgumentException("用户不存在: " + phone));
+                .orElseThrow(() -> BusinessException.create("USER_NOT_FOUND", "用户不存在: " + phone));
     }
 
     /**
@@ -104,8 +107,8 @@ public class UserController {
      * POST /api/rbac/users
      */
     @PostMapping
-    public UserVO create(@RequestBody UserVO userVO) {
-        return userService.create(userVO);
+    public UserVO create(@Valid @RequestBody UserRequest request) {
+        return userService.create(request);
     }
 
     /**
@@ -113,8 +116,8 @@ public class UserController {
      * PUT /api/rbac/users/{id}
      */
     @PutMapping("/{id}")
-    public UserVO update(@PathVariable Integer id, @RequestBody UserVO userVO) {
-        return userService.update(id, userVO);
+    public UserVO update(@PathVariable Integer id, @Valid @RequestBody UserRequest request) {
+        return userService.update(id, request);
     }
 
     /**

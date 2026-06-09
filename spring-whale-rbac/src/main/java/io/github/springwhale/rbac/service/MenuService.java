@@ -1,5 +1,7 @@
 package io.github.springwhale.rbac.service;
 
+import io.github.springwhale.framework.core.exception.BusinessException;
+import io.github.springwhale.rbac.dto.request.MenuRequest;
 import io.github.springwhale.rbac.dto.vo.MenuVO;
 import io.github.springwhale.rbac.entity.MenuEntity;
 import io.github.springwhale.rbac.mapper.MenuMapper;
@@ -94,8 +96,19 @@ public class MenuService {
      * 创建菜单
      */
     @Transactional
-    public MenuVO create(MenuVO menuVO) {
-        MenuEntity entity = menuMapper.toEntity(menuVO);
+    public MenuVO create(MenuRequest request) {
+        MenuEntity entity = new MenuEntity();
+        entity.setParentId(request.getParentId());
+        entity.setCode(request.getCode());
+        entity.setName(request.getName());
+        entity.setType(request.getType());
+        entity.setPath(request.getPath());
+        entity.setComponent(request.getComponent());
+        entity.setPermission(request.getPermission());
+        entity.setIcon(request.getIcon());
+        entity.setSort(request.getSort());
+        entity.setVisible(request.getVisible());
+        entity.setStatus(request.getStatus());
         return menuMapper.toVO(menuRepository.save(entity));
     }
 
@@ -103,21 +116,21 @@ public class MenuService {
      * 更新菜单
      */
     @Transactional
-    public MenuVO update(Integer id, MenuVO menuVO) {
+    public MenuVO update(Integer id, MenuRequest request) {
         MenuEntity menu = menuRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("菜单不存在，ID: " + id));
+                .orElseThrow(() -> BusinessException.create("MENU_NOT_FOUND", "菜单不存在，ID: " + id));
 
-        menu.setParentId(menuVO.getParentId());
-        menu.setCode(menuVO.getCode());
-        menu.setName(menuVO.getName());
-        menu.setType(menuVO.getType());
-        menu.setPath(menuVO.getPath());
-        menu.setComponent(menuVO.getComponent());
-        menu.setPermission(menuVO.getPermission());
-        menu.setIcon(menuVO.getIcon());
-        menu.setSort(menuVO.getSort());
-        menu.setVisible(menuVO.getVisible());
-        menu.setStatus(menuVO.getStatus());
+        menu.setParentId(request.getParentId());
+        menu.setCode(request.getCode());
+        menu.setName(request.getName());
+        menu.setType(request.getType());
+        menu.setPath(request.getPath());
+        menu.setComponent(request.getComponent());
+        menu.setPermission(request.getPermission());
+        menu.setIcon(request.getIcon());
+        menu.setSort(request.getSort());
+        menu.setVisible(request.getVisible());
+        menu.setStatus(request.getStatus());
 
         return menuMapper.toVO(menuRepository.save(menu));
     }
@@ -128,7 +141,7 @@ public class MenuService {
     @Transactional
     public void delete(Integer id) {
         MenuEntity menu = menuRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("菜单不存在，ID: " + id));
+                .orElseThrow(() -> BusinessException.create("MENU_NOT_FOUND", "菜单不存在，ID: " + id));
         menuRepository.delete(menu);
     }
 }

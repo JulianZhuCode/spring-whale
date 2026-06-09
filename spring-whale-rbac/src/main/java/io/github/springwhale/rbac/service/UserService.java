@@ -1,5 +1,7 @@
 package io.github.springwhale.rbac.service;
 
+import io.github.springwhale.framework.core.exception.BusinessException;
+import io.github.springwhale.rbac.dto.request.UserRequest;
 import io.github.springwhale.rbac.dto.vo.UserVO;
 import io.github.springwhale.rbac.entity.UserEntity;
 import io.github.springwhale.rbac.mapper.UserMapper;
@@ -92,8 +94,15 @@ public class UserService {
      * 创建用户
      */
     @Transactional
-    public UserVO create(UserVO userVO) {
-        UserEntity entity = userMapper.toEntity(userVO);
+    public UserVO create(UserRequest request) {
+        UserEntity entity = new UserEntity();
+        entity.setUsername(request.getUsername());
+        entity.setRealName(request.getRealName());
+        entity.setEmail(request.getEmail());
+        entity.setPhone(request.getPhone());
+        entity.setAvatar(request.getAvatar());
+        entity.setStatus(request.getStatus());
+        entity.setGroupId(request.getGroupId());
         return userMapper.toVO(userRepository.save(entity));
     }
 
@@ -101,17 +110,17 @@ public class UserService {
      * 更新用户
      */
     @Transactional
-    public UserVO update(Integer id, UserVO userVO) {
+    public UserVO update(Integer id, UserRequest request) {
         UserEntity user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("用户不存在，ID: " + id));
+                .orElseThrow(() -> BusinessException.create("USER_NOT_FOUND", "用户不存在，ID: " + id));
 
-        user.setUsername(userVO.getUsername());
-        user.setRealName(userVO.getRealName());
-        user.setEmail(userVO.getEmail());
-        user.setPhone(userVO.getPhone());
-        user.setAvatar(userVO.getAvatar());
-        user.setStatus(userVO.getStatus());
-        user.setGroupId(userVO.getGroupId());
+        user.setUsername(request.getUsername());
+        user.setRealName(request.getRealName());
+        user.setEmail(request.getEmail());
+        user.setPhone(request.getPhone());
+        user.setAvatar(request.getAvatar());
+        user.setStatus(request.getStatus());
+        user.setGroupId(request.getGroupId());
 
         return userMapper.toVO(userRepository.save(user));
     }
@@ -122,7 +131,7 @@ public class UserService {
     @Transactional
     public void delete(Integer id) {
         UserEntity user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("用户不存在，ID: " + id));
+                .orElseThrow(() -> BusinessException.create("USER_NOT_FOUND", "用户不存在，ID: " + id));
         userRepository.delete(user);
     }
 }
