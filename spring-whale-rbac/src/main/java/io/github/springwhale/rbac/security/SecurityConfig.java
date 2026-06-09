@@ -61,7 +61,7 @@ public class SecurityConfig {
      * 认证管理器
      */
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) {
         return config.getAuthenticationManager();
     }
 
@@ -69,7 +69,7 @@ public class SecurityConfig {
      * 安全过滤链配置
      */
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, @Qualifier("corsConfigurationSource") CorsConfigurationSource corsConfigurationSource) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, @Qualifier("corsConfigurationSource") CorsConfigurationSource corsConfigurationSource) {
         // 收集所有允许匿名访问的 URL
         List<String> permitAllUrls = collectPermitAllUrls();
 
@@ -126,9 +126,9 @@ public class SecurityConfig {
     /**
      * 应用提供者的自定义配置
      */
-    private void applyCustomConfigurations(HttpSecurity http) throws Exception {
+    private void applyCustomConfigurations(HttpSecurity http) {
         configProviders.stream()
-                .sorted((p1, p2) -> Integer.compare(p1.getOrder(), p2.getOrder()))
+                .sorted(Comparator.comparingInt(SecurityConfigProvider::getOrder))
                 .forEach(provider -> {
                     try {
                         provider.configure(http);
@@ -145,6 +145,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
+        securityProperties.getAllowedOriginPatterns().forEach(configuration::addAllowedOriginPattern);
         configuration.addAllowedOriginPattern("*");
         configuration.addAllowedMethod("*");
         configuration.addAllowedHeader("*");

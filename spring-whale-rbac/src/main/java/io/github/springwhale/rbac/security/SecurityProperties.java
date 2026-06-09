@@ -17,6 +17,8 @@ public class SecurityProperties {
 
     private List<String> permitAllUrls = new ArrayList<>();
 
+    private List<String> allowedOriginPatterns = new ArrayList<>();
+
     private boolean csrfEnabled = false;
 
     private boolean corsEnabled = true;
