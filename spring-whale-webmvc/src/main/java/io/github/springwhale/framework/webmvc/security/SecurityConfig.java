@@ -25,9 +25,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * Spring Security 配置
- */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -40,17 +37,11 @@ public class SecurityConfig {
     private final SecurityProperties securityProperties;
     private final List<io.github.springwhale.framework.webmvc.security.SecurityConfigProvider> configProviders;
 
-    /**
-     * 密码编码器
-     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    /**
-     * 认证提供者
-     */
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
@@ -58,17 +49,11 @@ public class SecurityConfig {
         return provider;
     }
 
-    /**
-     * 认证管理器
-     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) {
         return config.getAuthenticationManager();
     }
 
-    /**
-     * 安全过滤链配置
-     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, @Qualifier("corsConfigurationSource") CorsConfigurationSource corsConfigurationSource) {
         // 收集所有允许匿名访问的 URL
@@ -101,9 +86,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-    /**
-     * 收集所有允许匿名访问的 URL
-     */
     private List<String> collectPermitAllUrls() {
         return configProviders.stream()
                 .sorted(Comparator.comparingInt(io.github.springwhale.framework.webmvc.security.SecurityConfigProvider::getOrder))
@@ -111,9 +93,6 @@ public class SecurityConfig {
                 .toList();
     }
 
-    /**
-     * 应用提供者的自定义配置
-     */
     private void applyCustomConfigurations(HttpSecurity http) {
         configProviders.stream()
                 .sorted(Comparator.comparingInt(io.github.springwhale.framework.webmvc.security.SecurityConfigProvider::getOrder))
@@ -127,9 +106,6 @@ public class SecurityConfig {
                 });
     }
 
-    /**
-     * CORS 配置源
-     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
