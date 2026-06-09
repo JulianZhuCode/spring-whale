@@ -1,10 +1,10 @@
-package io.github.springwhale.rbac.security;
+package io.github.springwhale.framework.webmvc.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -18,19 +18,16 @@ import java.util.Map;
  */
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class JwtUtil {
 
-    @Value("${spring.whale.rbac.jwt.secret:SpringWhaleRBACSecretKey2024ForJWTTokenGeneration}")
-    private String secret;
-
-    @Value("${spring.whale.rbac.jwt.expiration:86400000}")
-    private Long expiration;
+    private final SecurityProperties securityProperties;
 
     /**
      * 生成密钥
      */
     private SecretKey getSignKey() {
-        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        return Keys.hmacShaKeyFor(securityProperties.getJwtSecret().getBytes(StandardCharsets.UTF_8));
     }
 
     /**
@@ -45,7 +42,7 @@ public class JwtUtil {
                 .claims(claims)
                 .subject(username)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .expiration(new Date(System.currentTimeMillis() + securityProperties.getJwtExpiration()))
                 .signWith(getSignKey())
                 .compact();
     }

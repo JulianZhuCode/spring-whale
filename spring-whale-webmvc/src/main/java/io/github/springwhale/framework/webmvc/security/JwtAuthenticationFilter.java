@@ -1,4 +1,4 @@
-package io.github.springwhale.rbac.security;
+package io.github.springwhale.framework.webmvc.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

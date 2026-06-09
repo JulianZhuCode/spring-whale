@@ -4,7 +4,7 @@ import io.github.springwhale.rbac.dto.LoginRequest;
 import io.github.springwhale.rbac.dto.LoginResponse;
 import io.github.springwhale.rbac.entity.UserEntity;
 import io.github.springwhale.rbac.repository.UserRepository;
-import io.github.springwhale.rbac.security.JwtUtil;
+import io.github.springwhale.framework.webmvc.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;

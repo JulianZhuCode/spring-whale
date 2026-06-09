@@ -1,4 +1,4 @@
-package io.github.springwhale.rbac.security;
+package io.github.springwhale.framework.webmvc.security;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -35,9 +36,9 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final UserDetailsServiceImpl userDetailsService;
+    private final UserDetailsService userDetailsService;
     private final SecurityProperties securityProperties;
-    private final List<SecurityConfigProvider> configProviders;
+    private final List<io.github.springwhale.framework.webmvc.security.SecurityConfigProvider> configProviders;
 
     /**
      * 密码编码器
@@ -105,7 +106,7 @@ public class SecurityConfig {
      */
     private List<String> collectPermitAllUrls() {
         return configProviders.stream()
-                .sorted(Comparator.comparingInt(SecurityConfigProvider::getOrder))
+                .sorted(Comparator.comparingInt(io.github.springwhale.framework.webmvc.security.SecurityConfigProvider::getOrder))
                 .flatMap(provider -> provider.getPermitAllUrls().stream())
                 .toList();
     }
@@ -115,7 +116,7 @@ public class SecurityConfig {
      */
     private void applyCustomConfigurations(HttpSecurity http) {
         configProviders.stream()
-                .sorted(Comparator.comparingInt(SecurityConfigProvider::getOrder))
+                .sorted(Comparator.comparingInt(io.github.springwhale.framework.webmvc.security.SecurityConfigProvider::getOrder))
                 .forEach(provider -> {
                     try {
                         provider.configure(http);

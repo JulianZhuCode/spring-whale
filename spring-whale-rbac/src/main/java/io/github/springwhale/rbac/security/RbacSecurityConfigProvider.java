@@ -1,5 +1,6 @@
 package io.github.springwhale.rbac.security;
 
+import io.github.springwhale.framework.webmvc.security.SecurityConfigProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -10,9 +11,7 @@ import java.util.List;
  */
 @Component
 @RequiredArgsConstructor
-public class DefaultSecurityConfigProvider implements SecurityConfigProvider {
-
-    private final SecurityProperties securityProperties;
+public class RbacSecurityConfigProvider implements SecurityConfigProvider {
 
     @Override
     public List<String> getPermitAllUrls() {

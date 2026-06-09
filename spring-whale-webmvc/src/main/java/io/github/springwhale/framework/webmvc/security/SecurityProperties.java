@@ -1,4 +1,4 @@
-package io.github.springwhale.rbac.security;
+package io.github.springwhale.framework.webmvc.security;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -12,7 +12,7 @@ import java.util.List;
  */
 @Data
 @Component
-@ConfigurationProperties(prefix = "spring.whale.rbac.security")
+@ConfigurationProperties(prefix = "spring.whale.web-mvc.security")
 public class SecurityProperties {
 
     private List<String> permitAllUrls = new ArrayList<>();
@@ -26,4 +26,8 @@ public class SecurityProperties {
     private String tokenPrefix = "Bearer ";
 
     private String tokenHeader = "Authorization";
+
+    private String jwtSecret = "SpringWhaleSecretKey2024ForJWTTokenGeneration";
+
+    private long jwtExpiration = 86400000;
 }
