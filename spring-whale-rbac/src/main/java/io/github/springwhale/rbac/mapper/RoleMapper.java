@@ -3,7 +3,6 @@ package io.github.springwhale.rbac.mapper;
 import io.github.springwhale.rbac.dto.vo.RoleVO;
 import io.github.springwhale.rbac.entity.RoleEntity;
 import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
 
 import java.util.List;
 
@@ -12,8 +11,6 @@ import java.util.List;
  */
 @Mapper(componentModel = "spring")
 public interface RoleMapper {
-
-    RoleMapper INSTANCE = Mappers.getMapper(RoleMapper.class);
 
     /**
      * Entity → VO

@@ -3,7 +3,6 @@ package io.github.springwhale.rbac.mapper;
 import io.github.springwhale.rbac.dto.vo.GroupVO;
 import io.github.springwhale.rbac.entity.GroupEntity;
 import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
 
 import java.util.List;
 
@@ -12,8 +11,6 @@ import java.util.List;
  */
 @Mapper(componentModel = "spring")
 public interface GroupMapper {
-
-    GroupMapper INSTANCE = Mappers.getMapper(GroupMapper.class);
 
     /**
      * Entity → VO
