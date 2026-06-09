@@ -20,11 +20,11 @@ import java.util.Map;
 @Slf4j
 public class JwtUtil {
 
-    @Value("${jwt.secret:SpringWhaleRBACSecretKey2024ForJWTTokenGeneration}")
+    @Value("${spring.whale.rbac.jwt.secret:SpringWhaleRBACSecretKey2024ForJWTTokenGeneration}")
     private String secret;
 
-    @Value("${jwt.expiration:86400000}")
-    private Long expiration; // 默认24小时
+    @Value("${spring.whale.rbac.jwt.expiration:86400000}")
+    private Long expiration;
 
     /**
      * 生成密钥
@@ -40,7 +40,7 @@ public class JwtUtil {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
         claims.put("username", username);
-        
+
         return Jwts.builder()
                 .claims(claims)
                 .subject(username)

@@ -36,6 +36,7 @@
     </scm>
 
     <properties>
+        <my.version>0.0.2</my.version>
         <gpg.skip>true</gpg.skip>
         <java.version>25</java.version>
         <jakarta.validation-api.version>4.0.0-M1</jakarta.validation-api.version>
@@ -52,22 +53,27 @@
             <dependency>
                 <groupId>io.github.julianzhucode</groupId>
                 <artifactId>spring-whale-core</artifactId>
-                <version>${project.version}</version>
+                <version>${my.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.julianzhucode</groupId>
                 <artifactId>spring-whale-database</artifactId>
-                <version>${version}</version>
+                <version>${my.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.julianzhucode</groupId>
                 <artifactId>spring-whale-webmvc</artifactId>
-                <version>${version}</version>
+                <version>${my.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.julianzhucode</groupId>
                 <artifactId>spring-whale-cloud</artifactId>
-                <version>${version}</version>
+                <version>${my.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.julianzhucode</groupId>
+                <artifactId>spring-whale-rbac</artifactId>
+                <version>${my.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
@@ -125,10 +131,15 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
                     <configuration>
+                        <encoding>UTF-8</encoding>
                         <annotationProcessorPaths>
                             <path>
                                 <groupId>org.projectlombok</groupId>
                                 <artifactId>lombok</artifactId>
+                            </path>
+                            <path>
+                                <groupId>org.mapstruct</groupId>
+                                <artifactId>mapstruct-processor</artifactId>
                             </path>
                         </annotationProcessorPaths>
                     </configuration>
