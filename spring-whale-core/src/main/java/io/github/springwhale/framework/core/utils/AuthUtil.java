@@ -1,9 +1,21 @@
 package io.github.springwhale.framework.core.utils;
 
-// TODO
+import io.github.springwhale.framework.core.context.AuthenticationContextHolder;
+
 public class AuthUtil {
 
     public static Integer getUserId() {
-        return 1;
+        var context = AuthenticationContextHolder.getContext();
+        return context != null ? context.userId() : null;
+    }
+
+    public static String getUsername() {
+        var context = AuthenticationContextHolder.getContext();
+        return context != null ? context.username() : null;
+    }
+
+    public static boolean isAuthenticated() {
+        var context = AuthenticationContextHolder.getContext();
+        return context != null && context.isAuthenticated();
     }
 }
