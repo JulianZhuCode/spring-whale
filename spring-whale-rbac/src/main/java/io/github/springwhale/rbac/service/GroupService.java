@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 分组（部门）服务
+ * Group (department) service
  */
 @Service
 @RequiredArgsConstructor
@@ -27,35 +27,35 @@ public class GroupService {
     private final GroupMapper groupMapper;
 
     /**
-     * 分页查询所有部门
+     * Find all departments with pagination
      */
     public Page<GroupVO> findAll(Pageable pageable) {
         return groupRepository.findAll(pageable).map(groupMapper::toVO);
     }
 
     /**
-     * 根据ID查询部门
+     * Find department by ID
      */
     public Optional<GroupVO> findById(Integer id) {
         return groupRepository.findById(id).map(groupMapper::toVO);
     }
 
     /**
-     * 根据部门编码精确查询
+     * Find department by exact code
      */
     public Optional<GroupVO> findByCode(String code) {
         return groupRepository.findByCode(code).map(groupMapper::toVO);
     }
 
     /**
-     * 根据父部门ID查询
+     * Find departments by parent ID
      */
     public List<GroupVO> findByParentId(Integer parentId) {
         return groupMapper.toVOList(groupRepository.findByParentId(parentId));
     }
 
     /**
-     * 搜索部门（支持部门名称模糊查询）
+     * Search departments by name (fuzzy)
      */
     public List<GroupVO> search(String keyword) {
         if (keyword == null || keyword.trim().isEmpty()) {
@@ -65,21 +65,21 @@ public class GroupService {
     }
 
     /**
-     * 根据状态查询
+     * Find by status
      */
     public List<GroupVO> findByStatus(Integer status) {
         return groupMapper.toVOList(groupRepository.findByStatus(status));
     }
 
     /**
-     * 获取所有根部门（parentId为null）
+     * Get all root departments (parentId is null)
      */
     public List<GroupVO> findRootGroups() {
         return groupMapper.toVOList(groupRepository.findByParentId(null));
     }
 
     /**
-     * 创建部门
+     * Create department
      */
     @Transactional
     public GroupVO create(GroupRequest request) {
@@ -97,12 +97,12 @@ public class GroupService {
     }
 
     /**
-     * 更新部门
+     * Update department
      */
     @Transactional
     public GroupVO update(Integer id, GroupRequest request) {
         GroupEntity group = groupRepository.findById(id)
-                .orElseThrow(() -> BusinessException.create("GROUP_NOT_FOUND", "部门不存在，ID: " + id));
+                .orElseThrow(() -> BusinessException.create("GROUP_NOT_FOUND", "Department not found, ID: " + id));
 
         group.setParentId(request.getParentId());
         group.setCode(request.getCode());
@@ -118,12 +118,12 @@ public class GroupService {
     }
 
     /**
-     * 删除部门
+     * Delete department
      */
     @Transactional
     public void delete(Integer id) {
         GroupEntity group = groupRepository.findById(id)
-                .orElseThrow(() -> BusinessException.create("GROUP_NOT_FOUND", "部门不存在，ID: " + id));
+                .orElseThrow(() -> BusinessException.create("GROUP_NOT_FOUND", "Department not found, ID: " + id));
         groupRepository.delete(group);
     }
 }

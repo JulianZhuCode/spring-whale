@@ -9,7 +9,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * 菜单实体
+ * Menu entity
  */
 @Entity
 @Table(name = "rbac_menu", indexes = {
@@ -21,64 +21,64 @@ import lombok.EqualsAndHashCode;
 public class MenuEntity extends BaseEntity {
 
     /**
-     * 父菜单ID
+     * Parent menu ID
      */
     private Integer parentId;
 
     /**
-     * 菜单编码
+     * Menu code
      */
     @Column(nullable = false, unique = true, length = 100)
     private String code;
 
     /**
-     * 菜单名称
+     * Menu name
      */
     @Column(nullable = false, length = 100)
     private String name;
 
     /**
-     * 菜单类型：1-目录，2-菜单，3-按钮
+     * Menu type: 1=directory, 2=menu, 3=button
      */
     @Column(nullable = false)
     private Integer type = 2;
 
     /**
-     * 路由路径
+     * Route path
      */
     @Column(length = 200)
     private String path;
 
     /**
-     * 组件路径
+     * Component path
      */
     @Column(length = 200)
     private String component;
 
     /**
-     * 权限标识
+     * Permission identifier
      */
     @Column(length = 100)
     private String permission;
 
     /**
-     * 图标
+     * Icon
      */
     @Column(length = 50)
     private String icon;
 
     /**
-     * 排序
+     * Sort order
      */
     private Integer sort = 0;
 
     /**
-     * 是否可见：0-隐藏，1-显示
+     * Visibility: 0=hidden, 1=visible
      */
     private Integer visible = 1;
 
     /**
-     * 状态：0-禁用，1-启用
+     * Status: 0=disabled, 1=enabled
      */
     @Column(nullable = false)
     private Integer status = 1;

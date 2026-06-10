@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * 角色菜单关联服务
+ * Role-menu association service
  */
 @Service
 @RequiredArgsConstructor
@@ -23,7 +23,7 @@ public class RoleMenuService {
     private final RoleMenuMapper roleMenuMapper;
 
     /**
-     * 根据角色ID查询所有菜单关联
+     * Find all menu associations by role ID
      */
     public List<RoleMenuVO> findByRoleId(Integer roleId) {
         List<RoleMenuEntity> entities = roleMenuRepository.findByRoleId(roleId);
@@ -31,7 +31,7 @@ public class RoleMenuService {
     }
 
     /**
-     * 根据菜单ID查询所有角色关联
+     * Find all role associations by menu ID
      */
     public List<RoleMenuVO> findByMenuId(Integer menuId) {
         List<RoleMenuEntity> entities = roleMenuRepository.findByMenuId(menuId);
@@ -39,13 +39,13 @@ public class RoleMenuService {
     }
 
     /**
-     * 为角色分配菜单
+     * Assign menu to role
      */
     @Transactional
     public void assignMenuToRole(Integer roleId, Integer menuId) {
-        // 检查是否已存在
+        // Check if already exists
         if (roleMenuRepository.findByRoleIdAndMenuId(roleId, menuId).isPresent()) {
-            throw BusinessException.create("ROLE_MENU_ALREADY_EXISTS", "角色已拥有该菜单权限");
+            throw BusinessException.create("ROLE_MENU_ALREADY_EXISTS", "Role already has this menu permission");
         }
         
         RoleMenuEntity roleMenu = new RoleMenuEntity();
@@ -55,14 +55,14 @@ public class RoleMenuService {
     }
 
     /**
-     * 批量为角色分配菜单
+     * Batch assign menus to role
      */
     @Transactional
     public void assignMenusToRole(Integer roleId, List<Integer> menuIds) {
-        // 先删除角色的所有菜单关联
+        // Remove all existing menu associations for role first
         roleMenuRepository.deleteByRoleId(roleId);
         
-        // 重新分配
+        // Reassign
         for (Integer menuId : menuIds) {
             RoleMenuEntity roleMenu = new RoleMenuEntity();
             roleMenu.setRoleId(roleId);
@@ -72,17 +72,17 @@ public class RoleMenuService {
     }
 
     /**
-     * 移除角色的菜单权限
+     * Remove menu permission from role
      */
     @Transactional
     public void removeMenuFromRole(Integer roleId, Integer menuId) {
         RoleMenuEntity roleMenu = roleMenuRepository.findByRoleIdAndMenuId(roleId, menuId)
-                .orElseThrow(() -> BusinessException.create("ROLE_MENU_NOT_FOUND", "角色菜单关联不存在"));
+                .orElseThrow(() -> BusinessException.create("ROLE_MENU_NOT_FOUND", "Role-menu association not found"));
         roleMenuRepository.delete(roleMenu);
     }
 
     /**
-     * 移除角色的所有菜单权限
+     * Remove all menu permissions from role
      */
     @Transactional
     public void removeAllMenusFromRole(Integer roleId) {

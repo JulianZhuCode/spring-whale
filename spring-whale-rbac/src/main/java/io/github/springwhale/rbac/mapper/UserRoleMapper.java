@@ -7,23 +7,23 @@ import org.mapstruct.Mapper;
 import java.util.List;
 
 /**
- * 用户角色关联实体与VO转换器（MapStruct）
+ * MapStruct mapper for UserRole entity/VO conversion
  */
 @Mapper(componentModel = "spring")
 public interface UserRoleMapper {
 
     /**
-     * Entity → VO
+     * Entity to VO
      */
     UserRoleVO toVO(UserRoleEntity entity);
 
     /**
-     * VO → Entity
+     * VO to Entity
      */
     UserRoleEntity toEntity(UserRoleVO vo);
 
     /**
-     * Entity列表 → VO列表
+     * Entity list to VO list
      */
     List<UserRoleVO> toVOList(List<UserRoleEntity> entities);
 }

@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 登录响应
+ * Login response
  */
 @Data
 @Builder
@@ -15,32 +15,32 @@ import lombok.NoArgsConstructor;
 public class LoginResponse {
     
     /**
-     * JWT Token
+     * JWT token
      */
     private String token;
     
     /**
-     * Token 类型
+     * Token type
      */
     private String tokenType = "Bearer";
     
     /**
-     * 用户ID
+     * User ID
      */
     private Integer userId;
     
     /**
-     * 用户名
+     * Username
      */
     private String username;
     
     /**
-     * 真实姓名
+     * Real name
      */
     private String realName;
     
     /**
-     * 过期时间（毫秒）
+     * Expiration time (milliseconds)
      */
     private Long expiresIn;
 }

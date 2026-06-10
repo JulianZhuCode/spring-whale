@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 角色控制器
+ * Role controller
  */
 @RestController
 @RequestMapping("/api/rbac/roles")
@@ -24,7 +24,7 @@ public class RoleController {
     private final RoleService roleService;
 
     /**
-     * 分页查询所有角色
+     * Find all roles with pagination
      * GET /api/rbac/roles?page=0&size=20
      */
     @GetMapping
@@ -36,28 +36,28 @@ public class RoleController {
     }
 
     /**
-     * 根据ID查询角色
+     * Find role by ID
      * GET /api/rbac/roles/{id}
      */
     @GetMapping("/{id}")
     public RoleVO findById(@PathVariable Integer id) {
         return roleService.findById(id)
-                .orElseThrow(() -> BusinessException.create("ROLE_NOT_FOUND", "角色不存在: " + id));
+                .orElseThrow(() -> BusinessException.create("ROLE_NOT_FOUND", "Role not found: " + id));
     }
 
     /**
-     * 根据角色编码精确查询
+     * Find role by exact code
      * GET /api/rbac/roles/by-code?code=ADMIN
      */
     @GetMapping("/by-code")
     public RoleVO findByCode(@RequestParam String code) {
         return roleService.findByCode(code)
-                .orElseThrow(() -> BusinessException.create("ROLE_NOT_FOUND", "角色不存在: " + code));
+                .orElseThrow(() -> BusinessException.create("ROLE_NOT_FOUND", "Role not found: " + code));
     }
 
     /**
-     * 搜索角色（模糊查询）
-     * GET /api/rbac/roles/search?keyword=管理员
+     * Search roles (fuzzy)
+     * GET /api/rbac/roles/search?keyword=admin
      */
     @GetMapping("/search")
     public List<RoleVO> search(@RequestParam String keyword) {
@@ -65,7 +65,7 @@ public class RoleController {
     }
 
     /**
-     * 根据状态查询
+     * Find by status
      * GET /api/rbac/roles/by-status?status=1
      */
     @GetMapping("/by-status")
@@ -74,7 +74,7 @@ public class RoleController {
     }
 
     /**
-     * 创建角色
+     * Create role
      * POST /api/rbac/roles
      */
     @PostMapping
@@ -83,7 +83,7 @@ public class RoleController {
     }
 
     /**
-     * 更新角色
+     * Update role
      * PUT /api/rbac/roles/{id}
      */
     @PutMapping("/{id}")
@@ -92,7 +92,7 @@ public class RoleController {
     }
 
     /**
-     * 删除角色
+     * Delete role
      * DELETE /api/rbac/roles/{id}
      */
     @DeleteMapping("/{id}")

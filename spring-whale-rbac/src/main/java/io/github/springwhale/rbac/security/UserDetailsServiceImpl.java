@@ -21,7 +21,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * 用户详情服务
+ * User details service
  */
 @Service
 @RequiredArgsConstructor
@@ -39,16 +39,16 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(@NonNull String username) throws UsernameNotFoundException {
         log.debug("Loading user details from database for: {}", username);
 
-        // 1. 从数据库查询用户
+        // 1. Query user from database
         UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("用户不存在: " + username));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
-        // 2. 检查用户状态
+        // 2. Check user status
         if (user.getStatus() == 0) {
-            throw new UsernameNotFoundException("用户已禁用: " + username);
+            throw new UsernameNotFoundException("User is disabled: " + username);
         }
 
-        // 3. 从数据库查询用户的角色和权限
+        // 3. Query user roles and permissions from database
         List<GrantedAuthority> authorities = getUserAuthorities(user.getId());
 
         return new User(
@@ -59,51 +59,51 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     /**
-     * 获取用户的权限列表
+     * Get user authorities
      *
-     * @param userId 用户ID
-     * @return 权限列表
+     * @param userId User ID
+     * @return list of authorities
      */
     private List<GrantedAuthority> getUserAuthorities(Integer userId) {
-        // 1. 查询用户的所有角色关联
+        // 1. Query all role associations for the user
         List<UserRoleEntity> userRoles = userRoleRepository.findByUserId(userId);
 
         if (userRoles.isEmpty()) {
             return List.of();
         }
 
-        // 2. 获取所有角色ID
+        // 2. Get all role IDs
         List<Integer> roleIds = userRoles.stream()
                 .map(UserRoleEntity::getRoleId)
                 .collect(Collectors.toList());
 
-        // 3. 查询所有角色信息
+        // 3. Query all role information
         List<RoleEntity> roles = roleRepository.findAllById(roleIds);
 
-        // 4. 构建角色权限（ROLE_前缀）
+        // 4. Build role authorities (ROLE_ prefix)
         Set<GrantedAuthority> authorities = roles.stream()
-                .filter(role -> role.getStatus() == 1) // 只包含启用的角色
+                .filter(role -> role.getStatus() == 1) // Only include enabled roles
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getCode()))
                 .collect(Collectors.toSet());
 
-        // 5. 查询这些角色关联的所有菜单
+        // 5. Query all menus associated with these roles
         List<RoleMenuEntity> roleMenus = roleIds.stream()
                 .flatMap(roleId -> roleMenuRepository.findByRoleId(roleId).stream())
                 .toList();
 
         if (!roleMenus.isEmpty()) {
-            // 6. 获取所有菜单ID
+            // 6. Get all menu IDs
             List<Integer> menuIds = roleMenus.stream()
                     .map(RoleMenuEntity::getMenuId)
                     .distinct()
                     .collect(Collectors.toList());
 
-            // 7. 查询所有菜单信息
+            // 7. Query all menu information
             List<MenuEntity> menus = menuRepository.findAllById(menuIds);
 
-            // 8. 添加菜单权限标识
+            // 8. Add menu permission identifiers
             menus.stream()
-                    .filter(menu -> menu.getStatus() == 1 && menu.getPermission() != null && !menu.getPermission().isEmpty()) // 只包含启用的且有权限标识的菜单
+                    .filter(menu -> menu.getStatus() == 1 && menu.getPermission() != null && !menu.getPermission().isEmpty()) // Only include enabled menus with permission identifiers
                     .forEach(menu -> authorities.add(new SimpleGrantedAuthority(menu.getPermission())));
         }
 
@@ -111,10 +111,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     /**
-     * 清除指定用户的缓存
-     * 在用户信息、角色或权限变更时调用
+     * Evict cache for specified user
+     * Called when user info, roles, or permissions change
      *
-     * @param username 用户名
+     * @param username Username
      */
     @CacheEvict(value = "userDetails", key = "#username")
     public void evictUserCache(String username) {
@@ -122,8 +122,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     /**
-     * 清除所有用户缓存
-     * 慎用！仅在必要时调用
+     * Evict all user cache
+     * Use with caution! Only when necessary
      */
     @CacheEvict(value = "userDetails", allEntries = true)
     public void evictAllUserCache() {

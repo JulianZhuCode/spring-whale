@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 角色菜单关联控制器
+ * Role-menu association controller
  */
 @RestController
 @RequestMapping("/api/rbac/role-menus")
@@ -22,7 +22,7 @@ public class RoleMenuController {
     private final RoleMenuService roleMenuService;
 
     /**
-     * 查询角色的菜单权限列表
+     * Query role's menu permission list
      * GET /api/rbac/role-menus/by-role?roleId=1
      */
     @GetMapping("/by-role")
@@ -31,7 +31,7 @@ public class RoleMenuController {
     }
 
     /**
-     * 查询菜单的角色列表
+     * Query menu's role list
      * GET /api/rbac/role-menus/by-menu?menuId=1
      */
     @GetMapping("/by-menu")
@@ -40,7 +40,7 @@ public class RoleMenuController {
     }
 
     /**
-     * 为角色分配菜单权限
+     * Assign menu permission to role
      * POST /api/rbac/role-menus/assign
      */
     @PostMapping("/assign")
@@ -49,7 +49,7 @@ public class RoleMenuController {
     }
 
     /**
-     * 批量为角色分配菜单权限
+     * Batch assign menu permissions to role
      * POST /api/rbac/role-menus/assign-batch
      */
     @PostMapping("/assign-batch")
@@ -58,7 +58,7 @@ public class RoleMenuController {
     }
 
     /**
-     * 移除角色的菜单权限
+     * Remove menu permission from role
      * DELETE /api/rbac/role-menus/remove
      */
     @DeleteMapping("/remove")
@@ -67,7 +67,7 @@ public class RoleMenuController {
     }
 
     /**
-     * 移除角色的所有菜单权限
+     * Remove all menu permissions from role
      * DELETE /api/rbac/role-menus/remove-all?roleId=1
      */
     @DeleteMapping("/remove-all")

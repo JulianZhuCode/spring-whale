@@ -4,20 +4,20 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
- * 分配菜单请求
+ * Assign menu request
  */
 @Data
 public class AssignMenuRequest {
     
     /**
-     * 角色ID
+     * Role ID
      */
-    @NotNull(message = "角色ID不能为空")
+    @NotNull(message = "Role ID must not be empty")
     private Integer roleId;
     
     /**
-     * 菜单ID
+     * Menu ID
      */
-    @NotNull(message = "菜单ID不能为空")
+    @NotNull(message = "Menu ID must not be empty")
     private Integer menuId;
 }

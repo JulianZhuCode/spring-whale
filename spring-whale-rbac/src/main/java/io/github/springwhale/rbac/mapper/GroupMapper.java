@@ -7,23 +7,23 @@ import org.mapstruct.Mapper;
 import java.util.List;
 
 /**
- * 分组实体与VO转换器（MapStruct）
+ * MapStruct mapper for Group entity/VO conversion
  */
 @Mapper(componentModel = "spring")
 public interface GroupMapper {
 
     /**
-     * Entity → VO
+     * Entity to VO
      */
     GroupVO toVO(GroupEntity entity);
 
     /**
-     * VO → Entity
+     * VO to Entity
      */
     GroupEntity toEntity(GroupVO vo);
 
     /**
-     * Entity列表 → VO列表
+     * Entity list to VO list
      */
     List<GroupVO> toVOList(List<GroupEntity> entities);
 }

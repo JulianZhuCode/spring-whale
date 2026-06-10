@@ -57,8 +57,7 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
             JsonNode node = jsonParser.readValueAsTree();
 
             if (node.isLong() || node.isInt()) {
-                // Deserialize from timestamp (milliseconds)
-                return new Date(node.asLong());
+                                return new Date(node.asLong());
             } else if (node.isString()) {
                 return DateTimeFormats.parseDateFromText(node.asString());
             }
@@ -85,8 +84,7 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
             JsonNode node = jsonParser.readValueAsTree();
 
             if (node.isLong() || node.isInt()) {
-                // Deserialize from timestamp (milliseconds)
-                long timestamp = node.asLong();
+                                long timestamp = node.asLong();
                 return LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault()).toLocalDate();
             } else if (node.isString()) {
                 return DateTimeFormats.parseLocalDateFromText(node.asString());
@@ -114,8 +112,7 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
             JsonNode node = jsonParser.readValueAsTree();
 
             if (node.isLong() || node.isInt()) {
-                // Deserialize from timestamp (milliseconds)
-                long timestamp = node.asLong();
+                                long timestamp = node.asLong();
                 return LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault()).toLocalTime();
             } else if (node.isString()) {
                 return DateTimeFormats.parseLocalTimeFromText(node.asString());
@@ -147,8 +144,7 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
             JsonNode node = jsonParser.readValueAsTree();
 
             if (node.isLong() || node.isInt()) {
-                // Deserialize from timestamp (milliseconds)
-                long timestamp = node.asLong();
+                                long timestamp = node.asLong();
                 return LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault());
             } else if (node.isString()) {
                 return DateTimeFormats.parseLocalDateTimeFromText(node.asString());
@@ -238,8 +234,7 @@ public class SpringWhaleJacksonComponent implements ApplicationContextAware {
                     properties.getBigDecimalScale(),
                     properties.getBigDecimalRoundingMode()
             );
-            // Serialize based on configuration
-            if (properties.isBigDecimalAsString()) {
+                        if (properties.isBigDecimalAsString()) {
                 gen.writeString(scaledValue.toPlainString());
             } else {
                 gen.writeNumber(scaledValue);

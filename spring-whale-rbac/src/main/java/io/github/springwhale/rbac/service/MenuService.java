@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 菜单服务
+ * Menu service
  */
 @Service
 @RequiredArgsConstructor
@@ -27,35 +27,35 @@ public class MenuService {
     private final MenuMapper menuMapper;
 
     /**
-     * 分页查询所有菜单
+     * Find all menus with pagination
      */
     public Page<MenuVO> findAll(Pageable pageable) {
         return menuRepository.findAll(pageable).map(menuMapper::toVO);
     }
 
     /**
-     * 根据ID查询菜单
+     * Find menu by ID
      */
     public Optional<MenuVO> findById(Integer id) {
         return menuRepository.findById(id).map(menuMapper::toVO);
     }
 
     /**
-     * 根据菜单编码精确查询
+     * Find menu by exact code
      */
     public Optional<MenuVO> findByCode(String code) {
         return menuRepository.findByCode(code).map(menuMapper::toVO);
     }
 
     /**
-     * 根据父菜单ID查询
+     * Find menus by parent ID
      */
     public List<MenuVO> findByParentId(Integer parentId) {
         return menuMapper.toVOList(menuRepository.findByParentId(parentId));
     }
 
     /**
-     * 搜索菜单（支持菜单名称模糊查询）
+     * Search menus by name (fuzzy)
      */
     public List<MenuVO> search(String keyword) {
         if (keyword == null || keyword.trim().isEmpty()) {
@@ -65,35 +65,35 @@ public class MenuService {
     }
 
     /**
-     * 根据类型查询
+     * Find by type
      */
     public List<MenuVO> findByType(Integer type) {
         return menuMapper.toVOList(menuRepository.findByType(type));
     }
 
     /**
-     * 根据状态查询
+     * Find by status
      */
     public List<MenuVO> findByStatus(Integer status) {
         return menuMapper.toVOList(menuRepository.findByStatus(status));
     }
 
     /**
-     * 根据可见性查询
+     * Find by visibility
      */
     public List<MenuVO> findByVisible(Integer visible) {
         return menuMapper.toVOList(menuRepository.findByVisible(visible));
     }
 
     /**
-     * 获取所有根菜单（parentId为null）
+     * Get all root menus (parentId is null)
      */
     public List<MenuVO> findRootMenus() {
         return menuMapper.toVOList(menuRepository.findByParentId(null));
     }
 
     /**
-     * 创建菜单
+     * Create menu
      */
     @Transactional
     public MenuVO create(MenuRequest request) {
@@ -113,12 +113,12 @@ public class MenuService {
     }
 
     /**
-     * 更新菜单
+     * Update menu
      */
     @Transactional
     public MenuVO update(Integer id, MenuRequest request) {
         MenuEntity menu = menuRepository.findById(id)
-                .orElseThrow(() -> BusinessException.create("MENU_NOT_FOUND", "菜单不存在，ID: " + id));
+                .orElseThrow(() -> BusinessException.create("MENU_NOT_FOUND", "Menu not found, ID: " + id));
 
         menu.setParentId(request.getParentId());
         menu.setCode(request.getCode());
@@ -136,12 +136,12 @@ public class MenuService {
     }
 
     /**
-     * 删除菜单
+     * Delete menu
      */
     @Transactional
     public void delete(Integer id) {
         MenuEntity menu = menuRepository.findById(id)
-                .orElseThrow(() -> BusinessException.create("MENU_NOT_FOUND", "菜单不存在，ID: " + id));
+                .orElseThrow(() -> BusinessException.create("MENU_NOT_FOUND", "Menu not found, ID: " + id));
         menuRepository.delete(menu);
     }
 }

@@ -18,8 +18,7 @@ public abstract class SimpleBaseEntity {
 
     private Integer createBy;
 
-    // 插入时自动赋值
-    @PrePersist
+        @PrePersist
     public void prePersist() {
         this.createBy = AuthUtil.getUserId();
         this.createTime = LocalDateTime.now();

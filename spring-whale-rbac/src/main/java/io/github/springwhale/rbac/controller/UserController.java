@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 用户控制器
+ * User controller
  */
 @RestController
 @RequestMapping("/api/rbac/users")
@@ -24,7 +24,7 @@ public class UserController {
     private final UserService userService;
 
     /**
-     * 分页查询所有用户
+     * Find all users with pagination
      * GET /api/rbac/users?page=0&size=20
      */
     @GetMapping
@@ -36,47 +36,47 @@ public class UserController {
     }
 
     /**
-     * 根据ID查询用户
+     * Find user by ID
      * GET /api/rbac/users/{id}
      */
     @GetMapping("/{id}")
     public UserVO findById(@PathVariable Integer id) {
         return userService.findById(id)
-                .orElseThrow(() -> BusinessException.create("USER_NOT_FOUND", "用户不存在: " + id));
+                .orElseThrow(() -> BusinessException.create("USER_NOT_FOUND", "User not found: " + id));
     }
 
     /**
-     * 根据用户名精确查询
+     * Find by exact username
      * GET /api/rbac/users/by-username?username=admin
      */
     @GetMapping("/by-username")
     public UserVO findByUsername(@RequestParam String username) {
         return userService.findByUsername(username)
-                .orElseThrow(() -> BusinessException.create("USER_NOT_FOUND", "用户不存在: " + username));
+                .orElseThrow(() -> BusinessException.create("USER_NOT_FOUND", "User not found: " + username));
     }
 
     /**
-     * 根据邮箱精确查询
+     * Find by exact email
      * GET /api/rbac/users/by-email?email=admin@example.com
      */
     @GetMapping("/by-email")
     public UserVO findByEmail(@RequestParam String email) {
         return userService.findByEmail(email)
-                .orElseThrow(() -> BusinessException.create("USER_NOT_FOUND", "用户不存在: " + email));
+                .orElseThrow(() -> BusinessException.create("USER_NOT_FOUND", "User not found: " + email));
     }
 
     /**
-     * 根据手机号精确查询
+     * Find by exact phone
      * GET /api/rbac/users/by-phone?phone=13800138000
      */
     @GetMapping("/by-phone")
     public UserVO findByPhone(@RequestParam String phone) {
         return userService.findByPhone(phone)
-                .orElseThrow(() -> BusinessException.create("USER_NOT_FOUND", "用户不存在: " + phone));
+                .orElseThrow(() -> BusinessException.create("USER_NOT_FOUND", "User not found: " + phone));
     }
 
     /**
-     * 搜索用户（模糊查询）
+     * Search users (fuzzy)
      * GET /api/rbac/users/search?keyword=admin
      */
     @GetMapping("/search")
@@ -85,7 +85,7 @@ public class UserController {
     }
 
     /**
-     * 根据部门ID查询
+     * Find users by department ID
      * GET /api/rbac/users/by-group?groupId=1
      */
     @GetMapping("/by-group")
@@ -94,7 +94,7 @@ public class UserController {
     }
 
     /**
-     * 根据状态查询
+     * Find by status
      * GET /api/rbac/users/by-status?status=1
      */
     @GetMapping("/by-status")
@@ -103,7 +103,7 @@ public class UserController {
     }
 
     /**
-     * 创建用户
+     * Create user
      * POST /api/rbac/users
      */
     @PostMapping
@@ -112,7 +112,7 @@ public class UserController {
     }
 
     /**
-     * 更新用户
+     * Update user
      * PUT /api/rbac/users/{id}
      */
     @PutMapping("/{id}")
@@ -121,7 +121,7 @@ public class UserController {
     }
 
     /**
-     * 删除用户
+     * Delete user
      * DELETE /api/rbac/users/{id}
      */
     @DeleteMapping("/{id}")

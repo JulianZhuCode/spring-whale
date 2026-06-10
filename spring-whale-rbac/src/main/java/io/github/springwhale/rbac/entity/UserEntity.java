@@ -9,7 +9,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * 用户实体
+ * User entity
  */
 @Entity
 @Table(name = "rbac_user", indexes = {
@@ -22,49 +22,49 @@ import lombok.EqualsAndHashCode;
 public class UserEntity extends BaseEntity {
 
     /**
-     * 用户名
+     * Username
      */
     @Column(nullable = false, length = 50)
     private String username;
 
     /**
-     * 密码
+     * Password
      */
     @Column(nullable = false, length = 200)
     private String password;
 
     /**
-     * 真实姓名
+     * Real name
      */
     @Column(length = 50)
     private String realName;
 
     /**
-     * 邮箱
+     * Email
      */
     @Column(length = 100)
     private String email;
 
     /**
-     * 手机号
+     * Phone
      */
     @Column(length = 20)
     private String phone;
 
     /**
-     * 头像URL
+     * Avatar URL
      */
     @Column(length = 500)
     private String avatar;
 
     /**
-     * 状态：0-禁用，1-启用
+     * Status: 0=disabled, 1=enabled
      */
     @Column(nullable = false)
     private Integer status = 1;
 
     /**
-     * 所属部门ID
+     * Department ID
      */
     private Integer groupId;
 }

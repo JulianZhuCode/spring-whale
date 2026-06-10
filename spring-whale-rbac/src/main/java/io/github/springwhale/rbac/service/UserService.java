@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 用户服务
+ * User service
  */
 @Service
 @RequiredArgsConstructor
@@ -27,42 +27,42 @@ public class UserService {
     private final UserMapper userMapper;
 
     /**
-     * 分页查询所有用户
+     * Find all users with pagination
      */
     public Page<UserVO> findAll(Pageable pageable) {
         return userRepository.findAll(pageable).map(userMapper::toVO);
     }
 
     /**
-     * 根据ID查询用户
+     * Find user by ID
      */
     public Optional<UserVO> findById(Integer id) {
         return userRepository.findById(id).map(userMapper::toVO);
     }
 
     /**
-     * 根据用户名精确查询
+     * Find by exact username
      */
     public Optional<UserVO> findByUsername(String username) {
         return userRepository.findByUsername(username).map(userMapper::toVO);
     }
 
     /**
-     * 根据邮箱精确查询
+     * Find by exact email
      */
     public Optional<UserVO> findByEmail(String email) {
         return userRepository.findByEmail(email).map(userMapper::toVO);
     }
 
     /**
-     * 根据手机号精确查询
+     * Find by exact phone
      */
     public Optional<UserVO> findByPhone(String phone) {
         return userRepository.findByPhone(phone).map(userMapper::toVO);
     }
 
     /**
-     * 搜索用户（支持用户名或真实姓名模糊查询）
+     * Search users by username or real name (fuzzy)
      */
     public List<UserVO> search(String keyword) {
         if (keyword == null || keyword.trim().isEmpty()) {
@@ -70,28 +70,28 @@ public class UserService {
         }
         List<UserEntity> byUsername = userRepository.findByUsernameContaining(keyword);
         List<UserEntity> byRealName = userRepository.findByRealNameContaining(keyword);
-        // 合并去重
+        // Merge and deduplicate
         return userMapper.toVOList(byUsername.stream()
                 .filter(u -> !byRealName.contains(u))
                 .toList());
     }
 
     /**
-     * 根据部门ID查询
+     * Find users by department ID
      */
     public List<UserVO> findByGroupId(Integer groupId) {
         return userMapper.toVOList(userRepository.findByGroupId(groupId));
     }
 
     /**
-     * 根据状态查询
+     * Find by status
      */
     public List<UserVO> findByStatus(Integer status) {
         return userMapper.toVOList(userRepository.findByStatus(status));
     }
 
     /**
-     * 创建用户
+     * Create user
      */
     @Transactional
     public UserVO create(UserRequest request) {
@@ -107,12 +107,12 @@ public class UserService {
     }
 
     /**
-     * 更新用户
+     * Update user
      */
     @Transactional
     public UserVO update(Integer id, UserRequest request) {
         UserEntity user = userRepository.findById(id)
-                .orElseThrow(() -> BusinessException.create("USER_NOT_FOUND", "用户不存在，ID: " + id));
+                .orElseThrow(() -> BusinessException.create("USER_NOT_FOUND", "User not found, ID: " + id));
 
         user.setUsername(request.getUsername());
         user.setRealName(request.getRealName());
@@ -126,12 +126,12 @@ public class UserService {
     }
 
     /**
-     * 删除用户
+     * Delete user
      */
     @Transactional
     public void delete(Integer id) {
         UserEntity user = userRepository.findById(id)
-                .orElseThrow(() -> BusinessException.create("USER_NOT_FOUND", "用户不存在，ID: " + id));
+                .orElseThrow(() -> BusinessException.create("USER_NOT_FOUND", "User not found, ID: " + id));
         userRepository.delete(user);
     }
 }

@@ -24,8 +24,7 @@ public class SpringWhaleWebMvcResponseBodyAdvice implements ResponseBodyAdvice<O
     private final Set<Class<?>> ignoreList = new HashSet<>();
 
     public SpringWhaleWebMvcResponseBodyAdvice() {
-        // Add types that should be ignored
-        addIgnore(ApiResult.class);
+                addIgnore(ApiResult.class);
         addIgnore(ResponseEntity.class);
         addIgnore(HttpEntity.class);
         addIgnore(ModelAndView.class);
@@ -33,21 +32,17 @@ public class SpringWhaleWebMvcResponseBodyAdvice implements ResponseBodyAdvice<O
 
     @Override
     public boolean supports(MethodParameter returnType, @NonNull Class<? extends HttpMessageConverter<?>> converterType) {
-        // Get the return type
-        Class<?> returnClass = returnType.getParameterType();
+                Class<?> returnClass = returnType.getParameterType();
 
-        // Check if it's in the ignore list
-        if (ignoreList.contains(returnClass)) {
+                if (ignoreList.contains(returnClass)) {
             return false;
         }
 
-        // Check if it has @AdviceIgnore annotation
-        if (returnType.hasMethodAnnotation(AdviceIgnore.class)) {
+                if (returnType.hasMethodAnnotation(AdviceIgnore.class)) {
             return false;
         }
 
-        // Check if it's a subclass of ResponseEntity or HttpEntity
-        if (ResponseEntity.class.isAssignableFrom(returnClass) ||
+                if (ResponseEntity.class.isAssignableFrom(returnClass) ||
                 HttpEntity.class.isAssignableFrom(returnClass)) {
             return false;
         }
@@ -57,16 +52,13 @@ public class SpringWhaleWebMvcResponseBodyAdvice implements ResponseBodyAdvice<O
 
     @Override
     public @Nullable Object beforeBodyWrite(@Nullable Object body, MethodParameter returnType, MediaType selectedContentType, Class<? extends HttpMessageConverter<?>> selectedConverterType, ServerHttpRequest request, ServerHttpResponse response) {
-        // Get the actual method return type
-        Class<?> returnTypeClass = returnType.getParameterType();
+                Class<?> returnTypeClass = returnType.getParameterType();
 
-        // Return empty success response for void type
-        if (returnTypeClass.equals(Void.TYPE)) {
+                if (returnTypeClass.equals(Void.TYPE)) {
             return ApiResult.success();
         }
 
-        // Wrap other types as success response
-        return ApiResult.success(body);
+                return ApiResult.success(body);
     }
 
     public void addIgnore(Class<?> clz) {

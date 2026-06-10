@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 分组（部门）控制器
+ * Group (department) controller
  */
 @RestController
 @RequestMapping("/api/rbac/groups")
@@ -24,7 +24,7 @@ public class GroupController {
     private final GroupService groupService;
 
     /**
-     * 分页查询所有部门
+     * Find all departments with pagination
      * GET /api/rbac/groups?page=0&size=20
      */
     @GetMapping
@@ -36,27 +36,27 @@ public class GroupController {
     }
 
     /**
-     * 根据ID查询部门
+     * Find department by ID
      * GET /api/rbac/groups/{id}
      */
     @GetMapping("/{id}")
     public GroupVO findById(@PathVariable Integer id) {
         return groupService.findById(id)
-                .orElseThrow(() -> BusinessException.create("GROUP_NOT_FOUND", "部门不存在: " + id));
+                .orElseThrow(() -> BusinessException.create("GROUP_NOT_FOUND", "Department not found: " + id));
     }
 
     /**
-     * 根据部门编码精确查询
+     * Find department by exact code
      * GET /api/rbac/groups/by-code?code=IT
      */
     @GetMapping("/by-code")
     public GroupVO findByCode(@RequestParam String code) {
         return groupService.findByCode(code)
-                .orElseThrow(() -> BusinessException.create("GROUP_NOT_FOUND", "部门不存在: " + code));
+                .orElseThrow(() -> BusinessException.create("GROUP_NOT_FOUND", "Department not found: " + code));
     }
 
     /**
-     * 根据父部门ID查询
+     * Find departments by parent ID
      * GET /api/rbac/groups/by-parent?parentId=0
      */
     @GetMapping("/by-parent")
@@ -65,8 +65,8 @@ public class GroupController {
     }
 
     /**
-     * 搜索部门（模糊查询）
-     * GET /api/rbac/groups/search?keyword=技术
+     * Search departments (fuzzy)
+     * GET /api/rbac/groups/search?keyword=IT
      */
     @GetMapping("/search")
     public List<GroupVO> search(@RequestParam String keyword) {
@@ -74,7 +74,7 @@ public class GroupController {
     }
 
     /**
-     * 根据状态查询
+     * Find by status
      * GET /api/rbac/groups/by-status?status=1
      */
     @GetMapping("/by-status")
@@ -83,7 +83,7 @@ public class GroupController {
     }
 
     /**
-     * 获取所有根部门
+     * Get all root departments
      * GET /api/rbac/groups/root
      */
     @GetMapping("/root")
@@ -92,7 +92,7 @@ public class GroupController {
     }
 
     /**
-     * 创建部门
+     * Create department
      * POST /api/rbac/groups
      */
     @PostMapping
@@ -101,7 +101,7 @@ public class GroupController {
     }
 
     /**
-     * 更新部门
+     * Update department
      * PUT /api/rbac/groups/{id}
      */
     @PutMapping("/{id}")
@@ -110,7 +110,7 @@ public class GroupController {
     }
 
     /**
-     * 删除部门
+     * Delete department
      * DELETE /api/rbac/groups/{id}
      */
     @DeleteMapping("/{id}")

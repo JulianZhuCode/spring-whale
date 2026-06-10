@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Security 配置属性
+ * Security configuration properties
  */
 @Data
 @Component

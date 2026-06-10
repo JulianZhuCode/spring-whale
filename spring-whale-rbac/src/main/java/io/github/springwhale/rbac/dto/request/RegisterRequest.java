@@ -4,45 +4,45 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
- * 用户注册请求
+ * User registration request
  */
 @Data
 public class RegisterRequest {
     
     /**
-     * 用户名
+     * Username
      */
-    @NotBlank(message = "用户名不能为空")
+    @NotBlank(message = "Username must not be empty")
     private String username;
     
     /**
-     * 密码
+     * Password
      */
-    @NotBlank(message = "密码不能为空")
+    @NotBlank(message = "Password must not be empty")
     private String password;
     
     /**
-     * 真实姓名
+     * Real name
      */
     private String realName;
     
     /**
-     * 邮箱
+     * Email
      */
     private String email;
     
     /**
-     * 手机号
+     * Phone
      */
     private String phone;
     
     /**
-     * 头像URL
+     * Avatar URL
      */
     private String avatar;
     
     /**
-     * 所属部门ID
+     * Department ID
      */
     private Integer groupId;
 }

@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 认证控制器
+ * Authentication controller
  */
 @RestController
 @RequestMapping("/api/rbac/auth")
@@ -23,7 +23,7 @@ public class AuthController {
     private final AuthService authService;
 
     /**
-     * 用户登录
+     * User login
      * POST /api/rbac/auth/login
      */
     @PostMapping("/login")
@@ -32,7 +32,7 @@ public class AuthController {
     }
 
     /**
-     * 用户注册
+     * User registration
      * POST /api/rbac/auth/register
      */
     @PostMapping("/register")
@@ -41,36 +41,36 @@ public class AuthController {
     }
 
     /**
-     * 获取当前用户信息
+     * Get current user info
      * GET /api/rbac/auth/me
      */
     @GetMapping("/me")
     public String getCurrentUser() {
         Integer userId = AuthUtil.getUserId();
         String username = AuthUtil.getUsername();
-        return "当前用户: " + username + " (ID: " + userId + ")";
+        return "Current user: " + username + " (ID: " + userId + ")";
     }
 
     /**
-     * 修改密码
+     * Change password
      * POST /api/rbac/auth/change-password
      */
     @PostMapping("/change-password")
     public void changePassword(@Valid @RequestBody ChangePasswordRequest request) {
         Integer userId = AuthUtil.getUserId();
         if (userId == null) {
-            throw BusinessException.create("USER_NOT_AUTHENTICATED", "用户未登录");
+            throw BusinessException.create("USER_NOT_AUTHENTICATED", "User not authenticated");
         }
 
         authService.changePassword(userId, request);
     }
 
     /**
-     * 退出登录（前端删除 Token 即可）
+     * Logout (frontend removes token)
      * POST /api/rbac/auth/logout
      */
     @PostMapping("/logout")
     public String logout() {
-        return "退出登录成功";
+        return "Logout successful";
     }
 }

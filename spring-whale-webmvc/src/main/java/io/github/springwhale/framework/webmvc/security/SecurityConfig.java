@@ -56,7 +56,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, @Qualifier("corsConfigurationSource") CorsConfigurationSource corsConfigurationSource) {
-        // 收集所有允许匿名访问的 URL
+        // Collect all URLs that permit anonymous access
         List<String> permitAllUrls = collectPermitAllUrls();
 
         log.info("Permit all URLs: {}", permitAllUrls);

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 菜单控制器
+ * Menu controller
  */
 @RestController
 @RequestMapping("/api/rbac/menus")
@@ -24,7 +24,7 @@ public class MenuController {
     private final MenuService menuService;
 
     /**
-     * 分页查询所有菜单
+     * Find all menus with pagination
      * GET /api/rbac/menus?page=0&size=20
      */
     @GetMapping
@@ -36,27 +36,27 @@ public class MenuController {
     }
 
     /**
-     * 根据ID查询菜单
+     * Find menu by ID
      * GET /api/rbac/menus/{id}
      */
     @GetMapping("/{id}")
     public MenuVO findById(@PathVariable Integer id) {
         return menuService.findById(id)
-                .orElseThrow(() -> BusinessException.create("MENU_NOT_FOUND", "菜单不存在: " + id));
+                .orElseThrow(() -> BusinessException.create("MENU_NOT_FOUND", "Menu not found: " + id));
     }
 
     /**
-     * 根据菜单编码精确查询
+     * Find menu by exact code
      * GET /api/rbac/menus/by-code?code=system:user
      */
     @GetMapping("/by-code")
     public MenuVO findByCode(@RequestParam String code) {
         return menuService.findByCode(code)
-                .orElseThrow(() -> BusinessException.create("MENU_NOT_FOUND", "菜单不存在: " + code));
+                .orElseThrow(() -> BusinessException.create("MENU_NOT_FOUND", "Menu not found: " + code));
     }
 
     /**
-     * 根据父菜单ID查询
+     * Find menus by parent ID
      * GET /api/rbac/menus/by-parent?parentId=0
      */
     @GetMapping("/by-parent")
@@ -65,8 +65,8 @@ public class MenuController {
     }
 
     /**
-     * 搜索菜单（模糊查询）
-     * GET /api/rbac/menus/search?keyword=用户
+     * Search menus (fuzzy)
+     * GET /api/rbac/menus/search?keyword=user
      */
     @GetMapping("/search")
     public List<MenuVO> search(@RequestParam String keyword) {
@@ -74,7 +74,7 @@ public class MenuController {
     }
 
     /**
-     * 根据类型查询
+     * Find by type
      * GET /api/rbac/menus/by-type?type=2
      */
     @GetMapping("/by-type")
@@ -83,7 +83,7 @@ public class MenuController {
     }
 
     /**
-     * 根据状态查询
+     * Find by status
      * GET /api/rbac/menus/by-status?status=1
      */
     @GetMapping("/by-status")
@@ -92,7 +92,7 @@ public class MenuController {
     }
 
     /**
-     * 根据可见性查询
+     * Find by visibility
      * GET /api/rbac/menus/by-visible?visible=1
      */
     @GetMapping("/by-visible")
@@ -101,7 +101,7 @@ public class MenuController {
     }
 
     /**
-     * 获取所有根菜单
+     * Get all root menus
      * GET /api/rbac/menus/root
      */
     @GetMapping("/root")
@@ -110,7 +110,7 @@ public class MenuController {
     }
 
     /**
-     * 创建菜单
+     * Create menu
      * POST /api/rbac/menus
      */
     @PostMapping
@@ -119,7 +119,7 @@ public class MenuController {
     }
 
     /**
-     * 更新菜单
+     * Update menu
      * PUT /api/rbac/menus/{id}
      */
     @PutMapping("/{id}")
@@ -128,7 +128,7 @@ public class MenuController {
     }
 
     /**
-     * 删除菜单
+     * Delete menu
      * DELETE /api/rbac/menus/{id}
      */
     @DeleteMapping("/{id}")

@@ -4,17 +4,17 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
- * 部门创建/更新请求
+ * Department create/update request
  */
 @Data
 public class GroupRequest {
     
     private Integer parentId;
     
-    @NotBlank(message = "部门编码不能为空")
+    @NotBlank(message = "Department code must not be empty")
     private String code;
     
-    @NotBlank(message = "部门名称不能为空")
+    @NotBlank(message = "Department name must not be empty")
     private String name;
     
     private String description;

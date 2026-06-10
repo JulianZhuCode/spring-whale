@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 角色服务
+ * Role service
  */
 @Service
 @RequiredArgsConstructor
@@ -27,28 +27,28 @@ public class RoleService {
     private final RoleMapper roleMapper;
 
     /**
-     * 分页查询所有角色
+     * Find all roles with pagination
      */
     public Page<RoleVO> findAll(Pageable pageable) {
         return roleRepository.findAll(pageable).map(roleMapper::toVO);
     }
 
     /**
-     * 根据ID查询角色
+     * Find role by ID
      */
     public Optional<RoleVO> findById(Integer id) {
         return roleRepository.findById(id).map(roleMapper::toVO);
     }
 
     /**
-     * 根据角色编码精确查询
+     * Find role by exact code
      */
     public Optional<RoleVO> findByCode(String code) {
         return roleRepository.findByCode(code).map(roleMapper::toVO);
     }
 
     /**
-     * 搜索角色（支持角色名称模糊查询）
+     * Search roles by name (fuzzy)
      */
     public List<RoleVO> search(String keyword) {
         if (keyword == null || keyword.trim().isEmpty()) {
@@ -58,14 +58,14 @@ public class RoleService {
     }
 
     /**
-     * 根据状态查询
+     * Find by status
      */
     public List<RoleVO> findByStatus(Integer status) {
         return roleMapper.toVOList(roleRepository.findByStatus(status));
     }
 
     /**
-     * 创建角色
+     * Create role
      */
     @Transactional
     public RoleVO create(RoleRequest request) {
@@ -79,12 +79,12 @@ public class RoleService {
     }
 
     /**
-     * 更新角色
+     * Update role
      */
     @Transactional
     public RoleVO update(Integer id, RoleRequest request) {
         RoleEntity role = roleRepository.findById(id)
-                .orElseThrow(() -> BusinessException.create("ROLE_NOT_FOUND", "角色不存在，ID: " + id));
+                .orElseThrow(() -> BusinessException.create("ROLE_NOT_FOUND", "Role not found, ID: " + id));
 
         role.setCode(request.getCode());
         role.setName(request.getName());
@@ -96,12 +96,12 @@ public class RoleService {
     }
 
     /**
-     * 删除角色
+     * Delete role
      */
     @Transactional
     public void delete(Integer id) {
         RoleEntity role = roleRepository.findById(id)
-                .orElseThrow(() -> BusinessException.create("ROLE_NOT_FOUND", "角色不存在，ID: " + id));
+                .orElseThrow(() -> BusinessException.create("ROLE_NOT_FOUND", "Role not found, ID: " + id));
         roleRepository.delete(role);
     }
 }

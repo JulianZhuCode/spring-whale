@@ -9,7 +9,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * 角色实体
+ * Role entity
  */
 @Entity
 @Table(name = "rbac_role", indexes = {
@@ -20,31 +20,31 @@ import lombok.EqualsAndHashCode;
 public class RoleEntity extends BaseEntity {
 
     /**
-     * 角色编码
+     * Role code
      */
     @Column(nullable = false, unique = true, length = 50)
     private String code;
 
     /**
-     * 角色名称
+     * Role name
      */
     @Column(nullable = false, length = 100)
     private String name;
 
     /**
-     * 角色描述
+     * Role description
      */
     @Column(length = 500)
     private String description;
 
     /**
-     * 状态：0-禁用，1-启用
+     * Status: 0=disabled, 1=enabled
      */
     @Column(nullable = false)
     private Integer status = 1;
 
     /**
-     * 排序
+     * Sort order
      */
     private Integer sort = 0;
 }

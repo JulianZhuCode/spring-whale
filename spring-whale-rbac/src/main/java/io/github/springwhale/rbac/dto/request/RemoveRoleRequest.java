@@ -4,20 +4,20 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
- * 移除角色请求
+ * Remove role request
  */
 @Data
 public class RemoveRoleRequest {
     
     /**
-     * 用户ID
+     * User ID
      */
-    @NotNull(message = "用户ID不能为空")
+    @NotNull(message = "User ID must not be empty")
     private Integer userId;
     
     /**
-     * 角色ID
+     * Role ID
      */
-    @NotNull(message = "角色ID不能为空")
+    @NotNull(message = "Role ID must not be empty")
     private Integer roleId;
 }

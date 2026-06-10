@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 用户角色关联控制器
+ * User-role association controller
  */
 @RestController
 @RequestMapping("/api/rbac/user-roles")
@@ -22,7 +22,7 @@ public class UserRoleController {
     private final UserRoleService userRoleService;
 
     /**
-     * 查询用户的角色列表
+     * Query user's role list
      * GET /api/rbac/user-roles/by-user?userId=1
      */
     @GetMapping("/by-user")
@@ -31,7 +31,7 @@ public class UserRoleController {
     }
 
     /**
-     * 查询角色的用户列表
+     * Query role's user list
      * GET /api/rbac/user-roles/by-role?roleId=1
      */
     @GetMapping("/by-role")
@@ -40,7 +40,7 @@ public class UserRoleController {
     }
 
     /**
-     * 为用户分配角色
+     * Assign role to user
      * POST /api/rbac/user-roles/assign
      */
     @PostMapping("/assign")
@@ -49,7 +49,7 @@ public class UserRoleController {
     }
 
     /**
-     * 批量为用户分配角色
+     * Batch assign roles to user
      * POST /api/rbac/user-roles/assign-batch
      */
     @PostMapping("/assign-batch")
@@ -58,7 +58,7 @@ public class UserRoleController {
     }
 
     /**
-     * 移除用户的角色
+     * Remove role from user
      * DELETE /api/rbac/user-roles/remove
      */
     @DeleteMapping("/remove")
@@ -67,7 +67,7 @@ public class UserRoleController {
     }
 
     /**
-     * 移除用户的所有角色
+     * Remove all roles from user
      * DELETE /api/rbac/user-roles/remove-all?userId=1
      */
     @DeleteMapping("/remove-all")

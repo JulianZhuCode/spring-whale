@@ -8,33 +8,33 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 用户角色关联数据访问接口
+ * User-role association repository
  */
 @Repository
 public interface UserRoleRepository extends JpaRepository<UserRoleEntity, Integer> {
 
     /**
-     * 根据用户ID查询所有角色关联
+     * Find all role associations by user ID
      */
     List<UserRoleEntity> findByUserId(Integer userId);
 
     /**
-     * 根据角色ID查询所有用户关联
+     * Find all user associations by role ID
      */
     List<UserRoleEntity> findByRoleId(Integer roleId);
 
     /**
-     * 根据用户ID和角色ID查询
+     * Find by user ID and role ID
      */
     Optional<UserRoleEntity> findByUserIdAndRoleId(Integer userId, Integer roleId);
 
     /**
-     * 删除用户的所有角色关联
+     * Delete all role associations for user
      */
     void deleteByUserId(Integer userId);
 
     /**
-     * 删除角色的所有用户关联
+     * Delete all user associations for role
      */
     void deleteByRoleId(Integer roleId);
 }

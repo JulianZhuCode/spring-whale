@@ -8,33 +8,33 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 角色菜单关联数据访问接口
+ * Role-menu association repository
  */
 @Repository
 public interface RoleMenuRepository extends JpaRepository<RoleMenuEntity, Integer> {
 
     /**
-     * 根据角色ID查询所有菜单关联
+     * Find all menu associations by role ID
      */
     List<RoleMenuEntity> findByRoleId(Integer roleId);
 
     /**
-     * 根据菜单ID查询所有角色关联
+     * Find all role associations by menu ID
      */
     List<RoleMenuEntity> findByMenuId(Integer menuId);
 
     /**
-     * 根据角色ID和菜单ID查询
+     * Find by role ID and menu ID
      */
     Optional<RoleMenuEntity> findByRoleIdAndMenuId(Integer roleId, Integer menuId);
 
     /**
-     * 删除角色的所有菜单关联
+     * Delete all menu associations for role
      */
     void deleteByRoleId(Integer roleId);
 
     /**
-     * 删除菜单的所有角色关联
+     * Delete all role associations for menu
      */
     void deleteByMenuId(Integer menuId);
 }

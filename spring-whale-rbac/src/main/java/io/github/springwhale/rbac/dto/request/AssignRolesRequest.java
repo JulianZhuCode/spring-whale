@@ -7,20 +7,20 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * 批量分配角色请求
+ * Batch assign roles request
  */
 @Data
 public class AssignRolesRequest {
     
     /**
-     * 用户ID
+     * User ID
      */
-    @NotNull(message = "用户ID不能为空")
+    @NotNull(message = "User ID must not be empty")
     private Integer userId;
     
     /**
-     * 角色ID列表
+     * Role ID list
      */
-    @NotEmpty(message = "角色ID列表不能为空")
+    @NotEmpty(message = "Role ID list must not be empty")
     private List<Integer> roleIds;
 }

@@ -3,7 +3,7 @@ package io.github.springwhale.rbac.dto.vo;
 import lombok.Data;
 
 /**
- * 分组（部门）视图对象
+ * Group (department) view object
  */
 @Data
 public class GroupVO {

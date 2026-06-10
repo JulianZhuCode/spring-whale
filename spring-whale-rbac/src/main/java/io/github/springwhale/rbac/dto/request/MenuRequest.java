@@ -5,20 +5,20 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
- * 菜单创建/更新请求
+ * Menu create/update request
  */
 @Data
 public class MenuRequest {
     
     private Integer parentId;
     
-    @NotBlank(message = "菜单编码不能为空")
+    @NotBlank(message = "Menu code must not be empty")
     private String code;
     
-    @NotBlank(message = "菜单名称不能为空")
+    @NotBlank(message = "Menu name must not be empty")
     private String name;
     
-    @NotNull(message = "菜单类型不能为空")
+    @NotNull(message = "Menu type must not be empty")
     private Integer type;
     
     private String path;

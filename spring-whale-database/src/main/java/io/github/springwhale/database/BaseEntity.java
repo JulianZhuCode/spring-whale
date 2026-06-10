@@ -25,7 +25,7 @@ public abstract class BaseEntity {
 
     private Integer updateBy;
     /**
-     * 0 - normal，1 - delete
+     * 0 = normal, 1 = deleted
      */
     private Integer delFlag = 0;
 

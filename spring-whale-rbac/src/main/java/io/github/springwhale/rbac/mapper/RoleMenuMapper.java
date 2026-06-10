@@ -7,23 +7,23 @@ import org.mapstruct.Mapper;
 import java.util.List;
 
 /**
- * 角色菜单关联实体与VO转换器（MapStruct）
+ * MapStruct mapper for RoleMenu entity/VO conversion
  */
 @Mapper(componentModel = "spring")
 public interface RoleMenuMapper {
 
     /**
-     * Entity → VO
+     * Entity to VO
      */
     RoleMenuVO toVO(RoleMenuEntity entity);
 
     /**
-     * VO → Entity
+     * VO to Entity
      */
     RoleMenuEntity toEntity(RoleMenuVO vo);
 
     /**
-     * Entity列表 → VO列表
+     * Entity list to VO list
      */
     List<RoleMenuVO> toVOList(List<RoleMenuEntity> entities);
 }

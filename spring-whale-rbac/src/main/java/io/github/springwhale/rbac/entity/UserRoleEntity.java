@@ -9,7 +9,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * 用户角色关联实体
+ * User-role association entity
  */
 @Entity
 @Table(name = "rbac_user_role", uniqueConstraints = {
@@ -20,13 +20,13 @@ import lombok.EqualsAndHashCode;
 public class UserRoleEntity extends SimpleBaseEntity {
 
     /**
-     * 用户ID
+     * User ID
      */
     @Column(name = "user_id", nullable = false)
     private Integer userId;
 
     /**
-     * 角色ID
+     * Role ID
      */
     @Column(name = "role_id", nullable = false)
     private Integer roleId;

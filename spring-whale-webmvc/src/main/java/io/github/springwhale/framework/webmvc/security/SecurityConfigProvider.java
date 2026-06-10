@@ -12,7 +12,7 @@ public interface SecurityConfigProvider {
     }
 
     default void configure(HttpSecurity http) throws Exception {
-        // 默认不做任何配置
+        // Default: no custom configuration
     }
 
     default List<RequestMatcher> getCustomRequestMatchers() {

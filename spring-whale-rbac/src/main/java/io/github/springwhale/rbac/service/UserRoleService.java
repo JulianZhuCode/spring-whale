@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * 用户角色关联服务
+ * User-role association service
  */
 @Service
 @RequiredArgsConstructor
@@ -23,7 +23,7 @@ public class UserRoleService {
     private final UserRoleMapper userRoleMapper;
 
     /**
-     * 根据用户ID查询所有角色关联
+     * Find all role associations by user ID
      */
     public List<UserRoleVO> findByUserId(Integer userId) {
         List<UserRoleEntity> entities = userRoleRepository.findByUserId(userId);
@@ -31,7 +31,7 @@ public class UserRoleService {
     }
 
     /**
-     * 根据角色ID查询所有用户关联
+     * Find all user associations by role ID
      */
     public List<UserRoleVO> findByRoleId(Integer roleId) {
         List<UserRoleEntity> entities = userRoleRepository.findByRoleId(roleId);
@@ -39,13 +39,13 @@ public class UserRoleService {
     }
 
     /**
-     * 为用户分配角色
+     * Assign role to user
      */
     @Transactional
     public void assignRoleToUser(Integer userId, Integer roleId) {
-        // 检查是否已存在
+        // Check if already exists
         if (userRoleRepository.findByUserIdAndRoleId(userId, roleId).isPresent()) {
-            throw BusinessException.create("USER_ROLE_ALREADY_EXISTS", "用户已拥有该角色");
+            throw BusinessException.create("USER_ROLE_ALREADY_EXISTS", "User already has this role");
         }
         
         UserRoleEntity userRole = new UserRoleEntity();
@@ -55,14 +55,14 @@ public class UserRoleService {
     }
 
     /**
-     * 批量为用户分配角色
+     * Batch assign roles to user
      */
     @Transactional
     public void assignRolesToUser(Integer userId, List<Integer> roleIds) {
-        // 先删除用户的所有角色关联
+        // Remove all existing role associations for user first
         userRoleRepository.deleteByUserId(userId);
         
-        // 重新分配
+        // Reassign
         for (Integer roleId : roleIds) {
             UserRoleEntity userRole = new UserRoleEntity();
             userRole.setUserId(userId);
@@ -72,17 +72,17 @@ public class UserRoleService {
     }
 
     /**
-     * 移除用户的角色
+     * Remove role from user
      */
     @Transactional
     public void removeRoleFromUser(Integer userId, Integer roleId) {
         UserRoleEntity userRole = userRoleRepository.findByUserIdAndRoleId(userId, roleId)
-                .orElseThrow(() -> BusinessException.create("USER_ROLE_NOT_FOUND", "用户角色关联不存在"));
+                .orElseThrow(() -> BusinessException.create("USER_ROLE_NOT_FOUND", "User-role association not found"));
         userRoleRepository.delete(userRole);
     }
 
     /**
-     * 移除用户的所有角色
+     * Remove all roles from user
      */
     @Transactional
     public void removeAllRolesFromUser(Integer userId) {

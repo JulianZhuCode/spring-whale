@@ -8,23 +8,23 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 角色数据访问接口
+ * Role repository
  */
 @Repository
 public interface RoleRepository extends JpaRepository<RoleEntity, Integer> {
 
     /**
-     * 根据角色编码精确查询
+     * Find role by exact code
      */
     Optional<RoleEntity> findByCode(String code);
 
     /**
-     * 根据角色名称模糊查询
+     * Find by role name (fuzzy)
      */
     List<RoleEntity> findByNameContaining(String name);
 
     /**
-     * 根据状态查询
+     * Find by status
      */
     List<RoleEntity> findByStatus(Integer status);
 }

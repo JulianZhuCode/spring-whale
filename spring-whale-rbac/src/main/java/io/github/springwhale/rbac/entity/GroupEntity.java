@@ -9,7 +9,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * 分组（部门）实体
+ * Group (department) entity
  */
 @Entity
 @Table(name = "rbac_group", indexes = {
@@ -21,53 +21,53 @@ import lombok.EqualsAndHashCode;
 public class GroupEntity extends BaseEntity {
 
     /**
-     * 父部门ID
+     * Parent department ID
      */
     private Integer parentId;
 
     /**
-     * 部门编码
+     * Department code
      */
     @Column(nullable = false, unique = true, length = 50)
     private String code;
 
     /**
-     * 部门名称
+     * Department name
      */
     @Column(nullable = false, length = 100)
     private String name;
 
     /**
-     * 部门描述
+     * Department description
      */
     @Column(length = 500)
     private String description;
 
     /**
-     * 负责人
+     * Leader
      */
     @Column(length = 50)
     private String leader;
 
     /**
-     * 联系电话
+     * Contact phone
      */
     @Column(length = 20)
     private String phone;
 
     /**
-     * 邮箱
+     * Email
      */
     @Column(length = 100)
     private String email;
 
     /**
-     * 排序
+     * Sort order
      */
     private Integer sort = 0;
 
     /**
-     * 状态：0-禁用，1-启用
+     * Status: 0=disabled, 1=enabled
      */
     @Column(nullable = false)
     private Integer status = 1;

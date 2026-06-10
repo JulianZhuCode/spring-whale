@@ -8,43 +8,43 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 用户数据访问接口
+ * User repository
  */
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Integer> {
 
     /**
-     * 根据用户名精确查询
+     * Find by exact username
      */
     Optional<UserEntity> findByUsername(String username);
 
     /**
-     * 根据邮箱精确查询
+     * Find by exact email
      */
     Optional<UserEntity> findByEmail(String email);
 
     /**
-     * 根据手机号精确查询
+     * Find by exact phone
      */
     Optional<UserEntity> findByPhone(String phone);
 
     /**
-     * 根据用户名模糊查询
+     * Find by username (fuzzy)
      */
     List<UserEntity> findByUsernameContaining(String username);
 
     /**
-     * 根据真实姓名模糊查询
+     * Find by real name (fuzzy)
      */
     List<UserEntity> findByRealNameContaining(String realName);
 
     /**
-     * 根据部门ID查询
+     * Find users by department ID
      */
     List<UserEntity> findByGroupId(Integer groupId);
 
     /**
-     * 根据状态查询
+     * Find by status
      */
     List<UserEntity> findByStatus(Integer status);
 }

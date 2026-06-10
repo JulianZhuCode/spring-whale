@@ -4,20 +4,20 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
- * 修改密码请求
+ * Change password request
  */
 @Data
 public class ChangePasswordRequest {
     
     /**
-     * 旧密码
+     * Old password
      */
-    @NotBlank(message = "旧密码不能为空")
+    @NotBlank(message = "Old password must not be empty")
     private String oldPassword;
     
     /**
-     * 新密码
+     * New password
      */
-    @NotBlank(message = "新密码不能为空")
+    @NotBlank(message = "New password must not be empty")
     private String newPassword;
 }

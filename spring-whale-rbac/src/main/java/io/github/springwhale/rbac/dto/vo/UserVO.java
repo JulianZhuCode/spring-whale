@@ -3,7 +3,7 @@ package io.github.springwhale.rbac.dto.vo;
 import lombok.Data;
 
 /**
- * 用户视图对象
+ * User view object
  */
 @Data
 public class UserVO {

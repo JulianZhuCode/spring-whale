@@ -19,7 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 /**
- * 认证服务
+ * Authentication service
  */
 @Service
 @RequiredArgsConstructor
@@ -33,11 +33,11 @@ public class AuthService {
     private final UserMapper userMapper;
 
     /**
-     * 用户登录
+     * User login
      */
     public LoginResponse login(LoginRequest request) {
         try {
-            // 1. 验证用户名和密码（如果失败会抛出 BadCredentialsException）
+            // 1. Authenticate username and password (throws BadCredentialsException on failure)
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             request.getUsername(),
@@ -45,39 +45,39 @@ public class AuthService {
                     )
             );
 
-            // 2. 查询用户信息
+            // 2. Query user info
             UserEntity user = userRepository.findByUsername(request.getUsername())
-                    .orElseThrow(() -> new BadCredentialsException("用户不存在"));
+                    .orElseThrow(() -> new BadCredentialsException("User not found"));
 
-            // 3. 生成 JWT Token
+            // 3. Generate JWT token
             String token = jwtUtil.generateToken(user.getUsername(), user.getId());
 
-            // 4. 构建响应
+            // 4. Build response
             return LoginResponse.builder()
                     .token(token)
                     .tokenType("Bearer")
                     .userId(user.getId())
                     .username(user.getUsername())
                     .realName(user.getRealName())
-                    .expiresIn(86400000L) // 24小时
+                    .expiresIn(86400000L) // 24 hours
                     .build();
 
         } catch (BadCredentialsException e) {
             log.warn("Login failed for user: {}", request.getUsername());
-            throw new BadCredentialsException("用户名或密码错误");
+            throw new BadCredentialsException("Invalid username or password");
         }
     }
 
     /**
-     * 用户注册
+     * User registration
      */
     public UserVO register(RegisterRequest request) {
-        // 检查用户名是否已存在
+        // Check if username already exists
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
-            throw BusinessException.create("USER_ALREADY_EXISTS", "用户名已存在");
+            throw BusinessException.create("USER_ALREADY_EXISTS", "Username already exists");
         }
 
-        // 转换为 Entity
+        // Convert to Entity
         UserEntity user = userMapper.toEntity(new UserVO());
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -87,30 +87,30 @@ public class AuthService {
         user.setAvatar(request.getAvatar());
         user.setGroupId(request.getGroupId());
         
-        // 设置默认状态
+        // Set default status
         if (user.getStatus() == null) {
             user.setStatus(1);
         }
 
         UserEntity savedUser = userRepository.save(user);
         
-        // 转换为 VO
+        // Convert to VO
         return userMapper.toVO(savedUser);
     }
 
     /**
-     * 修改密码
+     * Change password
      */
     public void changePassword(Integer userId, ChangePasswordRequest request) {
         UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> BusinessException.create("USER_NOT_FOUND", "用户不存在"));
+                .orElseThrow(() -> BusinessException.create("USER_NOT_FOUND", "User not found"));
 
-        // 验证旧密码
+        // Verify old password
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
-            throw BusinessException.create("OLD_PASSWORD_INCORRECT", "旧密码错误");
+            throw BusinessException.create("OLD_PASSWORD_INCORRECT", "Old password is incorrect");
         }
 
-        // 更新新密码
+        // Update new password
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
         

@@ -4,12 +4,12 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
- * 用户创建/更新请求
+ * User create/update request
  */
 @Data
 public class UserRequest {
     
-    @NotBlank(message = "用户名不能为空")
+    @NotBlank(message = "Username must not be empty")
     private String username;
     
     private String password;

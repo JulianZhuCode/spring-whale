@@ -7,20 +7,20 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * 批量分配菜单请求
+ * Batch assign menus request
  */
 @Data
 public class AssignMenusRequest {
     
     /**
-     * 角色ID
+     * Role ID
      */
-    @NotNull(message = "角色ID不能为空")
+    @NotNull(message = "Role ID must not be empty")
     private Integer roleId;
     
     /**
-     * 菜单ID列表
+     * Menu ID list
      */
-    @NotEmpty(message = "菜单ID列表不能为空")
+    @NotEmpty(message = "Menu ID list must not be empty")
     private List<Integer> menuIds;
 }

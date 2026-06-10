@@ -3,7 +3,7 @@ package io.github.springwhale.rbac.dto.vo;
 import lombok.Data;
 
 /**
- * 菜单视图对象
+ * Menu view object
  */
 @Data
 public class MenuVO {
