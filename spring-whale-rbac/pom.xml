@@ -20,6 +20,10 @@
     <dependencies>
         <dependency>
             <groupId>io.github.julianzhucode</groupId>
+            <artifactId>spring-whale-thymeleaf</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.github.julianzhucode</groupId>
             <artifactId>spring-whale-webmvc</artifactId>
         </dependency>
         <dependency>

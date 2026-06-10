@@ -48,16 +48,22 @@ public class JwtUtil {
     }
 
     public boolean validateToken(String token) {
+        if (token == null || !token.contains(".")) {
+            return false;
+        }
         try {
             Claims claims = getClaimsFromToken(token);
             return !claims.getExpiration().before(new Date());
         } catch (Exception e) {
-            log.error("Token validation failed", e);
+            log.warn("Token validation failed: {}", e.getMessage());
             return false;
         }
     }
 
     private Claims getClaimsFromToken(String token) {
+        if (token == null || !token.contains(".")) {
+            throw new IllegalArgumentException("Invalid JWT token format");
+        }
         return Jwts.parser()
                 .verifyWith(getSignKey())
                 .build()

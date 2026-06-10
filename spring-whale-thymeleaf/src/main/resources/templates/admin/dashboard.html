@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+
+<head>
+    <title>Dashboard</title>
+</head>
+
+<body>
+
+<main layout:fragment="content">
+    <div class="page-header">
+        <h1>Dashboard</h1>
+        <p>Welcome to Spring Whale Admin Console</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="dashboard-stats">
+        <div class="stat-card primary">
+            <div class="stat-card-label">Status</div>
+            <div class="stat-card-value">Online</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card-label">Modules</div>
+            <div class="stat-card-value" th:text="${menuGroups.size()}">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card-label">Version</div>
+            <div class="stat-card-value">0.0.2</div>
+        </div>
+    </div>
+
+    <!-- Module Cards -->
+    <th:block th:if="${!menuGroups.isEmpty()}">
+        <h2 class="section-title">Modules</h2>
+        <div class="dashboard-grid">
+            <th:block th:each="group : ${menuGroups}">
+                <div class="dashboard-card">
+                    <div class="dashboard-card-icon" th:if="${group.icon}" th:text="${group.icon}">&#x1F4E6;</div>
+                    <h3 th:text="${group.label}">Group</h3>
+                    <ul class="dashboard-card-links">
+                        <th:block th:each="child : ${group.children}">
+                            <li><a th:href="@{${child.url}}" th:text="${child.label}">Item</a></li>
+                        </th:block>
+                    </ul>
+                </div>
+            </th:block>
+        </div>
+    </th:block>
+
+    <!-- Empty State -->
+    <div th:if="${menuGroups.isEmpty()}"
+         style="text-align:center; padding:60px 20px; color:var(--text-muted);">
+        <div style="font-size:48px; margin-bottom:16px;">&#x1F3E0;</div>
+        <p style="font-size:16px; color:var(--text-secondary); font-weight:600; margin-bottom:6px;">No modules yet</p>
+        <p style="font-size:13px;">Add AdminMenuProvider beans to register menu items here.</p>
+    </div>
+</main>
+
+</body>
+</html>

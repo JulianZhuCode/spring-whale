@@ -2,6 +2,7 @@ package io.github.springwhale.rbac.controller;
 
 import io.github.springwhale.framework.core.exception.BusinessException;
 import io.github.springwhale.framework.core.utils.AuthUtil;
+import io.github.springwhale.framework.webmvc.advice.AdviceIgnore;
 import io.github.springwhale.rbac.dto.request.ChangePasswordRequest;
 import io.github.springwhale.rbac.dto.request.LoginRequest;
 import io.github.springwhale.rbac.dto.request.RegisterRequest;
@@ -26,6 +27,7 @@ public class AuthController {
      * User login
      * POST /api/rbac/auth/login
      */
+    @AdviceIgnore
     @PostMapping("/login")
     public LoginResponse login(@Valid @RequestBody LoginRequest request) {
         return authService.login(request);

@@ -13,6 +13,7 @@
         <module>spring-whale-webmvc</module>
         <module>spring-whale-database</module>
         <module>spring-whale-rbac</module>
+        <module>spring-whale-thymeleaf</module>
     </modules>
     <packaging>pom</packaging>
     <url>https://github.com/JulianZhuCode/spring-whale</url>
@@ -47,6 +48,7 @@
         <postgresql.version>42.7.11</postgresql.version>
         <mapstruct.version>1.6.3</mapstruct.version>
         <jjwt-api.version>0.13.0</jjwt-api.version>
+        <thymeleaf-layout-dialect.version>4.0.1</thymeleaf-layout-dialect.version>
     </properties>
 
     <dependencyManagement>
@@ -77,11 +79,21 @@
                 <version>${my.version}</version>
             </dependency>
             <dependency>
+                <groupId>io.github.julianzhucode</groupId>
+                <artifactId>spring-whale-thymeleaf</artifactId>
+                <version>${my.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
                 <version>${spring-boot-dependencies.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>nz.net.ultraq.thymeleaf</groupId>
+                <artifactId>thymeleaf-layout-dialect</artifactId>
+                <version>${thymeleaf-layout-dialect.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
@@ -127,6 +139,16 @@
                 <artifactId>jjwt-api</artifactId>
                 <version>${jjwt-api.version}</version>
             </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-impl</artifactId>
+                <version>${jjwt-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-jackson</artifactId>
+                <version>${jjwt-api.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -138,6 +160,7 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <configuration>
                         <encoding>UTF-8</encoding>
+                        <parameters>true</parameters>
                         <annotationProcessorPaths>
                             <path>
                                 <groupId>org.projectlombok</groupId>

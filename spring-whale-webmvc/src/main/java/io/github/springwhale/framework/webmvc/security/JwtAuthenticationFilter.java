@@ -3,6 +3,7 @@ package io.github.springwhale.framework.webmvc.security;
 import io.github.springwhale.framework.core.context.AuthenticationContextHolder;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -31,10 +32,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
+        String requestURI = request.getRequestURI();
         try {
             String jwt = getJwtFromRequest(request);
 
-            if (StringUtils.hasText(jwt) && jwtUtil.validateToken(jwt)) {
+            if (jwt == null || !StringUtils.hasText(jwt)) {
+                // Only log for admin pages (skip static resources to reduce noise)
+                if (requestURI.startsWith("/admin") && !requestURI.startsWith("/admin/css") && !requestURI.startsWith("/admin/js")) {
+                    log.warn("JWT not found in request: {}", requestURI);
+                }
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            log.info("JWT found for request: {}, token length: {}, token preview: {}...", 
+                     requestURI, jwt.length(), jwt.substring(0, Math.min(30, jwt.length())));
+
+            if (jwtUtil.validateToken(jwt)) {
                 String username = jwtUtil.getUsernameFromToken(jwt);
                 Integer userId = jwtUtil.getUserIdFromToken(jwt);
 
@@ -52,10 +66,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 AuthenticationContextHolder.setContext(new SimpleAuthenticationContext(userId, username));
 
-                log.debug("Set authentication for user: {}", username);
+                log.info("Set authentication for user: {} on request: {}", username, requestURI);
+            } else {
+                log.warn("JWT validation failed for request: {}, token preview: {}...", 
+                         requestURI, jwt.substring(0, Math.min(30, jwt.length())));
             }
         } catch (Exception e) {
-            log.error("Could not set user authentication in security context", e);
+            log.error("Could not set user authentication in security context for request: {}", requestURI, e);
         }
 
         try {
@@ -65,10 +82,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
     }
 
+    /**
+     * Extract JWT from request, checking both the Authorization header
+     * (for REST API clients) and the "sw_token" cookie (for admin console).
+     */
     private String getJwtFromRequest(HttpServletRequest request) {
+        // Check Authorization header first (API clients)
         String bearerToken = request.getHeader("Authorization");
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
+        }
+        // Fall back to cookie (admin console)
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("sw_token".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
         }
         return null;
     }

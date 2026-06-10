@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:fragment="header">
+    <div class="header-left">
+        <button class="header-toggle" id="sidebarToggle" title="Toggle sidebar">&#x2630;</button>
+        <nav style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted);">
+            <a th:href="@{/admin}" style="color: var(--text-secondary); font-weight: 600;">Admin</a>
+            <span style="color: #cbd5e1;">&#x203A;</span>
+            <span th:if="${currentPath == '/admin'}" style="color: var(--text-primary); font-weight: 600;">Dashboard</span>
+            <span th:unless="${currentPath == '/admin'}"
+                  style="color: var(--text-primary); font-weight: 600;"
+                  th:text="${currentPath.replace('/admin/', '').replace('/', ' > ')}">Page</span>
+        </nav>
+    </div>
+    <div class="header-right">
+        <span style="font-size: 11px; color: #94a3b8;">v0.0.2</span>
+        <a th:href="@{/admin/logout}" class="header-link header-link-logout">&#x21BB; Logout</a>
+    </div>
+</th:block>
+
+</body>
+</html>

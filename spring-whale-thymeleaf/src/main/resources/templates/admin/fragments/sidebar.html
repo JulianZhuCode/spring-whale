@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:fragment="sidebar">
+    <div class="sidebar-brand">
+        <a th:href="@{/admin}" class="sidebar-brand-link">
+            <span class="sidebar-brand-icon">&#x1F40B;</span>
+            <span class="sidebar-brand-text">SW</span>
+        </a>
+    </div>
+
+    <nav class="sidebar-nav">
+        <!-- Dashboard -->
+        <a th:href="@{/admin}"
+           th:classappend="${currentPath == '/admin'} ? 'active'"
+           class="sidebar-dashboard-link">
+            <span class="db-icon">&#x2302;</span>
+            <span>Dashboard</span>
+        </a>
+
+        <!-- Separator -->
+        <div style="height: 1px; background: rgba(255,255,255,0.07); margin: 3px 8px;"></div>
+
+        <!-- Module Groups -->
+        <ul class="sidebar-menu">
+            <th:block th:each="group : ${menuGroups}">
+                <li class="sidebar-menu-group">
+                    <div class="sidebar-menu-group-header" th:attr="data-group=${group.key}">
+                        <span class="menu-icon" th:if="${group.icon}" th:text="${group.icon}"></span>
+                        <span class="menu-icon" th:unless="${group.icon}">&#x1F4E6;</span>
+                        <span class="menu-label" th:text="${group.label}">Group</span>
+                        <span class="menu-arrow">&#x25BC;</span>
+                    </div>
+                    <ul class="sidebar-menu-children">
+                        <th:block th:each="child : ${group.children}">
+                            <li class="sidebar-menu-item">
+                                <a th:href="@{${child.url}}"
+                                   th:classappend="${#strings.startsWith(currentPath, child.url)} ? 'active' : ''"
+                                   th:text="${child.label}">Item</a>
+                            </li>
+                        </th:block>
+                    </ul>
+                </li>
+            </th:block>
+        </ul>
+    </nav>
+</th:block>
+
+</body>
+</html>

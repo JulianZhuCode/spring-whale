@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Spring Whale Admin</title>
+    <link rel="stylesheet" th:href="@{/admin/css/admin.css}">
+    <style>
+        .login-page {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        }
+        .login-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        .login-card h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+        .login-card .subtitle {
+            font-size: 13px;
+            color: #94a3b8;
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .login-card .btn {
+            width: 100%;
+            padding: 10px 16px;
+            font-size: 14px;
+        }
+        .login-error {
+            margin-bottom: 20px;
+        }
+        .login-footer {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-page">
+    <div class="login-card">
+        <h1>Spring Whale</h1>
+        <p class="subtitle">Admin Console</p>
+
+        <div th:if="${error}" class="alert alert-danger login-error" th:text="${error}">
+            Invalid username or password
+        </div>
+
+        <!-- Diagnostic info for debugging redirect-back-to-login issue -->
+        <div th:if="${reason == 'no_token'}" class="alert alert-warning" style="margin-bottom: 20px; background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; padding: 12px; border-radius: 6px; font-size: 13px;">
+            <strong>Session lost:</strong> No authentication token found. Please log in again.
+            <br><small style="color: #a16207;">(This may indicate the cookie was not set or was cleared by the browser.)</small>
+        </div>
+        <div th:if="${reason == 'token_invalid'}" class="alert alert-warning" style="margin-bottom: 20px; background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; padding: 12px; border-radius: 6px; font-size: 13px;">
+            <strong>Token invalid:</strong> The authentication token was rejected. This could mean the token expired or is malformed.
+            <br><small style="color: #b91c1c;">Check the server logs for details. Try logging in again.</small>
+        </div>
+        <div th:if="${reason == 'auth_required'}" class="alert alert-info" style="margin-bottom: 20px; background: #eff6ff; border: 1px solid #93c5fd; color: #1e40af; padding: 12px; border-radius: 6px; font-size: 13px;">
+            <strong>Authentication required:</strong> Please log in to access this page.
+        </div>
+
+        <form id="loginForm" method="post" th:action="@{/admin/login}">
+            <div class="form-group">
+                <label class="form-label" for="username">Username</label>
+                <input type="text" id="username" name="username"
+                       class="form-input" placeholder="Enter username"
+                       autocomplete="username" autofocus required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="password">Password</label>
+                <input type="password" id="password" name="password"
+                       class="form-input" placeholder="Enter password"
+                       autocomplete="current-password" required>
+            </div>
+
+            <!-- Hidden fields for token and redirect -->
+            <input type="hidden" name="token" id="tokenField">
+            <input type="hidden" name="redirect" th:value="${param.redirect}">
+
+            <button type="submit" class="btn btn-primary mt-1">
+                Sign In
+            </button>
+        </form>
+
+        <p class="login-footer">&copy; 2026 Spring Whale Framework</p>
+    </div>
+</div>
+
+<script>
+    /**
+     * Intercept form submission: call the REST API to obtain a JWT,
+     * then submit the form with the token as a hidden field so the
+     * server sets the cookie and redirects.
+     */
+    document.getElementById('loginForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        var username = document.getElementById('username').value.trim();
+        var password = document.getElementById('password').value;
+        var errorDiv = document.querySelector('.login-error');
+
+        // Clear previous diagnostic alerts
+        document.querySelectorAll('.alert-warning, .alert-info').forEach(function(el) {
+            el.style.display = 'none';
+        });
+
+        // Frontend validation
+        if (!username || !password) {
+            showError(errorDiv, 'Please enter both username and password.');
+            return;
+        }
+
+        // Disable submit button to prevent double-submit
+        var btn = e.target.querySelector('button[type="submit"]');
+        var originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Signing in...';
+
+        console.log('[Login] Sending login request for user:', username);
+
+        fetch('/api/rbac/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: username, password: password })
+        })
+        .then(function (response) {
+            console.log('[Login] API response status:', response.status);
+            if (!response.ok) {
+                return response.text().then(function (text) {
+                    try {
+                        var json = JSON.parse(text);
+                        throw new Error(json.message || text);
+                    } catch (parseErr) {
+                        if (parseErr.message !== text) throw parseErr;
+                        throw new Error(text || 'Invalid username or password');
+                    }
+                });
+            }
+            return response.json();
+        })
+        .then(function (data) {
+            // The response may be wrapped by ApiResult: { code, message, data: { token, ... } }
+            // or unwrapped (with @AdviceIgnore): { token, tokenType, ... }
+            var token = data.token || (data.data && data.data.token);
+            console.log('[Login] API response:', JSON.stringify(data).substring(0, 200));
+            if (!token) {
+                throw new Error('No token in login response');
+            }
+            console.log('[Login] API login successful, token length:', token.length);
+            document.getElementById('tokenField').value = token;
+            // Use native form submit (bypasses event listener) to POST to /admin/login
+            // which sets the cookie and redirects to /admin
+            HTMLFormElement.prototype.submit.call(e.target);
+        })
+        .catch(function (err) {
+            console.error('[Login] Login failed:', err.message);
+            showError(errorDiv, 'Login failed: ' + err.message);
+            btn.disabled = false;
+            btn.textContent = originalText;
+        });
+    });
+
+    /**
+     * Show an error message in the login card.
+     */
+    function showError(container, message) {
+        if (!container) {
+            container = document.createElement('div');
+            container.className = 'alert alert-danger login-error';
+            container.style.display = '';
+            document.getElementById('loginForm').parentNode.insertBefore(container, document.getElementById('loginForm'));
+        }
+        container.textContent = message;
+        container.style.display = '';
+    }
+
+    // Clear error on input
+    ['username', 'password'].forEach(function (id) {
+        document.getElementById(id).addEventListener('input', function () {
+            var errorDiv = document.querySelector('.login-error');
+            if (errorDiv) errorDiv.style.display = 'none';
+        });
+    });
+
+    // Auto-focus username field on page load
+    document.getElementById('username').focus();
+
+    // Show diagnostic info on page load
+    var reason = new URLSearchParams(window.location.search).get('reason');
+    if (reason) {
+        console.log('[Login] Page loaded with reason:', reason);
+    }
+</script>
+
+</body>
+</html>
