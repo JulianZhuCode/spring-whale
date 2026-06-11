@@ -48,4 +48,15 @@ public final class RbacConstants {
 
     /** Role authority prefix used by Spring Security */
     public static final String ROLE_PREFIX = "ROLE_";
+
+    // ==================== Default Root Group ====================
+
+    /** Default root group code */
+    public static final String ROOT_GROUP_CODE = "ROOT";
+
+    /** Default root group name */
+    public static final String ROOT_GROUP_NAME = "Root Group";
+
+    /** Default root group description */
+    public static final String ROOT_GROUP_DESCRIPTION = "Built-in root group";
 }

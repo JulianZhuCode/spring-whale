@@ -19,7 +19,7 @@
         emptyMessage='No users found',
         baseUrl='/admin/rbac/users',
         page=${page},
-        colspan=7,
+        colspan=8,
         headers=~{::#user-headers},
         rows=~{::#user-row}
     )}">
@@ -29,6 +29,7 @@
             <th>Real Name</th>
             <th>Email</th>
             <th>Phone</th>
+            <th>Group</th>
             <th>Status</th>
             <th>Actions</th>
         </th:block>
@@ -38,6 +39,7 @@
             <td th:text="${item.realName}">Admin</td>
             <td th:text="${item.email}">admin@example.com</td>
             <td th:text="${item.phone}">13800138000</td>
+            <td th:text="${item.groupName} ?: '-'">Root Group</td>
             <td>
                 <span th:if="${item.status == 1}" class="badge badge-success">Active</span>
                 <span th:if="${item.status == 0}" class="badge badge-danger">Disabled</span>

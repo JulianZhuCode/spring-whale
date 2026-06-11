@@ -19,7 +19,7 @@
         emptyMessage='No roles found',
         baseUrl='/admin/rbac/roles',
         page=${page},
-        colspan=7,
+        colspan=8,
         headers=~{::#role-headers},
         rows=~{::#role-row}
     )}">
@@ -28,6 +28,7 @@
             <th>Code</th>
             <th>Name</th>
             <th>Description</th>
+            <th>Group</th>
             <th>Sort</th>
             <th>Status</th>
             <th>Actions</th>
@@ -37,6 +38,7 @@
             <td><code th:text="${item.code}">ROLE_ADMIN</code></td>
             <td th:text="${item.name}">Admin</td>
             <td th:text="${item.description}">Administrator role</td>
+            <td th:text="${item.groupName} ?: '-'">Root Group</td>
             <td th:text="${item.sort}">1</td>
             <td>
                 <span th:if="${item.status == 1}" class="badge badge-success">Active</span>

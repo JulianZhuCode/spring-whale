@@ -15,4 +15,5 @@ public class UserVO {
     private String avatar;
     private Integer status;
     private Integer groupId;
+    private String groupName;
 }

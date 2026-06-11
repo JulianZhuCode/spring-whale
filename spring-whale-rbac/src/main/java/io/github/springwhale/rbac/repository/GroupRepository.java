@@ -32,4 +32,9 @@ public interface GroupRepository extends JpaRepository<GroupEntity, Integer> {
      * Find by status
      */
     List<GroupEntity> findByStatus(Integer status);
+
+    /**
+     * Find all groups by IDs (batch query)
+     */
+    List<GroupEntity> findAllByIdIn(List<Integer> ids);
 }

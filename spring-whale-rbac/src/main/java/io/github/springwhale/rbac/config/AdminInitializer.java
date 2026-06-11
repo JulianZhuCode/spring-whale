@@ -1,10 +1,12 @@
 package io.github.springwhale.rbac.config;
 
 import io.github.springwhale.rbac.constant.RbacConstants;
+import io.github.springwhale.rbac.entity.GroupEntity;
 import io.github.springwhale.rbac.entity.MenuEntity;
 import io.github.springwhale.rbac.entity.RoleEntity;
 import io.github.springwhale.rbac.entity.UserEntity;
 import io.github.springwhale.rbac.entity.UserRoleEntity;
+import io.github.springwhale.rbac.repository.GroupRepository;
 import io.github.springwhale.rbac.repository.MenuRepository;
 import io.github.springwhale.rbac.repository.RoleRepository;
 import io.github.springwhale.rbac.repository.UserRepository;
@@ -54,19 +56,37 @@ public class AdminInitializer implements CommandLineRunner {
     private final RoleRepository roleRepository;
     private final UserRoleRepository userRoleRepository;
     private final MenuRepository menuRepository;
+    private final GroupRepository groupRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
     public void run(String @NonNull ... args) {
-        RoleEntity superAdminRole = initSuperAdminRole();
-        initAdminUser(superAdminRole);
+        GroupEntity rootGroup = initRootGroup();
+        RoleEntity superAdminRole = initSuperAdminRole(rootGroup);
+        initAdminUser(superAdminRole, rootGroup);
         initRbacMenus(superAdminRole);
+    }
+
+    // ==================== Root Group ====================
+
+    private GroupEntity initRootGroup() {
+        return groupRepository.findByCode(RbacConstants.ROOT_GROUP_CODE)
+                .orElseGet(() -> {
+                    GroupEntity group = new GroupEntity();
+                    group.setCode(RbacConstants.ROOT_GROUP_CODE);
+                    group.setName(RbacConstants.ROOT_GROUP_NAME);
+                    group.setDescription(RbacConstants.ROOT_GROUP_DESCRIPTION);
+                    group.setSort(0);
+                    group.setStatus(1);
+                    log.info("Created root group '{}'", RbacConstants.ROOT_GROUP_CODE);
+                    return groupRepository.save(group);
+                });
     }
 
     // ==================== Role ====================
 
-    private RoleEntity initSuperAdminRole() {
+    private RoleEntity initSuperAdminRole(GroupEntity rootGroup) {
         return roleRepository.findByCode(RbacConstants.SUPER_ADMIN_ROLE_CODE)
                 .orElseGet(() -> {
                     RoleEntity role = new RoleEntity();
@@ -75,6 +95,7 @@ public class AdminInitializer implements CommandLineRunner {
                     role.setDescription("Built-in super administrator role with full permissions");
                     role.setStatus(1);
                     role.setSort(0);
+                    role.setGroupId(rootGroup.getId());
                     log.info("Created SUPER_ADMIN role");
                     return roleRepository.save(role);
                 });
@@ -82,7 +103,7 @@ public class AdminInitializer implements CommandLineRunner {
 
     // ==================== Admin User ====================
 
-    private void initAdminUser(RoleEntity superAdminRole) {
+    private void initAdminUser(RoleEntity superAdminRole, GroupEntity rootGroup) {
         UserEntity admin = userRepository.findByUsername(RbacConstants.ADMIN_USERNAME).orElse(null);
 
         if (admin == null) {
@@ -92,6 +113,7 @@ public class AdminInitializer implements CommandLineRunner {
             admin.setPassword(passwordEncoder.encode(RbacConstants.ADMIN_PASSWORD));
             admin.setRealName(RbacConstants.ADMIN_REAL_NAME);
             admin.setStatus(1);
+            admin.setGroupId(rootGroup.getId());
             admin = userRepository.save(admin);
 
             UserRoleEntity userRole = new UserRoleEntity();
@@ -101,14 +123,18 @@ public class AdminInitializer implements CommandLineRunner {
 
             log.info("Default admin user '{}' created successfully (id={})", RbacConstants.ADMIN_USERNAME, admin.getId());
         } else {
+            // Ensure existing admin is in the root group
+            if (admin.getGroupId() == null) {
+                admin.setGroupId(rootGroup.getId());
+            }
             String encodedPassword = passwordEncoder.encode(RbacConstants.ADMIN_PASSWORD);
             if (!passwordEncoder.matches(RbacConstants.ADMIN_PASSWORD, admin.getPassword())) {
                 log.info("Admin user '{}' exists but password needs re-encoding", RbacConstants.ADMIN_USERNAME);
                 admin.setPassword(encodedPassword);
-                userRepository.save(admin);
             } else {
                 log.info("Admin user '{}' already exists with valid password", RbacConstants.ADMIN_USERNAME);
             }
+            userRepository.save(admin);
 
             if (!userRoleRepository.findByUserId(admin.getId()).stream()
                     .anyMatch(ur -> ur.getRoleId().equals(superAdminRole.getId()))) {

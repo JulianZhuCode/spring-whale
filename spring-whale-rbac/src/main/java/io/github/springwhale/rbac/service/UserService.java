@@ -3,8 +3,10 @@ package io.github.springwhale.rbac.service;
 import io.github.springwhale.framework.core.exception.BusinessException;
 import io.github.springwhale.rbac.dto.request.UserRequest;
 import io.github.springwhale.rbac.dto.vo.UserVO;
+import io.github.springwhale.rbac.entity.GroupEntity;
 import io.github.springwhale.rbac.entity.UserEntity;
 import io.github.springwhale.rbac.mapper.UserMapper;
+import io.github.springwhale.rbac.repository.GroupRepository;
 import io.github.springwhale.rbac.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -13,7 +15,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * User service
@@ -24,41 +28,52 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final GroupRepository groupRepository;
     private final UserMapper userMapper;
 
     /**
      * Find all users with pagination
      */
     public Page<UserVO> findAll(Pageable pageable) {
-        return userRepository.findAll(pageable).map(userMapper::toVO);
+        Page<UserVO> page = userRepository.findAll(pageable).map(userMapper::toVO);
+        enrichGroupNames(page.getContent());
+        return page;
     }
 
     /**
      * Find user by ID
      */
     public Optional<UserVO> findById(Integer id) {
-        return userRepository.findById(id).map(userMapper::toVO);
+        return userRepository.findById(id)
+                .map(userMapper::toVO)
+                .map(this::enrichGroupName);
     }
 
     /**
      * Find by exact username
      */
     public Optional<UserVO> findByUsername(String username) {
-        return userRepository.findByUsername(username).map(userMapper::toVO);
+        return userRepository.findByUsername(username)
+                .map(userMapper::toVO)
+                .map(this::enrichGroupName);
     }
 
     /**
      * Find by exact email
      */
     public Optional<UserVO> findByEmail(String email) {
-        return userRepository.findByEmail(email).map(userMapper::toVO);
+        return userRepository.findByEmail(email)
+                .map(userMapper::toVO)
+                .map(this::enrichGroupName);
     }
 
     /**
      * Find by exact phone
      */
     public Optional<UserVO> findByPhone(String phone) {
-        return userRepository.findByPhone(phone).map(userMapper::toVO);
+        return userRepository.findByPhone(phone)
+                .map(userMapper::toVO)
+                .map(this::enrichGroupName);
     }
 
     /**
@@ -71,23 +86,29 @@ public class UserService {
         List<UserEntity> byUsername = userRepository.findByUsernameContaining(keyword);
         List<UserEntity> byRealName = userRepository.findByRealNameContaining(keyword);
         // Merge and deduplicate
-        return userMapper.toVOList(byUsername.stream()
+        List<UserVO> vos = userMapper.toVOList(byUsername.stream()
                 .filter(u -> !byRealName.contains(u))
                 .toList());
+        enrichGroupNames(vos);
+        return vos;
     }
 
     /**
      * Find users by department ID
      */
     public List<UserVO> findByGroupId(Integer groupId) {
-        return userMapper.toVOList(userRepository.findByGroupId(groupId));
+        List<UserVO> vos = userMapper.toVOList(userRepository.findByGroupId(groupId));
+        enrichGroupNames(vos);
+        return vos;
     }
 
     /**
      * Find by status
      */
     public List<UserVO> findByStatus(Integer status) {
-        return userMapper.toVOList(userRepository.findByStatus(status));
+        List<UserVO> vos = userMapper.toVOList(userRepository.findByStatus(status));
+        enrichGroupNames(vos);
+        return vos;
     }
 
     /**
@@ -103,7 +124,7 @@ public class UserService {
         entity.setAvatar(request.getAvatar());
         entity.setStatus(request.getStatus());
         entity.setGroupId(request.getGroupId());
-        return userMapper.toVO(userRepository.save(entity));
+        return enrichGroupName(userMapper.toVO(userRepository.save(entity)));
     }
 
     /**
@@ -122,7 +143,7 @@ public class UserService {
         user.setStatus(request.getStatus());
         user.setGroupId(request.getGroupId());
 
-        return userMapper.toVO(userRepository.save(user));
+        return enrichGroupName(userMapper.toVO(userRepository.save(user)));
     }
 
     /**
@@ -133,5 +154,32 @@ public class UserService {
         UserEntity user = userRepository.findById(id)
                 .orElseThrow(() -> BusinessException.create("USER_NOT_FOUND", "User not found, ID: " + id));
         userRepository.delete(user);
+    }
+
+    // ==================== Group name enrichment ====================
+
+    private void enrichGroupNames(List<UserVO> vos) {
+        if (vos == null || vos.isEmpty()) return;
+        List<Integer> groupIds = vos.stream()
+                .map(UserVO::getGroupId)
+                .filter(gid -> gid != null)
+                .distinct()
+                .toList();
+        if (groupIds.isEmpty()) return;
+        Map<Integer, String> groupNameMap = groupRepository.findAllByIdIn(groupIds).stream()
+                .collect(Collectors.toMap(GroupEntity::getId, GroupEntity::getName));
+        vos.forEach(vo -> {
+            if (vo.getGroupId() != null) {
+                vo.setGroupName(groupNameMap.get(vo.getGroupId()));
+            }
+        });
+    }
+
+    private UserVO enrichGroupName(UserVO vo) {
+        if (vo != null && vo.getGroupId() != null) {
+            groupRepository.findById(vo.getGroupId())
+                    .ifPresent(g -> vo.setGroupName(g.getName()));
+        }
+        return vo;
     }
 }

@@ -47,4 +47,9 @@ public class RoleEntity extends BaseEntity {
      * Sort order
      */
     private Integer sort = 0;
+
+    /**
+     * Group (department) ID
+     */
+    private Integer groupId;
 }

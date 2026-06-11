@@ -13,4 +13,6 @@ public class RoleVO {
     private String description;
     private Integer status;
     private Integer sort;
+    private Integer groupId;
+    private String groupName;
 }

@@ -18,4 +18,5 @@ public class RoleRequest {
     private String description;
     private Integer status;
     private Integer sort;
+    private Integer groupId;
 }
