@@ -5,50 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Spring Whale Admin</title>
     <link rel="stylesheet" th:href="@{/admin/css/admin.css}">
-    <style>
-        .login-page {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-        }
-        .login-card {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 40px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        }
-        .login-card h1 {
-            font-size: 24px;
-            font-weight: 700;
-            color: #1e293b;
-            text-align: center;
-            margin-bottom: 4px;
-        }
-        .login-card .subtitle {
-            font-size: 13px;
-            color: #94a3b8;
-            text-align: center;
-            margin-bottom: 32px;
-        }
-        .login-card .btn {
-            width: 100%;
-            padding: 10px 16px;
-            font-size: 14px;
-        }
-        .login-error {
-            margin-bottom: 20px;
-        }
-        .login-footer {
-            text-align: center;
-            margin-top: 24px;
-            font-size: 12px;
-            color: #94a3b8;
-        }
-    </style>
 </head>
 <body>
 
@@ -62,15 +18,15 @@
         </div>
 
         <!-- Diagnostic info for debugging redirect-back-to-login issue -->
-        <div th:if="${reason == 'no_token'}" class="alert alert-warning" style="margin-bottom: 20px; background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; padding: 12px; border-radius: 6px; font-size: 13px;">
+        <div th:if="${reason == 'no_token'}" class="alert alert-warning login-diagnostic">
             <strong>Session lost:</strong> No authentication token found. Please log in again.
-            <br><small style="color: #a16207;">(This may indicate the cookie was not set or was cleared by the browser.)</small>
+            <br><small>(This may indicate the cookie was not set or was cleared by the browser.)</small>
         </div>
-        <div th:if="${reason == 'token_invalid'}" class="alert alert-warning" style="margin-bottom: 20px; background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; padding: 12px; border-radius: 6px; font-size: 13px;">
+        <div th:if="${reason == 'token_invalid'}" class="alert alert-warning login-diagnostic" style="background: #fef2f2; border-color: #fca5a5; color: #991b1b;">
             <strong>Token invalid:</strong> The authentication token was rejected. This could mean the token expired or is malformed.
-            <br><small style="color: #b91c1c;">Check the server logs for details. Try logging in again.</small>
+            <br><small>Check the server logs for details. Try logging in again.</small>
         </div>
-        <div th:if="${reason == 'auth_required'}" class="alert alert-info" style="margin-bottom: 20px; background: #eff6ff; border: 1px solid #93c5fd; color: #1e40af; padding: 12px; border-radius: 6px; font-size: 13px;">
+        <div th:if="${reason == 'auth_required'}" class="alert alert-info login-diagnostic">
             <strong>Authentication required:</strong> Please log in to access this page.
         </div>
 

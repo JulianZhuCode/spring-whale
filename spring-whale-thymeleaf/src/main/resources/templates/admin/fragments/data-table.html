@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+    Reusable data table with pagination.
+    Parameters:
+      - title        : page title string
+      - description  : page description string
+      - createUrl    : URL for "New" button (optional)
+      - items        : list of data rows (null/empty shows empty state)
+      - emptyMessage : message shown when no data
+      - baseUrl      : base URL for pagination links
+      - page         : Spring Page object (null = hide pagination)
+      - colspan      : number of columns for empty-state row
+      - headers      : table header fragment
+      - rows         : table body row fragment (variable: item)
+-->
+
+<th:block th:fragment="table(title,description,createUrl,items,emptyMessage,baseUrl,page,colspan,headers,rows)">
+    <div class="page-header flex-between">
+        <div>
+            <h1 th:text="${title}">Title</h1>
+            <p th:text="${description}">Description</p>
+        </div>
+        <a th:if="${createUrl != null}" th:href="@{${createUrl}}" class="btn btn-primary">+ New</a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th:block th:replace="${headers}"></th:block>
+                    </tr>
+                </thead>
+                <tbody>
+                    <th:block th:each="item : ${items}">
+                        <tr>
+                            <th:block th:replace="${rows}"></th:block>
+                        </tr>
+                    </th:block>
+                    <tr th:if="${items == null or #lists.isEmpty(items)}">
+                        <td th:attr="colspan=${colspan}" class="text-muted" style="text-align:center; padding:40px;" th:text="${emptyMessage}">No data found</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <th:block th:replace="~{admin/fragments/data-table :: pagination(baseUrl=${baseUrl}, page=${page})}"></th:block>
+        </div>
+    </div>
+</th:block>
+
+<!-- Pagination component -->
+<th:block th:fragment="pagination(baseUrl,page)">
+    <div th:if="${page != null and page.totalPages > 1}" class="pagination">
+        <th:block th:with="current=${page.number}, total=${page.totalPages}">
+            <li th:classappend="${page.first} ? 'disabled'">
+                <a th:if="${!page.first}" th:href="@{${baseUrl}(page=${current - 1})}">Prev</a>
+                <span th:if="${page.first}">Prev</span>
+            </li>
+            <th:block th:each="i : ${#numbers.sequence(0, total - 1)}">
+                <li th:classappend="${i == current} ? 'active'">
+                    <a th:href="@{${baseUrl}(page=${i})}" th:text="${i + 1}">1</a>
+                </li>
+            </th:block>
+            <li th:classappend="${page.last} ? 'disabled'">
+                <a th:if="${!page.last}" th:href="@{${baseUrl}(page=${current + 1})}">Next</a>
+                <span th:if="${page.last}">Next</span>
+            </li>
+        </th:block>
+    </div>
+</th:block>
+
+</body>
+</html>

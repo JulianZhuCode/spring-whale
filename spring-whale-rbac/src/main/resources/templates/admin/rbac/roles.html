@@ -10,69 +10,43 @@
 <body>
 
 <main layout:fragment="content">
-    <div class="page-header flex-between">
-        <div>
-            <h1>Roles</h1>
-            <p>Manage system roles</p>
-        </div>
-        <a th:href="@{/admin/rbac/roles/create}" class="btn btn-primary">+ New Role</a>
-    </div>
-
-    <div class="card">
-        <div class="card-body">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Code</th>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th>Sort</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="role : ${roles}">
-                        <td th:text="${role.id}">1</td>
-                        <td><code th:text="${role.code}">ROLE_ADMIN</code></td>
-                        <td th:text="${role.name}">Admin</td>
-                        <td th:text="${role.description}">Administrator role</td>
-                        <td th:text="${role.sort}">1</td>
-                        <td>
-                            <span th:if="${role.status == 1}" class="badge badge-success">Active</span>
-                            <span th:if="${role.status == 0}" class="badge badge-danger">Disabled</span>
-                        </td>
-                        <td class="flex-gap">
-                            <a th:href="@{/admin/rbac/roles/{id}(id=${role.id})}" class="btn btn-secondary btn-sm">View</a>
-                            <a th:href="@{/admin/rbac/roles/{id}/edit(id=${role.id})}" class="btn btn-primary btn-sm">Edit</a>
-                        </td>
-                    </tr>
-                    <tr th:if="${roles == null or roles.empty}">
-                        <td colspan="7" class="text-muted" style="text-align:center; padding:40px;">No roles found</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <div th:if="${page != null and page.totalPages > 1}" class="pagination">
-                <th:block th:with="current=${page.number}, total=${page.totalPages}">
-                    <li th:classappend="${page.first} ? 'disabled'">
-                        <a th:if="${!page.first}" th:href="@{/admin/rbac/roles(page=${current - 1})}">Prev</a>
-                        <span th:if="${page.first}">Prev</span>
-                    </li>
-                    <th:block th:each="i : ${#numbers.sequence(0, total - 1)}">
-                        <li th:classappend="${i == current} ? 'active'">
-                            <a th:href="@{/admin/rbac/roles(page=${i})}" th:text="${i + 1}">1</a>
-                        </li>
-                    </th:block>
-                    <li th:classappend="${page.last} ? 'disabled'">
-                        <a th:if="${!page.last}" th:href="@{/admin/rbac/roles(page=${current + 1})}">Next</a>
-                        <span th:if="${page.last}">Next</span>
-                    </li>
-                </th:block>
-            </div>
-        </div>
-    </div>
+    <th:block th:replace="~{admin/fragments/data-table :: table(
+        title='Roles',
+        description='Manage system roles',
+        createUrl='/admin/rbac/roles/create',
+        items=${roles},
+        emptyMessage='No roles found',
+        baseUrl='/admin/rbac/roles',
+        page=${page},
+        colspan=7,
+        headers=~{::#role-headers},
+        rows=~{::#role-row}
+    )}">
+        <th:block id="role-headers">
+            <th>ID</th>
+            <th>Code</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Sort</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </th:block>
+        <th:block id="role-row">
+            <td th:text="${item.id}">1</td>
+            <td><code th:text="${item.code}">ROLE_ADMIN</code></td>
+            <td th:text="${item.name}">Admin</td>
+            <td th:text="${item.description}">Administrator role</td>
+            <td th:text="${item.sort}">1</td>
+            <td>
+                <span th:if="${item.status == 1}" class="badge badge-success">Active</span>
+                <span th:if="${item.status == 0}" class="badge badge-danger">Disabled</span>
+            </td>
+            <td class="flex-gap">
+                <a th:href="@{/admin/rbac/roles/{id}(id=${item.id})}" class="btn btn-secondary btn-sm">View</a>
+                <a th:href="@{/admin/rbac/roles/{id}/edit(id=${item.id})}" class="btn btn-primary btn-sm">Edit</a>
+            </td>
+        </th:block>
+    </th:block>
 </main>
 
 </body>

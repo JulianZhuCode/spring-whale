@@ -10,71 +10,45 @@
 <body>
 
 <main layout:fragment="content">
-    <div class="page-header flex-between">
-        <div>
-            <h1>Groups</h1>
-            <p>Manage organizational groups and departments</p>
-        </div>
-        <a th:href="@{/admin/rbac/groups/create}" class="btn btn-primary">+ New Group</a>
-    </div>
-
-    <div class="card">
-        <div class="card-body">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Code</th>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th>Leader</th>
-                        <th>Sort</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="group : ${groups}">
-                        <td th:text="${group.id}">1</td>
-                        <td><code th:text="${group.code}">IT</code></td>
-                        <td th:text="${group.name}">IT Dept</td>
-                        <td th:text="${group.description}">IT Department</td>
-                        <td th:text="${group.leader}">John</td>
-                        <td th:text="${group.sort}">1</td>
-                        <td>
-                            <span th:if="${group.status == 1}" class="badge badge-success">Active</span>
-                            <span th:if="${group.status == 0}" class="badge badge-danger">Disabled</span>
-                        </td>
-                        <td class="flex-gap">
-                            <a th:href="@{/admin/rbac/groups/{id}(id=${group.id})}" class="btn btn-secondary btn-sm">View</a>
-                            <a th:href="@{/admin/rbac/groups/{id}/edit(id=${group.id})}" class="btn btn-primary btn-sm">Edit</a>
-                        </td>
-                    </tr>
-                    <tr th:if="${groups == null or groups.empty}">
-                        <td colspan="8" class="text-muted" style="text-align:center; padding:40px;">No groups found</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <div th:if="${page != null and page.totalPages > 1}" class="pagination">
-                <th:block th:with="current=${page.number}, total=${page.totalPages}">
-                    <li th:classappend="${page.first} ? 'disabled'">
-                        <a th:if="${!page.first}" th:href="@{/admin/rbac/groups(page=${current - 1})}">Prev</a>
-                        <span th:if="${page.first}">Prev</span>
-                    </li>
-                    <th:block th:each="i : ${#numbers.sequence(0, total - 1)}">
-                        <li th:classappend="${i == current} ? 'active'">
-                            <a th:href="@{/admin/rbac/groups(page=${i})}" th:text="${i + 1}">1</a>
-                        </li>
-                    </th:block>
-                    <li th:classappend="${page.last} ? 'disabled'">
-                        <a th:if="${!page.last}" th:href="@{/admin/rbac/groups(page=${current + 1})}">Next</a>
-                        <span th:if="${page.last}">Next</span>
-                    </li>
-                </th:block>
-            </div>
-        </div>
-    </div>
+    <th:block th:replace="~{admin/fragments/data-table :: table(
+        title='Groups',
+        description='Manage organizational groups and departments',
+        createUrl='/admin/rbac/groups/create',
+        items=${groups},
+        emptyMessage='No groups found',
+        baseUrl='/admin/rbac/groups',
+        page=${page},
+        colspan=8,
+        headers=~{::#group-headers},
+        rows=~{::#group-row}
+    )}">
+        <th:block id="group-headers">
+            <th>ID</th>
+            <th>Code</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Leader</th>
+            <th>Sort</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </th:block>
+        <th:block id="group-row">
+            <td th:text="${item.id}">1</td>
+            <td><code th:text="${item.code}">IT</code></td>
+            <td th:text="${item.name}">IT Dept</td>
+            <td th:text="${item.description}">IT Department</td>
+            <td th:text="${item.leader}">John</td>
+            <td th:text="${item.sort}">1</td>
+            <td>
+                <span th:if="${item.status == 1}" class="badge badge-success">Active</span>
+                <span th:if="${item.status == 0}" class="badge badge-danger">Disabled</span>
+            </td>
+            <td class="flex-gap">
+                <a th:href="@{/admin/rbac/groups/{id}(id=${item.id})}" class="btn btn-secondary btn-sm">View</a>
+                <a th:href="@{/admin/rbac/groups/{id}/edit(id=${item.id})}" class="btn btn-primary btn-sm">Edit</a>
+            </td>
+        </th:block>
+    </th:block>
 </main>
 
 </body>

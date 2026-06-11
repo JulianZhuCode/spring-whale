@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>500 Server Error - Spring Whale Admin</title>
+    <link rel="stylesheet" th:href="@{/admin/css/admin.css}">
+</head>
+<body>
+
+<div class="error-page">
+    <div class="error-card">
+        <div class="status-code">500</div>
+        <div class="divider"></div>
+        <p th:text="${message} ?: 'An unexpected server error occurred. Please try again later.'">An unexpected server error occurred. Please try again later.</p>
+        <a href="/admin" class="btn btn-primary">Back to Dashboard</a>
+        <p class="error-footer">&copy; 2026 Spring Whale Framework</p>
+    </div>
+</div>
+
+</body>
+</html>

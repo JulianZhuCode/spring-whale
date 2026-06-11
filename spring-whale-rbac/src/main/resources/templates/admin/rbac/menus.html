@@ -10,77 +10,51 @@
 <body>
 
 <main layout:fragment="content">
-    <div class="page-header flex-between">
-        <div>
-            <h1>Menus</h1>
-            <p>Manage system menus and permissions</p>
-        </div>
-        <a th:href="@{/admin/rbac/menus/create}" class="btn btn-primary">+ New Menu</a>
-    </div>
-
-    <div class="card">
-        <div class="card-body">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Code</th>
-                        <th>Name</th>
-                        <th>Type</th>
-                        <th>Path</th>
-                        <th>Permission</th>
-                        <th>Sort</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="menu : ${menus}">
-                        <td th:text="${menu.id}">1</td>
-                        <td><code th:text="${menu.code}">user:list</code></td>
-                        <td th:text="${menu.name}">Users</td>
-                        <td>
-                            <span th:if="${menu.type == 1}" class="badge badge-info">Menu</span>
-                            <span th:if="${menu.type == 2}" class="badge badge-warning">Button</span>
-                            <span th:if="${menu.type == 3}" class="badge badge-info">API</span>
-                        </td>
-                        <td th:text="${menu.path}">/admin/rbac/users</td>
-                        <td><code th:text="${menu.permission}">user:list</code></td>
-                        <td th:text="${menu.sort}">1</td>
-                        <td>
-                            <span th:if="${menu.status == 1}" class="badge badge-success">Active</span>
-                            <span th:if="${menu.status == 0}" class="badge badge-danger">Disabled</span>
-                        </td>
-                        <td class="flex-gap">
-                            <a th:href="@{/admin/rbac/menus/{id}(id=${menu.id})}" class="btn btn-secondary btn-sm">View</a>
-                            <a th:href="@{/admin/rbac/menus/{id}/edit(id=${menu.id})}" class="btn btn-primary btn-sm">Edit</a>
-                        </td>
-                    </tr>
-                    <tr th:if="${menus == null or menus.empty}">
-                        <td colspan="9" class="text-muted" style="text-align:center; padding:40px;">No menus found</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <div th:if="${page != null and page.totalPages > 1}" class="pagination">
-                <th:block th:with="current=${page.number}, total=${page.totalPages}">
-                    <li th:classappend="${page.first} ? 'disabled'">
-                        <a th:if="${!page.first}" th:href="@{/admin/rbac/menus(page=${current - 1})}">Prev</a>
-                        <span th:if="${page.first}">Prev</span>
-                    </li>
-                    <th:block th:each="i : ${#numbers.sequence(0, total - 1)}">
-                        <li th:classappend="${i == current} ? 'active'">
-                            <a th:href="@{/admin/rbac/menus(page=${i})}" th:text="${i + 1}">1</a>
-                        </li>
-                    </th:block>
-                    <li th:classappend="${page.last} ? 'disabled'">
-                        <a th:if="${!page.last}" th:href="@{/admin/rbac/menus(page=${current + 1})}">Next</a>
-                        <span th:if="${page.last}">Next</span>
-                    </li>
-                </th:block>
-            </div>
-        </div>
-    </div>
+    <th:block th:replace="~{admin/fragments/data-table :: table(
+        title='Menus',
+        description='Manage system menus and permissions',
+        createUrl='/admin/rbac/menus/create',
+        items=${menus},
+        emptyMessage='No menus found',
+        baseUrl='/admin/rbac/menus',
+        page=${page},
+        colspan=9,
+        headers=~{::#menu-headers},
+        rows=~{::#menu-row}
+    )}">
+        <th:block id="menu-headers">
+            <th>ID</th>
+            <th>Code</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Path</th>
+            <th>Permission</th>
+            <th>Sort</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </th:block>
+        <th:block id="menu-row">
+            <td th:text="${item.id}">1</td>
+            <td><code th:text="${item.code}">user:list</code></td>
+            <td th:text="${item.name}">Users</td>
+            <td>
+                <span th:if="${item.type == 1}" class="badge badge-info">Menu</span>
+                <span th:if="${item.type == 2}" class="badge badge-warning">Button</span>
+                <span th:if="${item.type == 3}" class="badge badge-info">API</span>
+            </td>
+            <td th:text="${item.path}">/admin/rbac/users</td>
+            <td><code th:text="${item.permission}">user:list</code></td>
+            <td th:text="${item.sort}">1</td>
+            <td>
+                <span th:if="${item.status == 1}" class="badge badge-success">Active</span>
+                <span th:if="${item.status == 0}" class="badge badge-danger">Disabled</span>
+            </td>
+            <td class="flex-gap">
+                <a th:href="@{/admin/rbac/menus/{id}(id=${item.id})}" class="btn btn-secondary btn-sm">View</a>
+                <a th:href="@{/admin/rbac/menus/{id}/edit(id=${item.id})}" class="btn btn-primary btn-sm">Edit</a>
+            </td>
+        </th:block>
+    </th:block>
 </main>
 
 </body>

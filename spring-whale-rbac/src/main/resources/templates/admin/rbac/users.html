@@ -10,70 +10,43 @@
 <body>
 
 <main layout:fragment="content">
-    <div class="page-header flex-between">
-        <div>
-            <h1>Users</h1>
-            <p>Manage system users</p>
-        </div>
-        <a th:href="@{/admin/rbac/users/create}" class="btn btn-primary">+ New User</a>
-    </div>
-
-    <div class="card">
-        <div class="card-body">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Username</th>
-                        <th>Real Name</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="user : ${users}">
-                        <td th:text="${user.id}">1</td>
-                        <td th:text="${user.username}">admin</td>
-                        <td th:text="${user.realName}">Admin</td>
-                        <td th:text="${user.email}">admin@example.com</td>
-                        <td th:text="${user.phone}">13800138000</td>
-                        <td>
-                            <span th:if="${user.status == 1}" class="badge badge-success">Active</span>
-                            <span th:if="${user.status == 0}" class="badge badge-danger">Disabled</span>
-                        </td>
-                        <td class="flex-gap">
-                            <a th:href="@{/admin/rbac/users/{id}(id=${user.id})}" class="btn btn-secondary btn-sm">View</a>
-                            <a th:href="@{/admin/rbac/users/{id}/edit(id=${user.id})}" class="btn btn-primary btn-sm">Edit</a>
-                        </td>
-                    </tr>
-                    <tr th:if="${users == null or users.empty}">
-                        <td colspan="7" class="text-muted" style="text-align:center; padding:40px;">No users found</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <!-- Pagination -->
-            <div th:if="${page != null and page.totalPages > 1}" class="pagination">
-                <th:block th:with="current=${page.number}, total=${page.totalPages}">
-                    <li th:classappend="${page.first} ? 'disabled'">
-                        <a th:if="${!page.first}" th:href="@{/admin/rbac/users(page=${current - 1})}">Prev</a>
-                        <span th:if="${page.first}">Prev</span>
-                    </li>
-                    <th:block th:each="i : ${#numbers.sequence(0, total - 1)}">
-                        <li th:classappend="${i == current} ? 'active'">
-                            <a th:href="@{/admin/rbac/users(page=${i})}" th:text="${i + 1}">1</a>
-                        </li>
-                    </th:block>
-                    <li th:classappend="${page.last} ? 'disabled'">
-                        <a th:if="${!page.last}" th:href="@{/admin/rbac/users(page=${current + 1})}">Next</a>
-                        <span th:if="${page.last}">Next</span>
-                    </li>
-                </th:block>
-            </div>
-        </div>
-    </div>
+    <th:block th:replace="~{admin/fragments/data-table :: table(
+        title='Users',
+        description='Manage system users',
+        createUrl='/admin/rbac/users/create',
+        items=${users},
+        emptyMessage='No users found',
+        baseUrl='/admin/rbac/users',
+        page=${page},
+        colspan=7,
+        headers=~{::#user-headers},
+        rows=~{::#user-row}
+    )}">
+        <th:block id="user-headers">
+            <th>ID</th>
+            <th>Username</th>
+            <th>Real Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </th:block>
+        <th:block id="user-row">
+            <td th:text="${item.id}">1</td>
+            <td th:text="${item.username}">admin</td>
+            <td th:text="${item.realName}">Admin</td>
+            <td th:text="${item.email}">admin@example.com</td>
+            <td th:text="${item.phone}">13800138000</td>
+            <td>
+                <span th:if="${item.status == 1}" class="badge badge-success">Active</span>
+                <span th:if="${item.status == 0}" class="badge badge-danger">Disabled</span>
+            </td>
+            <td class="flex-gap">
+                <a th:href="@{/admin/rbac/users/{id}(id=${item.id})}" class="btn btn-secondary btn-sm">View</a>
+                <a th:href="@{/admin/rbac/users/{id}/edit(id=${item.id})}" class="btn btn-primary btn-sm">Edit</a>
+            </td>
+        </th:block>
+    </th:block>
 </main>
 
 </body>

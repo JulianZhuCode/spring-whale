@@ -3,18 +3,19 @@
 <body>
 
 <th:block th:fragment="sidebar">
-    <div class="sidebar-brand">
-        <a th:href="@{/admin}" class="sidebar-brand-link">
-            <span class="sidebar-brand-icon">&#x1F40B;</span>
-            <span class="sidebar-brand-text">SW</span>
-        </a>
-    </div>
 
     <nav class="sidebar-nav">
+
+        <div class="sidebar-brand">
+            <a class="sidebar-brand-link" th:href="@{/admin}">
+                <span class="sidebar-brand-icon">&#x1F40B;</span>
+                <span class="sidebar-brand-text">SW</span>
+            </a>
+        </div>
         <!-- Dashboard -->
-        <a th:href="@{/admin}"
+        <a class="sidebar-dashboard-link"
            th:classappend="${currentPath == '/admin'} ? 'active'"
-           class="sidebar-dashboard-link">
+           th:href="@{/admin}">
             <span class="db-icon">&#x2302;</span>
             <span>Dashboard</span>
         </a>
@@ -35,8 +36,8 @@
                     <ul class="sidebar-menu-children">
                         <th:block th:each="child : ${group.children}">
                             <li class="sidebar-menu-item">
-                                <a th:href="@{${child.url}}"
-                                   th:classappend="${#strings.startsWith(currentPath, child.url)} ? 'active' : ''"
+                                <a th:classappend="${#strings.startsWith(currentPath, child.url)} ? 'active' : ''"
+                                   th:href="@{${child.url}}"
                                    th:text="${child.label}">Item</a>
                             </li>
                         </th:block>
