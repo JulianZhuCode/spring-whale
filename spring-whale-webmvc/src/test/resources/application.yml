@@ -4,3 +4,9 @@ spring:
     encoding: UTF-8
     cache-duration: 0s
     fallback-to-system-locale: false
+  whale:
+    web-mvc:
+      security:
+        permit-all-urls:
+          - "/**"
+        csrf-enabled: false

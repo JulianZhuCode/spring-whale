@@ -4,6 +4,7 @@ import io.github.springwhale.framework.core.exception.BusinessException;
 import io.github.springwhale.framework.core.model.ApiResult;
 import io.github.springwhale.framework.webmvc.exception.SpringWhaleWebMvcExceptionHandler;
 import io.github.springwhale.framework.webmvc.exception.SpringWhaleWebMvcExceptionProperties;
+import io.github.springwhale.test.TestSecurityConfiguration;
 import jakarta.validation.ValidationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindException;
@@ -32,6 +34,7 @@ import static org.mockito.Mockito.when;
  * Unit tests for SpringWhaleWebMvcExceptionHandler
  */
 @SpringBootTest
+@Import(TestSecurityConfiguration.class)
 class SpringWhaleWebMvcExceptionHandlerTest {
 
     private SpringWhaleWebMvcExceptionHandler mockHandler;
