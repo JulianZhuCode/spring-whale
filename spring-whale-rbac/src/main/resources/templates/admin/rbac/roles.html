@@ -13,7 +13,8 @@
     <th:block th:replace="~{admin/fragments/data-table :: table(
         title='Roles',
         description='Manage system roles',
-        createUrl='/admin/rbac/roles/create',
+        createUrl='#',
+        createModal='role-modal',
         createPermission='rbac:role:create',
         items=${roles},
         emptyMessage='No roles found',
@@ -45,12 +46,64 @@
                 <span th:if="${item.status == 0}" class="badge badge-danger">Disabled</span>
             </td>
             <td class="flex-gap">
-                <a th:href="@{/admin/rbac/roles/{id}(id=${item.id})}" class="btn btn-secondary btn-sm">View</a>
-                <a th:if="${#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:role:update')}"
-                   th:href="@{/admin/rbac/roles/{id}/edit(id=${item.id})}" class="btn btn-primary btn-sm">Edit</a>
+                <button th:if="${#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:role:update')}"
+                        data-modal="role-modal" th:attr="data-edit-id=${item.id}" class="btn btn-primary btn-sm">Edit</button>
             </td>
         </th:block>
     </th:block>
+
+    <!-- Role Modal -->
+    <div id="role-modal" class="dict-modal-overlay hidden">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h2 class="modal-title">Create Role</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form class="dict-modal-form" data-api-base="/api/rbac/roles">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label" for="role-code">Code</label>
+                        <input type="text" id="role-code" name="code" class="form-control" required>
+                        <div class="form-error" data-field="code"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="role-name">Name</label>
+                        <input type="text" id="role-name" name="name" class="form-control" required>
+                        <div class="form-error" data-field="name"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="role-description">Description</label>
+                        <input type="text" id="role-description" name="description" class="form-control">
+                        <div class="form-error" data-field="description"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="role-groupId">Group</label>
+                        <select id="role-groupId" name="groupId" class="form-control">
+                            <option value="">-- Select --</option>
+                        </select>
+                        <div class="form-error" data-field="groupId"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="role-sort">Sort</label>
+                        <input type="number" id="role-sort" name="sort" class="form-control">
+                        <div class="form-error" data-field="sort"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="role-status">Status</label>
+                        <select id="role-status" name="status" class="form-control">
+                            <option value="1">Active</option>
+                            <option value="0">Disabled</option>
+                        </select>
+                        <div class="form-error" data-field="status"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+                    <button type="button" class="btn btn-primary modal-submit">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </main>
 
 </body>

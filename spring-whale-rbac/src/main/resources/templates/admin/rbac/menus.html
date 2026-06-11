@@ -13,7 +13,8 @@
     <th:block th:replace="~{admin/fragments/data-table :: table(
         title='Menus',
         description='Manage system menus and permissions',
-        createUrl='/admin/rbac/menus/create',
+        createUrl='#',
+        createModal='menu-modal',
         createPermission='rbac:menu:create',
         items=${menus},
         emptyMessage='No menus found',
@@ -51,12 +52,94 @@
                 <span th:if="${item.status == 0}" class="badge badge-danger">Disabled</span>
             </td>
             <td class="flex-gap">
-                <a th:href="@{/admin/rbac/menus/{id}(id=${item.id})}" class="btn btn-secondary btn-sm">View</a>
-                <a th:if="${#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:menu:update')}"
-                   th:href="@{/admin/rbac/menus/{id}/edit(id=${item.id})}" class="btn btn-primary btn-sm">Edit</a>
+                <button th:if="${#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:menu:update')}"
+                        data-modal="menu-modal" th:attr="data-edit-id=${item.id}" class="btn btn-primary btn-sm">Edit</button>
             </td>
         </th:block>
     </th:block>
+
+    <!-- Menu Modal -->
+    <div id="menu-modal" class="dict-modal-overlay hidden">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h2 class="modal-title">Create Menu</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form class="dict-modal-form" data-api-base="/api/rbac/menus">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label" for="menu-parentId">Parent ID</label>
+                        <input type="number" id="menu-parentId" name="parentId" class="form-control">
+                        <div class="form-error" data-field="parentId"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="menu-code">Code</label>
+                        <input type="text" id="menu-code" name="code" class="form-control" required>
+                        <div class="form-error" data-field="code"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="menu-name">Name</label>
+                        <input type="text" id="menu-name" name="name" class="form-control" required>
+                        <div class="form-error" data-field="name"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="menu-type">Type</label>
+                        <select id="menu-type" name="type" class="form-control">
+                            <option value="1">Directory</option>
+                            <option value="2">Menu</option>
+                            <option value="3">Button</option>
+                        </select>
+                        <div class="form-error" data-field="type"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="menu-path">Path</label>
+                        <input type="text" id="menu-path" name="path" class="form-control">
+                        <div class="form-error" data-field="path"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="menu-component">Component</label>
+                        <input type="text" id="menu-component" name="component" class="form-control">
+                        <div class="form-error" data-field="component"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="menu-permission">Permission</label>
+                        <input type="text" id="menu-permission" name="permission" class="form-control">
+                        <div class="form-error" data-field="permission"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="menu-icon">Icon</label>
+                        <input type="text" id="menu-icon" name="icon" class="form-control">
+                        <div class="form-error" data-field="icon"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="menu-sort">Sort</label>
+                        <input type="number" id="menu-sort" name="sort" class="form-control">
+                        <div class="form-error" data-field="sort"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="menu-visible">Visible</label>
+                        <select id="menu-visible" name="visible" class="form-control">
+                            <option value="1">Visible</option>
+                            <option value="0">Hidden</option>
+                        </select>
+                        <div class="form-error" data-field="visible"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="menu-status">Status</label>
+                        <select id="menu-status" name="status" class="form-control">
+                            <option value="1">Active</option>
+                            <option value="0">Disabled</option>
+                        </select>
+                        <div class="form-error" data-field="status"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+                    <button type="button" class="btn btn-primary modal-submit">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </main>
 
 </body>

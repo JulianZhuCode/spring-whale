@@ -25,7 +25,10 @@
             <p th:text="${description}">Description</p>
         </div>
         <a th:if="${createUrl != null and (createPermission == null or #sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, createPermission))}"
+           th:unless="${createModal != null}"
            th:href="@{${createUrl}}" class="btn btn-primary">+ New</a>
+        <button th:if="${createUrl != null and createModal != null and (createPermission == null or #sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, createPermission))}"
+                th:attr="data-modal=${createModal}" class="btn btn-primary">+ New</button>
     </div>
 
     <div class="card">
