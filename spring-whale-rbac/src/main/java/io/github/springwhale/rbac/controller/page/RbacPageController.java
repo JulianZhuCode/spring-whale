@@ -41,7 +41,7 @@ public class RbacPageController {
 
     @GetMapping("/users")
     public String users(@RequestParam(defaultValue = "0") int page,
-                        @RequestParam(defaultValue = "15") int size,
+                        @RequestParam(defaultValue = "10") int size,
                         Model model) {
         Page<UserVO> userPage = userService.findAll(PageRequest.of(page, size));
         model.addAttribute("users", userPage.getContent());
@@ -59,7 +59,7 @@ public class RbacPageController {
 
     @GetMapping("/roles")
     public String roles(@RequestParam(defaultValue = "0") int page,
-                        @RequestParam(defaultValue = "15") int size,
+                        @RequestParam(defaultValue = "10") int size,
                         Model model) {
         Page<RoleVO> rolePage = roleService.findAll(PageRequest.of(page, size));
         model.addAttribute("roles", rolePage.getContent());
@@ -77,7 +77,7 @@ public class RbacPageController {
 
     @GetMapping("/menus")
     public String menus(@RequestParam(defaultValue = "0") int page,
-                        @RequestParam(defaultValue = "15") int size,
+                        @RequestParam(defaultValue = "10") int size,
                         Model model) {
         Page<MenuVO> menuPage = menuService.findAll(PageRequest.of(page, size));
         model.addAttribute("menus", menuPage.getContent());
@@ -95,7 +95,7 @@ public class RbacPageController {
 
     @GetMapping("/groups")
     public String groups(@RequestParam(defaultValue = "0") int page,
-                         @RequestParam(defaultValue = "15") int size,
+                         @RequestParam(defaultValue = "10") int size,
                          Model model) {
         Page<GroupVO> groupPage = groupService.findAll(PageRequest.of(page, size));
         model.addAttribute("groups", groupPage.getContent());

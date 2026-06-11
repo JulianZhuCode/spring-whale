@@ -42,7 +42,7 @@
             <td>
                 <span th:if="${item.type == 1}" class="badge badge-info">Menu</span>
                 <span th:if="${item.type == 2}" class="badge badge-warning">Button</span>
-                <span th:if="${item.type == 3}" class="badge badge-info">API</span>
+                <span th:if="${item.type == 3}" class="badge badge-purple">API</span>
             </td>
             <td th:text="${item.path}">/admin/rbac/users</td>
             <td><code th:text="${item.permission}">user:list</code></td>
@@ -53,7 +53,7 @@
             </td>
             <td class="flex-gap">
                 <button th:if="${#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:menu:update')}"
-                        data-modal="menu-modal" th:attr="data-edit-id=${item.id}" class="btn btn-primary btn-sm">Edit</button>
+                        data-modal="menu-modal" th:attr="data-edit-id=${item.id}" class="btn btn-outline btn-sm">Edit</button>
             </td>
         </th:block>
     </th:block>

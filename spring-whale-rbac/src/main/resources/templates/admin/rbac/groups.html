@@ -47,7 +47,7 @@
             </td>
             <td class="flex-gap">
                 <button th:if="${#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:group:update')}"
-                        data-modal="group-modal" th:attr="data-edit-id=${item.id}" class="btn btn-primary btn-sm">Edit</button>
+                        data-modal="group-modal" th:attr="data-edit-id=${item.id}" class="btn btn-outline btn-sm">Edit</button>
             </td>
         </th:block>
     </th:block>
