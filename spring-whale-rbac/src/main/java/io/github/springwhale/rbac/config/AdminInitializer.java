@@ -1,8 +1,11 @@
 package io.github.springwhale.rbac.config;
 
+import io.github.springwhale.rbac.constant.RbacConstants;
+import io.github.springwhale.rbac.entity.MenuEntity;
 import io.github.springwhale.rbac.entity.RoleEntity;
 import io.github.springwhale.rbac.entity.UserEntity;
 import io.github.springwhale.rbac.entity.UserRoleEntity;
+import io.github.springwhale.rbac.repository.MenuRepository;
 import io.github.springwhale.rbac.repository.RoleRepository;
 import io.github.springwhale.rbac.repository.UserRepository;
 import io.github.springwhale.rbac.repository.UserRoleRepository;
@@ -14,12 +17,32 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+
+
 /**
- * Initializes a default super-admin account on application startup.
+ * Initializes default admin account, RBAC menus, and permissions on startup.
  * <p>
- * If the admin user does not exist, it creates one with username "admin"
- * and password "admin", along with a SUPER_ADMIN role. If the user already
- * exists, no changes are made.
+ * Menu hierarchy:
+ * <pre>
+ * System (directory)
+ *   └── RBAC (directory)
+ *       ├── User Management (menu)
+ *       │   ├── User Create (button)
+ *       │   ├── User Update (button)
+ *       │   └── User Delete (button)
+ *       ├── Role Management (menu)
+ *       │   ├── Role Create (button)
+ *       │   ├── Role Update (button)
+ *       │   └── Role Delete (button)
+ *       ├── Menu Management (menu)
+ *       │   ├── Menu Create (button)
+ *       │   ├── Menu Update (button)
+ *       │   └── Menu Delete (button)
+ *       └── Group Management (menu)
+ *           ├── Group Create (button)
+ *           ├── Group Update (button)
+ *           └── Group Delete (button)
+ * </pre>
  * </p>
  */
 @Component
@@ -27,64 +50,66 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class AdminInitializer implements CommandLineRunner {
 
-    private static final String ADMIN_USERNAME = "admin";
-    private static final String ADMIN_PASSWORD = "admin";
-    private static final String ADMIN_REAL_NAME = "Super Administrator";
-    private static final String SUPER_ADMIN_ROLE_CODE = "SUPER_ADMIN";
-    private static final String SUPER_ADMIN_ROLE_NAME = "Super Administrator";
-
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final UserRoleRepository userRoleRepository;
+    private final MenuRepository menuRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
     public void run(String @NonNull ... args) {
-        // Ensure SUPER_ADMIN role exists
-        RoleEntity superAdminRole = roleRepository.findByCode(SUPER_ADMIN_ROLE_CODE)
+        RoleEntity superAdminRole = initSuperAdminRole();
+        initAdminUser(superAdminRole);
+        initRbacMenus(superAdminRole);
+    }
+
+    // ==================== Role ====================
+
+    private RoleEntity initSuperAdminRole() {
+        return roleRepository.findByCode(RbacConstants.SUPER_ADMIN_ROLE_CODE)
                 .orElseGet(() -> {
                     RoleEntity role = new RoleEntity();
-                    role.setCode(SUPER_ADMIN_ROLE_CODE);
-                    role.setName(SUPER_ADMIN_ROLE_NAME);
+                    role.setCode(RbacConstants.SUPER_ADMIN_ROLE_CODE);
+                    role.setName(RbacConstants.SUPER_ADMIN_ROLE_NAME);
                     role.setDescription("Built-in super administrator role with full permissions");
                     role.setStatus(1);
                     role.setSort(0);
+                    log.info("Created SUPER_ADMIN role");
                     return roleRepository.save(role);
                 });
+    }
 
-        UserEntity admin = userRepository.findByUsername(ADMIN_USERNAME).orElse(null);
+    // ==================== Admin User ====================
+
+    private void initAdminUser(RoleEntity superAdminRole) {
+        UserEntity admin = userRepository.findByUsername(RbacConstants.ADMIN_USERNAME).orElse(null);
 
         if (admin == null) {
-            log.info("Initializing default admin user '{}'...", ADMIN_USERNAME);
-
-            // Create admin user
+            log.info("Initializing default admin user '{}'...", RbacConstants.ADMIN_USERNAME);
             admin = new UserEntity();
-            admin.setUsername(ADMIN_USERNAME);
-            admin.setPassword(passwordEncoder.encode(ADMIN_PASSWORD));
-            admin.setRealName(ADMIN_REAL_NAME);
+            admin.setUsername(RbacConstants.ADMIN_USERNAME);
+            admin.setPassword(passwordEncoder.encode(RbacConstants.ADMIN_PASSWORD));
+            admin.setRealName(RbacConstants.ADMIN_REAL_NAME);
             admin.setStatus(1);
             admin = userRepository.save(admin);
 
-            // Assign SUPER_ADMIN role to admin user
             UserRoleEntity userRole = new UserRoleEntity();
             userRole.setUserId(admin.getId());
             userRole.setRoleId(superAdminRole.getId());
             userRoleRepository.save(userRole);
 
-            log.info("Default admin user '{}' created successfully (id={})", ADMIN_USERNAME, admin.getId());
+            log.info("Default admin user '{}' created successfully (id={})", RbacConstants.ADMIN_USERNAME, admin.getId());
         } else {
-            // Re-encode password to ensure it's always BCrypt-encoded
-            String encodedPassword = passwordEncoder.encode(ADMIN_PASSWORD);
-            if (!passwordEncoder.matches(ADMIN_PASSWORD, admin.getPassword())) {
-                log.info("Admin user '{}' exists but password needs re-encoding", ADMIN_USERNAME);
+            String encodedPassword = passwordEncoder.encode(RbacConstants.ADMIN_PASSWORD);
+            if (!passwordEncoder.matches(RbacConstants.ADMIN_PASSWORD, admin.getPassword())) {
+                log.info("Admin user '{}' exists but password needs re-encoding", RbacConstants.ADMIN_USERNAME);
                 admin.setPassword(encodedPassword);
                 userRepository.save(admin);
             } else {
-                log.info("Admin user '{}' already exists with valid password", ADMIN_USERNAME);
+                log.info("Admin user '{}' already exists with valid password", RbacConstants.ADMIN_USERNAME);
             }
 
-            // Ensure admin has the SUPER_ADMIN role
             if (!userRoleRepository.findByUserId(admin.getId()).stream()
                     .anyMatch(ur -> ur.getRoleId().equals(superAdminRole.getId()))) {
                 UserRoleEntity userRole = new UserRoleEntity();
@@ -95,4 +120,73 @@ public class AdminInitializer implements CommandLineRunner {
             }
         }
     }
+
+    // ==================== RBAC Menus ====================
+
+    private void initRbacMenus(RoleEntity superAdminRole) {
+        // Skip if menus already exist
+        if (menuRepository.findByCode("system").isPresent()) {
+            log.info("RBAC menus already initialized, skipping");
+            return;
+        }
+
+        log.info("Initializing RBAC menus...");
+
+        // Level 0: System root directory
+        MenuEntity systemDir = createMenu(null, "system", "System", RbacConstants.MENU_TYPE_DIRECTORY,
+                null, null, null, "menu", 0);
+
+        // Level 1: RBAC directory
+        MenuEntity rbacDir = createMenu(systemDir.getId(), "rbac", "RBAC", RbacConstants.MENU_TYPE_DIRECTORY,
+                null, null, null, "shield", 1);
+
+        // Level 2: Four management menus with their button permissions
+        createMenuWithButtons(rbacDir, "rbac:user", "User Management",
+                "/admin/rbac/users", 2);
+        createMenuWithButtons(rbacDir, "rbac:role", "Role Management",
+                "/admin/rbac/roles", 3);
+        createMenuWithButtons(rbacDir, "rbac:menu", "Menu Management",
+                "/admin/rbac/menus", 4);
+        createMenuWithButtons(rbacDir, "rbac:group", "Group Management",
+                "/admin/rbac/groups", 5);
+
+        log.info("RBAC menus initialized successfully (SUPER_ADMIN has all permissions via wildcard)");
+    }
+
+    private MenuEntity createMenu(Integer parentId, String code, String name, int type,
+                                   String path, String component, String permission,
+                                   String icon, int sort) {
+        MenuEntity menu = new MenuEntity();
+        menu.setParentId(parentId);
+        menu.setCode(code);
+        menu.setName(name);
+        menu.setType(type);
+        menu.setPath(path);
+        menu.setComponent(component);
+        menu.setPermission(permission);
+        menu.setIcon(icon);
+        menu.setSort(sort);
+        menu.setVisible(1);
+        menu.setStatus(1);
+        return menuRepository.save(menu);
+    }
+
+    /**
+     * Creates a menu item and its standard CRUD button permissions.
+     */
+    private void createMenuWithButtons(MenuEntity parent, String baseCode, String name,
+                                        String path, int sort) {
+        // Main menu
+        MenuEntity menu = createMenu(parent.getId(), baseCode, name, RbacConstants.MENU_TYPE_MENU,
+                path, null, null, "file-text", sort);
+
+        // Standard CRUD button permissions
+        createMenu(menu.getId(), baseCode + ":create", name + " Create", RbacConstants.MENU_TYPE_BUTTON,
+                null, null, baseCode + ":create", null, 1);
+        createMenu(menu.getId(), baseCode + ":update", name + " Update", RbacConstants.MENU_TYPE_BUTTON,
+                null, null, baseCode + ":update", null, 2);
+        createMenu(menu.getId(), baseCode + ":delete", name + " Delete", RbacConstants.MENU_TYPE_BUTTON,
+                null, null, baseCode + ":delete", null, 3);
+    }
+
 }

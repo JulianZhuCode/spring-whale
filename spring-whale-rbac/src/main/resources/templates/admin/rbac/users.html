@@ -14,6 +14,7 @@
         title='Users',
         description='Manage system users',
         createUrl='/admin/rbac/users/create',
+        createPermission='rbac:user:create',
         items=${users},
         emptyMessage='No users found',
         baseUrl='/admin/rbac/users',
@@ -43,7 +44,8 @@
             </td>
             <td class="flex-gap">
                 <a th:href="@{/admin/rbac/users/{id}(id=${item.id})}" class="btn btn-secondary btn-sm">View</a>
-                <a th:href="@{/admin/rbac/users/{id}/edit(id=${item.id})}" class="btn btn-primary btn-sm">Edit</a>
+                <a th:if="${#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:user:update')}"
+                   th:href="@{/admin/rbac/users/{id}/edit(id=${item.id})}" class="btn btn-primary btn-sm">Edit</a>
             </td>
         </th:block>
     </th:block>

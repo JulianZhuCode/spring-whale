@@ -15,14 +15,16 @@ public class MenuItem {
     private final String label;
     private final String url;
     private final String icon;
+    private final String permission;
     private final int sort;
 
-    private MenuItem(String key, String parentKey, String label, String url, String icon, int sort) {
+    private MenuItem(String key, String parentKey, String label, String url, String icon, String permission, int sort) {
         this.key = key;
         this.parentKey = parentKey;
         this.label = label;
         this.url = url;
         this.icon = icon;
+        this.permission = permission;
         this.sort = sort;
     }
 
@@ -30,21 +32,30 @@ public class MenuItem {
      * Creates a top-level group menu item (has children, no URL).
      */
     public static MenuItem group(String key, String label, String icon, int sort) {
-        return new MenuItem(key, null, label, null, icon, sort);
+        return new MenuItem(key, null, label, null, icon, null, sort);
     }
 
     /**
      * Creates a leaf menu item (child of a group, has URL).
      */
     public static MenuItem leaf(String key, String parentKey, String label, String url, int sort) {
-        return new MenuItem(key, parentKey, label, url, null, sort);
+        return new MenuItem(key, parentKey, label, url, null, null, sort);
     }
 
     /**
      * Creates a leaf menu item with icon.
      */
     public static MenuItem leaf(String key, String parentKey, String label, String url, String icon, int sort) {
-        return new MenuItem(key, parentKey, label, url, icon, sort);
+        return new MenuItem(key, parentKey, label, url, icon, null, sort);
+    }
+
+    /**
+     * Creates a leaf menu item with icon and required permission.
+     * When permission is set, the item is only shown to users who hold that authority
+     * or the {@code *} wildcard authority.
+     */
+    public static MenuItem leaf(String key, String parentKey, String label, String url, String icon, String permission, int sort) {
+        return new MenuItem(key, parentKey, label, url, icon, permission, sort);
     }
 
     // ---- Getters ----
@@ -54,6 +65,7 @@ public class MenuItem {
     public String getLabel() { return label; }
     public String getUrl() { return url; }
     public String getIcon() { return icon; }
+    public String getPermission() { return permission; }
     public int getSort() { return sort; }
 
     public boolean isGroup() {

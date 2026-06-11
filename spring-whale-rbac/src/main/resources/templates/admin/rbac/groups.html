@@ -14,6 +14,7 @@
         title='Groups',
         description='Manage organizational groups and departments',
         createUrl='/admin/rbac/groups/create',
+        createPermission='rbac:group:create',
         items=${groups},
         emptyMessage='No groups found',
         baseUrl='/admin/rbac/groups',
@@ -45,7 +46,8 @@
             </td>
             <td class="flex-gap">
                 <a th:href="@{/admin/rbac/groups/{id}(id=${item.id})}" class="btn btn-secondary btn-sm">View</a>
-                <a th:href="@{/admin/rbac/groups/{id}/edit(id=${item.id})}" class="btn btn-primary btn-sm">Edit</a>
+                <a th:if="${#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:group:update')}"
+                   th:href="@{/admin/rbac/groups/{id}/edit(id=${item.id})}" class="btn btn-primary btn-sm">Edit</a>
             </td>
         </th:block>
     </th:block>

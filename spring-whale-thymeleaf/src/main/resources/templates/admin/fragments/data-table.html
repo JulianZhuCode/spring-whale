@@ -5,25 +5,27 @@
 <!--
     Reusable data table with pagination.
     Parameters:
-      - title        : page title string
-      - description  : page description string
-      - createUrl    : URL for "New" button (optional)
-      - items        : list of data rows (null/empty shows empty state)
-      - emptyMessage : message shown when no data
-      - baseUrl      : base URL for pagination links
-      - page         : Spring Page object (null = hide pagination)
-      - colspan      : number of columns for empty-state row
-      - headers      : table header fragment
-      - rows         : table body row fragment (variable: item)
+      - title            : page title string
+      - description      : page description string
+      - createUrl        : URL for "New" button (optional)
+      - createPermission : permission required to show "New" button (optional, null = always show)
+      - items            : list of data rows (null/empty shows empty state)
+      - emptyMessage     : message shown when no data
+      - baseUrl          : base URL for pagination links
+      - page             : Spring Page object (null = hide pagination)
+      - colspan          : number of columns for empty-state row
+      - headers          : table header fragment
+      - rows             : table body row fragment (variable: item)
 -->
 
-<th:block th:fragment="table(title,description,createUrl,items,emptyMessage,baseUrl,page,colspan,headers,rows)">
+<th:block th:fragment="table(title,description,createUrl,createPermission,items,emptyMessage,baseUrl,page,colspan,headers,rows)">
     <div class="page-header flex-between">
         <div>
             <h1 th:text="${title}">Title</h1>
             <p th:text="${description}">Description</p>
         </div>
-        <a th:if="${createUrl != null}" th:href="@{${createUrl}}" class="btn btn-primary">+ New</a>
+        <a th:if="${createUrl != null and (createPermission == null or #sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, createPermission))}"
+           th:href="@{${createUrl}}" class="btn btn-primary">+ New</a>
     </div>
 
     <div class="card">

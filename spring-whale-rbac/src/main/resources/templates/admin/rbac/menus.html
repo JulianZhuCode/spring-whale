@@ -14,6 +14,7 @@
         title='Menus',
         description='Manage system menus and permissions',
         createUrl='/admin/rbac/menus/create',
+        createPermission='rbac:menu:create',
         items=${menus},
         emptyMessage='No menus found',
         baseUrl='/admin/rbac/menus',
@@ -51,7 +52,8 @@
             </td>
             <td class="flex-gap">
                 <a th:href="@{/admin/rbac/menus/{id}(id=${item.id})}" class="btn btn-secondary btn-sm">View</a>
-                <a th:href="@{/admin/rbac/menus/{id}/edit(id=${item.id})}" class="btn btn-primary btn-sm">Edit</a>
+                <a th:if="${#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:menu:update')}"
+                   th:href="@{/admin/rbac/menus/{id}/edit(id=${item.id})}" class="btn btn-primary btn-sm">Edit</a>
             </td>
         </th:block>
     </th:block>

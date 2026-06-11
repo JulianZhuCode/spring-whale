@@ -1,5 +1,6 @@
 package io.github.springwhale.rbac.security;
 
+import io.github.springwhale.rbac.constant.RbacConstants;
 import io.github.springwhale.rbac.entity.*;
 import io.github.springwhale.rbac.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -81,33 +81,43 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         List<RoleEntity> roles = roleRepository.findAllById(roleIds);
 
         // 4. Build role authorities (ROLE_ prefix)
-        Set<GrantedAuthority> authorities = roles.stream()
-                .filter(role -> role.getStatus() == 1) // Only include enabled roles
-                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getCode()))
-                .collect(Collectors.toSet());
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        for (RoleEntity role : roles) {
+            if (role.getStatus() != 1) {
+                continue;
+            }
+            authorities.add(new SimpleGrantedAuthority(RbacConstants.ROLE_PREFIX + role.getCode()));
+        }
 
-        // 5. Query all menus associated with these roles
+        // 5. SUPER_ADMIN has all permissions — skip menu lookup
+        boolean isSuperAdmin = roles.stream().anyMatch(
+                r -> r.getStatus() == 1 && RbacConstants.SUPER_ADMIN_ROLE_CODE.equals(r.getCode()));
+        if (isSuperAdmin) {
+            authorities.add(new SimpleGrantedAuthority(RbacConstants.AUTHORITY_SUPER_ADMIN));
+            return authorities;
+        }
+
+        // 6. Query all menus associated with these roles
         List<RoleMenuEntity> roleMenus = roleIds.stream()
                 .flatMap(roleId -> roleMenuRepository.findByRoleId(roleId).stream())
                 .toList();
 
         if (!roleMenus.isEmpty()) {
-            // 6. Get all menu IDs
             List<Integer> menuIds = roleMenus.stream()
                     .map(RoleMenuEntity::getMenuId)
                     .distinct()
                     .collect(Collectors.toList());
 
-            // 7. Query all menu information
             List<MenuEntity> menus = menuRepository.findAllById(menuIds);
 
-            // 8. Add menu permission identifiers
             menus.stream()
-                    .filter(menu -> menu.getStatus() == 1 && menu.getPermission() != null && !menu.getPermission().isEmpty()) // Only include enabled menus with permission identifiers
+                    .filter(menu -> menu.getStatus() == 1
+                            && menu.getPermission() != null
+                            && !menu.getPermission().isEmpty())
                     .forEach(menu -> authorities.add(new SimpleGrantedAuthority(menu.getPermission())));
         }
 
-        return new ArrayList<>(authorities);
+        return authorities;
     }
 
     /**
