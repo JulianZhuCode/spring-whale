@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Spring Whale Admin</title>
+    <title th:text="#{login.title} + ' - ' + ${adminProps.brandName} + ' Admin'">Login</title>
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/admin/css/admin.css}">
 </head>
@@ -11,40 +11,43 @@
 
 <div class="login-page">
     <div class="login-card shadow">
-        <h1>Spring Whale</h1>
-        <p class="subtitle">Admin Console</p>
+        <h1 th:text="${adminProps.brandName}">Spring Whale</h1>
+        <p class="subtitle" th:text="#{login.subtitle}">Admin Console</p>
 
-        <div th:if="${error}" class="alert alert-danger login-error" th:text="${error}">Invalid username or password</div>
+        <div th:if="${error}" class="alert alert-danger login-error" th:text="#{login.error.invalid}">Invalid username or password</div>
 
         <div th:if="${reason == 'no_token'}" class="alert alert-warning login-diagnostic">
-            <strong>Session lost:</strong> No authentication token found. Please log in again.
-            <br><small>(This may indicate the cookie was not set or was cleared by the browser.)</small>
+            <strong th:text="#{login.reason.no_token_title}">Session lost:</strong>
+            <span th:text="#{login.reason.no_token_desc}">No authentication token found. Please log in again.</span>
+            <br><small th:text="#{login.reason.no_token_hint}">(This may indicate the cookie was not set or was cleared by the browser.)</small>
         </div>
         <div th:if="${reason == 'token_invalid'}" class="alert alert-danger login-diagnostic">
-            <strong>Token invalid:</strong> The authentication token was rejected.
-            <br><small>Check the server logs for details. Try logging in again.</small>
+            <strong th:text="#{login.reason.token_invalid_title}">Token invalid:</strong>
+            <span th:text="#{login.reason.token_invalid_desc}">The authentication token was rejected.</span>
+            <br><small th:text="#{login.reason.token_invalid_hint}">Check the server logs for details. Try logging in again.</small>
         </div>
         <div th:if="${reason == 'auth_required'}" class="alert alert-info login-diagnostic">
-            <strong>Authentication required:</strong> Please log in to access this page.
+            <strong th:text="#{login.reason.auth_required_title}">Authentication required:</strong>
+            <span th:text="#{login.reason.auth_required_desc}">Please log in to access this page.</span>
         </div>
 
         <form id="loginForm" method="post" th:action="@{/admin/login}">
             <div class="mb-3">
-                <label class="form-label" for="username">Username</label>
+                <label class="form-label" for="username" th:text="#{login.username}">Username</label>
                 <input type="text" id="username" name="username" class="form-control"
-                       placeholder="Enter username" autocomplete="username" autofocus required>
+                       th:placeholder="#{login.username_placeholder}" autocomplete="username" autofocus required>
             </div>
             <div class="mb-3">
-                <label class="form-label" for="password">Password</label>
+                <label class="form-label" for="password" th:text="#{login.password}">Password</label>
                 <input type="password" id="password" name="password" class="form-control"
-                       placeholder="Enter password" autocomplete="current-password" required>
+                       th:placeholder="#{login.password_placeholder}" autocomplete="current-password" required>
             </div>
             <input type="hidden" name="token" id="tokenField">
             <input type="hidden" name="redirect" th:value="${param.redirect}">
-            <button type="submit" class="btn btn-primary w-100 mt-2 btn-lg">Sign In</button>
+            <button type="submit" class="btn btn-primary w-100 mt-2 btn-lg" th:text="#{login.sign_in}">Sign In</button>
         </form>
 
-        <p class="login-footer">&copy; 2026 Spring Whale Framework</p>
+        <p class="login-footer" th:text="#{footer.copyright('2026', ${adminProps.copyright})}">&copy; 2026 Spring Whale Framework</p>
     </div>
 </div>
 

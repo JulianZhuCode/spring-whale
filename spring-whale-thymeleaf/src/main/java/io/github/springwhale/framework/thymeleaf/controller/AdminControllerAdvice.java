@@ -1,5 +1,6 @@
 package io.github.springwhale.framework.thymeleaf.controller;
 
+import io.github.springwhale.framework.thymeleaf.config.AdminProperties;
 import io.github.springwhale.framework.thymeleaf.menu.AdminMenuProvider;
 import io.github.springwhale.framework.thymeleaf.menu.MenuItem;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,6 +31,7 @@ public class AdminControllerAdvice {
     private static final String WILDCARD = "*";
 
     private final List<AdminMenuProvider> menuProviders;
+    private final AdminProperties adminProperties;
 
     @ModelAttribute("menuGroups")
     public List<MenuItem.MenuGroup> menuGroups() {
@@ -55,6 +57,15 @@ public class AdminControllerAdvice {
     @ModelAttribute("userAuthorities")
     public Set<String> userAuthorities() {
         return getCurrentAuthorities();
+    }
+
+    /**
+     * Exposes admin properties to templates so they can access
+     * configurable brand name, short name, and copyright.
+     */
+    @ModelAttribute("adminProps")
+    public AdminProperties adminProps() {
+        return adminProperties;
     }
 
     /**

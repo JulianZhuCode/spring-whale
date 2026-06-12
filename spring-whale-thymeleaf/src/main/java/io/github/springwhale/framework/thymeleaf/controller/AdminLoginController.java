@@ -1,11 +1,14 @@
 package io.github.springwhale.framework.thymeleaf.controller;
 
+import io.github.springwhale.framework.thymeleaf.config.AdminProperties;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -21,10 +24,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Slf4j
 @Controller
 @RequestMapping("/admin")
+@RequiredArgsConstructor
 public class AdminLoginController {
 
     private static final String TOKEN_COOKIE = "sw_token";
     private static final int COOKIE_MAX_AGE = 86400; // 24 hours
+
+    private final AdminProperties adminProperties;
+
+    @ModelAttribute("adminProps")
+    public AdminProperties adminProps() {
+        return adminProperties;
+    }
 
     @GetMapping("/login")
     public String loginPage(@RequestParam(name = "error", required = false) String error,

@@ -12,10 +12,10 @@
             <a th:if="${createUrl != null and (createPermission == null or #sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, createPermission))}"
                th:unless="${createModal != null}"
                th:href="@{${createUrl}}"
-               class="btn btn-primary btn-new shadow-sm">+ New</a>
+               class="btn btn-primary btn-new shadow-sm" th:text="#{table.new}">+ New</a>
             <button th:if="${createUrl != null and createModal != null and (createPermission == null or #sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, createPermission))}"
                     th:attr="data-modal=${createModal}"
-                    class="btn btn-primary btn-new shadow-sm">+ New</button>
+                    class="btn btn-primary btn-new shadow-sm" th:text="#{table.new}">+ New</button>
         </div>
     </div>
 
@@ -46,8 +46,8 @@
                            end=${(total <= 9) ? (total - 1) : (start + 8)}">
             <ul class="pagination">
                 <li class="page-item" th:classappend="${page.first} ? 'disabled'">
-                    <a th:if="${!page.first}" th:href="@{${baseUrl}(page=${current - 1})}" class="page-link">Prev</a>
-                    <span th:if="${page.first}" class="page-link">Prev</span>
+                    <a th:if="${!page.first}" th:href="@{${baseUrl}(page=${current - 1})}" class="page-link" th:text="#{table.pagination.prev}">Prev</a>
+                    <span th:if="${page.first}" class="page-link" th:text="#{table.pagination.prev}">Prev</span>
                 </li>
 
                 <li th:if="${start > 0}" class="page-item">
@@ -71,8 +71,8 @@
                 </li>
 
                 <li class="page-item" th:classappend="${page.last} ? 'disabled'">
-                    <a th:if="${!page.last}" th:href="@{${baseUrl}(page=${current + 1})}" class="page-link">Next</a>
-                    <span th:if="${page.last}" class="page-link">Next</span>
+                    <a th:if="${!page.last}" th:href="@{${baseUrl}(page=${current + 1})}" class="page-link" th:text="#{table.pagination.next}">Next</a>
+                    <span th:if="${page.last}" class="page-link" th:text="#{table.pagination.next}">Next</span>
                 </li>
             </ul>
         </th:block>

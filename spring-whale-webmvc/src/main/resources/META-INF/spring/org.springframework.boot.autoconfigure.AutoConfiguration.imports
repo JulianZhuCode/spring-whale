@@ -1,0 +1,2 @@
+io.github.springwhale.framework.webmvc.autoconfigure.SpringWhaleMessageSourceConfig
+io.github.springwhale.framework.webmvc.autoconfigure.SpringWhaleI18nConfig

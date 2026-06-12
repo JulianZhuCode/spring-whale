@@ -9,7 +9,7 @@
         <div class="sidebar-brand">
             <a class="sidebar-brand-link" th:href="@{/admin}">
                 <span class="sidebar-brand-icon">&#x1F40B;</span>
-                <span class="sidebar-brand-text">SW Admin</span>
+                <span class="sidebar-brand-text" th:text="${adminProps.shortName}">SW Admin</span>
             </a>
         </div>
 
@@ -18,7 +18,7 @@
            th:classappend="${currentPath == '/admin'} ? 'active'"
            th:href="@{/admin}">
             <i class="bi bi-speedometer2"></i>
-            <span>Dashboard</span>
+            <span th:text="#{sidebar.dashboard}">Dashboard</span>
         </a>
 
         <hr class="sidebar-divider">

@@ -4,15 +4,15 @@
       layout:decorate="~{admin/layout}">
 
 <head>
-    <title>Dashboard</title>
+    <title th:text="#{dashboard.title}">Dashboard</title>
 </head>
 
 <body>
 
 <main layout:fragment="content">
     <div class="page-header">
-        <h1>Dashboard</h1>
-        <p class="text-secondary">Welcome to Spring Whale Admin Console</p>
+        <h1 th:text="#{dashboard.title}">Dashboard</h1>
+        <p class="text-secondary" th:text="#{dashboard.welcome(${adminProps.brandName})}">Welcome to Admin Console</p>
     </div>
 
     <!-- Stats -->
@@ -20,15 +20,15 @@
         <div class="col-md-4">
             <div class="card stat-card-primary text-white border-0">
                 <div class="card-body">
-                    <div class="stat-card-label">Status</div>
-                    <div class="stat-card-value">Online</div>
+                    <div class="stat-card-label" th:text="#{dashboard.status}">Status</div>
+                    <div class="stat-card-value" th:text="#{dashboard.online}">Online</div>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
             <div class="card stat-card border-0 shadow-sm">
                 <div class="card-body">
-                    <div class="stat-card-label">Modules</div>
+                    <div class="stat-card-label" th:text="#{dashboard.modules}">Modules</div>
                     <div class="stat-card-value" th:text="${menuGroups.size()}">0</div>
                 </div>
             </div>
@@ -36,8 +36,8 @@
         <div class="col-md-4">
             <div class="card stat-card border-0 shadow-sm">
                 <div class="card-body">
-                    <div class="stat-card-label">Version</div>
-                    <div class="stat-card-value">0.0.2</div>
+                    <div class="stat-card-label" th:text="#{dashboard.version}">Version</div>
+                    <div class="stat-card-value" th:text="${adminProps.version}">0.0.2</div>
                 </div>
             </div>
         </div>
@@ -45,7 +45,7 @@
 
     <!-- Module Cards -->
     <th:block th:if="${!menuGroups.isEmpty()}">
-        <h2 class="section-title">Modules</h2>
+        <h2 class="section-title" th:text="#{dashboard.section_modules}">Modules</h2>
         <div class="row g-3">
             <th:block th:each="group : ${menuGroups}">
                 <div class="col-lg-4 col-md-6">
@@ -68,8 +68,8 @@
     <!-- Empty State -->
     <div th:if="${menuGroups.isEmpty()}" class="text-center py-5 text-muted">
         <div class="display-1 mb-3">&#x1F3E0;</div>
-        <p class="h5 text-secondary mb-2">No modules yet</p>
-        <p class="small">Add AdminMenuProvider beans to register menu items here.</p>
+        <p class="h5 text-secondary mb-2" th:text="#{dashboard.empty_title}">No modules yet</p>
+        <p class="small" th:text="#{dashboard.empty_desc}">Add AdminMenuProvider beans to register menu items here.</p>
     </div>
 </main>
 
