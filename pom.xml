@@ -12,8 +12,9 @@
         <module>spring-whale-cloud</module>
         <module>spring-whale-webmvc</module>
         <module>spring-whale-database</module>
-        <module>spring-whale-rbac</module>
         <module>spring-whale-thymeleaf</module>
+        <module>spring-whale-rbac-ui</module>
+        <module>spring-whale-rbac</module>
     </modules>
     <packaging>pom</packaging>
     <url>https://github.com/JulianZhuCode/spring-whale</url>
@@ -76,6 +77,11 @@
             <dependency>
                 <groupId>io.github.julianzhucode</groupId>
                 <artifactId>spring-whale-rbac</artifactId>
+                <version>${my.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.julianzhucode</groupId>
+                <artifactId>spring-whale-rbac-ui</artifactId>
                 <version>${my.version}</version>
             </dependency>
             <dependency>

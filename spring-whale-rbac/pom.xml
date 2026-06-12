@@ -20,7 +20,7 @@
     <dependencies>
         <dependency>
             <groupId>io.github.julianzhucode</groupId>
-            <artifactId>spring-whale-thymeleaf</artifactId>
+            <artifactId>spring-whale-rbac-ui</artifactId>
         </dependency>
         <dependency>
             <groupId>io.github.julianzhucode</groupId>
