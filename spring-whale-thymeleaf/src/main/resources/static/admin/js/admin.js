@@ -76,8 +76,7 @@ function initModalSystem() {
                 if (titleEl) titleEl.textContent = 'Edit';
                 form.action = apiUrl + '/' + id;
                 form.method = 'put';
-                fetch(apiUrl + '/' + id)
-                    .then(r => r.json())
+                apiCall(apiUrl + '/' + id)
                     .then(data => fillFormFields(form, data));
             } else {
                 form.removeAttribute('data-edit-id');
@@ -105,8 +104,7 @@ function loadGroupOptions(form) {
     const groupSelects = form.querySelectorAll('select[name="groupId"]');
     groupSelects.forEach(select => {
         if (select.options.length > 1) return;
-        fetch('/api/rbac/groups?page=0&size=1000')
-            .then(r => r.json())
+        apiCall('/api/rbac/groups?page=0&size=1000')
             .then(page => {
                 const groups = page.content || page;
                 groups.forEach(g => {
@@ -177,11 +175,12 @@ function submitDictForm(form, modalEl) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
     })
-        .then(r => {
-            if (!r.ok) return r.json().then(err => { throw err; });
-            return r.json();
-        })
-        .then(() => {
+        .then(r => r.json())
+        .then(data => {
+            if (data.code && data.code !== '200') {
+                if (data.errors) throw data;
+                throw new Error(data.message || 'Operation failed');
+            }
             const modal = bootstrap.Modal.getInstance(modalEl);
             if (modal) modal.hide();
             showToast(method === 'PUT' ? 'Updated successfully' : 'Created successfully', 'success');
@@ -195,7 +194,7 @@ function submitDictForm(form, modalEl) {
                     if (errorEl) errorEl.textContent = err.errors[key];
                 }
             } else {
-                showToast('Operation failed. Please try again.', 'error');
+                showPageError(err?.message || 'Operation failed. Please try again.', 'error');
             }
         });
 }
@@ -213,6 +212,78 @@ function showToast(message, type) {
     toast.classList.add('show');
     clearTimeout(toast._timer);
     toast._timer = setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+/* ===== Global Page Error Banner ===== */
+
+function showPageError(message, type = 'error', duration = 4000) {
+    let banner = document.getElementById('page-error-banner');
+    if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'page-error-banner';
+        banner.className = 'page-error-banner';
+        banner.addEventListener('click', () => hidePageError());
+        const main = document.querySelector('.admin-main');
+        if (main) {
+            main.insertBefore(banner, main.firstChild);
+        } else {
+            document.body.insertBefore(banner, document.body.firstChild);
+        }
+    }
+    banner.textContent = message;
+    banner.className = 'page-error-banner ' + type;
+    banner.classList.add('show');
+    clearTimeout(banner._timer);
+    if (duration > 0) {
+        banner._timer = setTimeout(() => hidePageError(), duration);
+    }
+}
+
+function hidePageError() {
+    const banner = document.getElementById('page-error-banner');
+    if (banner) banner.classList.remove('show');
+}
+
+/* ===== Unified API Call ===== */
+
+/**
+ * Wraps fetch() and handles ApiResult response structured as:
+ *   { "code": "200", "message": "success", "data": ... }
+ *
+ * - On success (code === "200"): resolves with data (unwrapped from ApiResult envelope)
+ * - On error (code !== "200"): shows page error banner and rejects
+ * - On network error: shows page error banner and rejects
+ */
+function apiCall(url, options = {}) {
+    const showErr = (msg) => showPageError(msg, 'error');
+
+    return fetch(url, options)
+        .then(r => {
+            if (!r.ok) {
+                return r.json().then(data => {
+                    const msg = data.message || ('HTTP error ' + r.status);
+                    showErr(msg);
+                    throw data;
+                }).catch(err => {
+                    if (err.message) showErr(err.message);
+                    throw err;
+                });
+            }
+            return r.json();
+        })
+        .then(data => {
+            if (data.code && data.code !== '200') {
+                showErr(data.message || 'Request failed');
+                throw data;
+            }
+            return data.data !== undefined ? data.data : data;
+        })
+        .catch(err => {
+            if (err instanceof TypeError && err.message === 'Failed to fetch') {
+                showErr('Network error. Please check your connection.');
+            }
+            throw err;
+        });
 }
 
 /* ===== Login Form ===== */

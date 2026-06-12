@@ -376,6 +376,30 @@
 .modal-toast.success { background: #d1e7dd; color: #0f5132; }
 .modal-toast.error { background: #f8d7da; color: #842029; }
 
+/* ===== Page Error Banner (top center) ===== */
+.page-error-banner {
+    position: sticky;
+    top: 0;
+    z-index: 1050;
+    width: 100%;
+    padding: 12px 20px;
+    font-size: .85rem;
+    font-weight: 550;
+    text-align: center;
+    transform: translateY(-100%);
+    opacity: 0;
+    transition: transform .3s ease, opacity .3s ease;
+    pointer-events: auto;
+    cursor: pointer;
+    border: none;
+    border-bottom: 1px solid rgba(0,0,0,.06);
+}
+.page-error-banner.show { transform: translateY(0); opacity: 1; }
+.page-error-banner.error   { background: #f8d7da; color: #842029; }
+.page-error-banner.warning { background: #fff3cd; color: #664d03; }
+.page-error-banner.info    { background: #cff4fc; color: #055160; }
+.page-error-banner.success { background: #d1e7dd; color: #0f5132; }
+
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
     .admin-sidebar {
