@@ -42,66 +42,68 @@
             <td th:text="${item.groupName} ?: '-'">Root Group</td>
             <td th:text="${item.sort}">1</td>
             <td>
-                <span th:if="${item.status == 1}" class="badge badge-success">Active</span>
-                <span th:if="${item.status == 0}" class="badge badge-danger">Disabled</span>
+                <span th:if="${item.status == 1}" class="badge bg-success">Active</span>
+                <span th:if="${item.status == 0}" class="badge bg-danger">Disabled</span>
             </td>
-            <td class="flex-gap">
+            <td>
                 <button th:if="${#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:role:update')}"
-                        data-modal="role-modal" th:attr="data-edit-id=${item.id}" class="btn btn-outline btn-sm">Edit</button>
+                        data-modal="role-modal" th:attr="data-edit-id=${item.id}" class="btn btn-outline-primary btn-sm">Edit</button>
             </td>
         </th:block>
     </th:block>
 
     <!-- Role Modal -->
-    <div id="role-modal" class="dict-modal-overlay hidden">
+    <div class="modal fade" id="role-modal" tabindex="-1">
         <div class="modal-dialog">
-            <div class="modal-header">
-                <h2 class="modal-title">Create Role</h2>
-                <button class="modal-close">&times;</button>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create Role</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form class="dict-modal-form" data-api-base="/api/rbac/roles">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label" for="role-code">Code</label>
+                            <input type="text" id="role-code" name="code" class="form-control" required>
+                            <div class="invalid-feedback" data-field="code"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="role-name">Name</label>
+                            <input type="text" id="role-name" name="name" class="form-control" required>
+                            <div class="invalid-feedback" data-field="name"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="role-description">Description</label>
+                            <input type="text" id="role-description" name="description" class="form-control">
+                            <div class="invalid-feedback" data-field="description"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="role-groupId">Group</label>
+                            <select id="role-groupId" name="groupId" class="form-select">
+                                <option value="">-- Select --</option>
+                            </select>
+                            <div class="invalid-feedback" data-field="groupId"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="role-sort">Sort</label>
+                            <input type="number" id="role-sort" name="sort" class="form-control">
+                            <div class="invalid-feedback" data-field="sort"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="role-status">Status</label>
+                            <select id="role-status" name="status" class="form-select">
+                                <option value="1">Active</option>
+                                <option value="0">Disabled</option>
+                            </select>
+                            <div class="invalid-feedback" data-field="status"></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary modal-submit">Save</button>
+                    </div>
+                </form>
             </div>
-            <form class="dict-modal-form" data-api-base="/api/rbac/roles">
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label class="form-label" for="role-code">Code</label>
-                        <input type="text" id="role-code" name="code" class="form-control" required>
-                        <div class="form-error" data-field="code"></div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="role-name">Name</label>
-                        <input type="text" id="role-name" name="name" class="form-control" required>
-                        <div class="form-error" data-field="name"></div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="role-description">Description</label>
-                        <input type="text" id="role-description" name="description" class="form-control">
-                        <div class="form-error" data-field="description"></div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="role-groupId">Group</label>
-                        <select id="role-groupId" name="groupId" class="form-control">
-                            <option value="">-- Select --</option>
-                        </select>
-                        <div class="form-error" data-field="groupId"></div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="role-sort">Sort</label>
-                        <input type="number" id="role-sort" name="sort" class="form-control">
-                        <div class="form-error" data-field="sort"></div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="role-status">Status</label>
-                        <select id="role-status" name="status" class="form-control">
-                            <option value="1">Active</option>
-                            <option value="0">Disabled</option>
-                        </select>
-                        <div class="form-error" data-field="status"></div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
-                    <button type="button" class="btn btn-primary modal-submit">Save</button>
-                </div>
-            </form>
         </div>
     </div>
 </main>

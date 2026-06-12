@@ -7,7 +7,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE">Spring Whale Admin</title>
     <link rel="icon" th:href="@{/admin/favicon.svg}" type="image/svg+xml">
-    <link rel="stylesheet" th:href="@{/admin/css/admin.css?v=6}">
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap-icons/1.11.3/font/bootstrap-icons.css}">
+    <link rel="stylesheet" th:href="@{/admin/css/admin.css}">
 </head>
 <body class="admin-body">
 
@@ -29,6 +31,7 @@
 
 </div>
 
+<script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
 <script th:src="@{/admin/js/admin.js}"></script>
 </body>
 </html>

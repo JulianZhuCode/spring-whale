@@ -4,26 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Spring Whale Admin</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/admin/css/admin.css}">
 </head>
 <body>
 
 <div class="login-page">
-    <div class="login-card">
+    <div class="login-card shadow">
         <h1>Spring Whale</h1>
         <p class="subtitle">Admin Console</p>
 
-        <div th:if="${error}" class="alert alert-danger login-error" th:text="${error}">
-            Invalid username or password
-        </div>
+        <div th:if="${error}" class="alert alert-danger login-error" th:text="${error}">Invalid username or password</div>
 
-        <!-- Diagnostic info for debugging redirect-back-to-login issue -->
         <div th:if="${reason == 'no_token'}" class="alert alert-warning login-diagnostic">
             <strong>Session lost:</strong> No authentication token found. Please log in again.
             <br><small>(This may indicate the cookie was not set or was cleared by the browser.)</small>
         </div>
-        <div th:if="${reason == 'token_invalid'}" class="alert alert-warning login-diagnostic" style="background: #fef2f2; border-color: #fca5a5; color: #991b1b;">
-            <strong>Token invalid:</strong> The authentication token was rejected. This could mean the token expired or is malformed.
+        <div th:if="${reason == 'token_invalid'}" class="alert alert-danger login-diagnostic">
+            <strong>Token invalid:</strong> The authentication token was rejected.
             <br><small>Check the server logs for details. Try logging in again.</small>
         </div>
         <div th:if="${reason == 'auth_required'}" class="alert alert-info login-diagnostic">
@@ -31,137 +29,27 @@
         </div>
 
         <form id="loginForm" method="post" th:action="@{/admin/login}">
-            <div class="form-group">
+            <div class="mb-3">
                 <label class="form-label" for="username">Username</label>
-                <input type="text" id="username" name="username"
-                       class="form-input" placeholder="Enter username"
-                       autocomplete="username" autofocus required>
+                <input type="text" id="username" name="username" class="form-control"
+                       placeholder="Enter username" autocomplete="username" autofocus required>
             </div>
-            <div class="form-group">
+            <div class="mb-3">
                 <label class="form-label" for="password">Password</label>
-                <input type="password" id="password" name="password"
-                       class="form-input" placeholder="Enter password"
-                       autocomplete="current-password" required>
+                <input type="password" id="password" name="password" class="form-control"
+                       placeholder="Enter password" autocomplete="current-password" required>
             </div>
-
-            <!-- Hidden fields for token and redirect -->
             <input type="hidden" name="token" id="tokenField">
             <input type="hidden" name="redirect" th:value="${param.redirect}">
-
-            <button type="submit" class="btn btn-primary mt-1">
-                Sign In
-            </button>
+            <button type="submit" class="btn btn-primary w-100 mt-2 btn-lg">Sign In</button>
         </form>
 
         <p class="login-footer">&copy; 2026 Spring Whale Framework</p>
     </div>
 </div>
 
-<script>
-    /**
-     * Intercept form submission: call the REST API to obtain a JWT,
-     * then submit the form with the token as a hidden field so the
-     * server sets the cookie and redirects.
-     */
-    document.getElementById('loginForm').addEventListener('submit', function (e) {
-        e.preventDefault();
-
-        var username = document.getElementById('username').value.trim();
-        var password = document.getElementById('password').value;
-        var errorDiv = document.querySelector('.login-error');
-
-        // Clear previous diagnostic alerts
-        document.querySelectorAll('.alert-warning, .alert-info').forEach(function(el) {
-            el.style.display = 'none';
-        });
-
-        // Frontend validation
-        if (!username || !password) {
-            showError(errorDiv, 'Please enter both username and password.');
-            return;
-        }
-
-        // Disable submit button to prevent double-submit
-        var btn = e.target.querySelector('button[type="submit"]');
-        var originalText = btn.textContent;
-        btn.disabled = true;
-        btn.textContent = 'Signing in...';
-
-        console.log('[Login] Sending login request for user:', username);
-
-        fetch('/api/rbac/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: username, password: password })
-        })
-        .then(function (response) {
-            console.log('[Login] API response status:', response.status);
-            if (!response.ok) {
-                return response.text().then(function (text) {
-                    try {
-                        var json = JSON.parse(text);
-                        throw new Error(json.message || text);
-                    } catch (parseErr) {
-                        if (parseErr.message !== text) throw parseErr;
-                        throw new Error(text || 'Invalid username or password');
-                    }
-                });
-            }
-            return response.json();
-        })
-        .then(function (data) {
-            // The response may be wrapped by ApiResult: { code, message, data: { token, ... } }
-            // or unwrapped (with @AdviceIgnore): { token, tokenType, ... }
-            var token = data.token || (data.data && data.data.token);
-            console.log('[Login] API response:', JSON.stringify(data).substring(0, 200));
-            if (!token) {
-                throw new Error('No token in login response');
-            }
-            console.log('[Login] API login successful, token length:', token.length);
-            document.getElementById('tokenField').value = token;
-            // Use native form submit (bypasses event listener) to POST to /admin/login
-            // which sets the cookie and redirects to /admin
-            HTMLFormElement.prototype.submit.call(e.target);
-        })
-        .catch(function (err) {
-            console.error('[Login] Login failed:', err.message);
-            showError(errorDiv, 'Login failed: ' + err.message);
-            btn.disabled = false;
-            btn.textContent = originalText;
-        });
-    });
-
-    /**
-     * Show an error message in the login card.
-     */
-    function showError(container, message) {
-        if (!container) {
-            container = document.createElement('div');
-            container.className = 'alert alert-danger login-error';
-            container.style.display = '';
-            document.getElementById('loginForm').parentNode.insertBefore(container, document.getElementById('loginForm'));
-        }
-        container.textContent = message;
-        container.style.display = '';
-    }
-
-    // Clear error on input
-    ['username', 'password'].forEach(function (id) {
-        document.getElementById(id).addEventListener('input', function () {
-            var errorDiv = document.querySelector('.login-error');
-            if (errorDiv) errorDiv.style.display = 'none';
-        });
-    });
-
-    // Auto-focus username field on page load
-    document.getElementById('username').focus();
-
-    // Show diagnostic info on page load
-    var reason = new URLSearchParams(window.location.search).get('reason');
-    if (reason) {
-        console.log('[Login] Page loaded with reason:', reason);
-    }
-</script>
+<script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
+<script th:src="@{/admin/js/admin.js}"></script>
 
 </body>
 </html>

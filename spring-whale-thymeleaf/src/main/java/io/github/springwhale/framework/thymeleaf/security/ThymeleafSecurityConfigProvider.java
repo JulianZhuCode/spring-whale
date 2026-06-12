@@ -25,6 +25,7 @@ public class ThymeleafSecurityConfigProvider implements SecurityConfigProvider {
                 "/admin/favicon.ico",
                 "/admin/favicon.svg",
                 "/favicon.ico",
+                "/webjars/**",
                 "/error"
         );
     }

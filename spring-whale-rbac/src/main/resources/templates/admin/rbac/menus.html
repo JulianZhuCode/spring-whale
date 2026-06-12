@@ -40,104 +40,106 @@
             <td><code th:text="${item.code}">user:list</code></td>
             <td th:text="${item.name}">Users</td>
             <td>
-                <span th:if="${item.type == 1}" class="badge badge-info">Menu</span>
-                <span th:if="${item.type == 2}" class="badge badge-warning">Button</span>
+                <span th:if="${item.type == 1}" class="badge bg-info text-dark">Menu</span>
+                <span th:if="${item.type == 2}" class="badge bg-warning text-dark">Button</span>
                 <span th:if="${item.type == 3}" class="badge badge-purple">API</span>
             </td>
             <td th:text="${item.path}">/admin/rbac/users</td>
             <td><code th:text="${item.permission}">user:list</code></td>
             <td th:text="${item.sort}">1</td>
             <td>
-                <span th:if="${item.status == 1}" class="badge badge-success">Active</span>
-                <span th:if="${item.status == 0}" class="badge badge-danger">Disabled</span>
+                <span th:if="${item.status == 1}" class="badge bg-success">Active</span>
+                <span th:if="${item.status == 0}" class="badge bg-danger">Disabled</span>
             </td>
-            <td class="flex-gap">
+            <td>
                 <button th:if="${#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:menu:update')}"
-                        data-modal="menu-modal" th:attr="data-edit-id=${item.id}" class="btn btn-outline btn-sm">Edit</button>
+                        data-modal="menu-modal" th:attr="data-edit-id=${item.id}" class="btn btn-outline-primary btn-sm">Edit</button>
             </td>
         </th:block>
     </th:block>
 
     <!-- Menu Modal -->
-    <div id="menu-modal" class="dict-modal-overlay hidden">
+    <div class="modal fade" id="menu-modal" tabindex="-1">
         <div class="modal-dialog">
-            <div class="modal-header">
-                <h2 class="modal-title">Create Menu</h2>
-                <button class="modal-close">&times;</button>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create Menu</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form class="dict-modal-form" data-api-base="/api/rbac/menus">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label" for="menu-parentId">Parent ID</label>
+                            <input type="number" id="menu-parentId" name="parentId" class="form-control">
+                            <div class="invalid-feedback" data-field="parentId"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="menu-code">Code</label>
+                            <input type="text" id="menu-code" name="code" class="form-control" required>
+                            <div class="invalid-feedback" data-field="code"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="menu-name">Name</label>
+                            <input type="text" id="menu-name" name="name" class="form-control" required>
+                            <div class="invalid-feedback" data-field="name"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="menu-type">Type</label>
+                            <select id="menu-type" name="type" class="form-select">
+                                <option value="1">Directory</option>
+                                <option value="2">Menu</option>
+                                <option value="3">Button</option>
+                            </select>
+                            <div class="invalid-feedback" data-field="type"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="menu-path">Path</label>
+                            <input type="text" id="menu-path" name="path" class="form-control">
+                            <div class="invalid-feedback" data-field="path"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="menu-component">Component</label>
+                            <input type="text" id="menu-component" name="component" class="form-control">
+                            <div class="invalid-feedback" data-field="component"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="menu-permission">Permission</label>
+                            <input type="text" id="menu-permission" name="permission" class="form-control">
+                            <div class="invalid-feedback" data-field="permission"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="menu-icon">Icon</label>
+                            <input type="text" id="menu-icon" name="icon" class="form-control">
+                            <div class="invalid-feedback" data-field="icon"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="menu-sort">Sort</label>
+                            <input type="number" id="menu-sort" name="sort" class="form-control">
+                            <div class="invalid-feedback" data-field="sort"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="menu-visible">Visible</label>
+                            <select id="menu-visible" name="visible" class="form-select">
+                                <option value="1">Visible</option>
+                                <option value="0">Hidden</option>
+                            </select>
+                            <div class="invalid-feedback" data-field="visible"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="menu-status">Status</label>
+                            <select id="menu-status" name="status" class="form-select">
+                                <option value="1">Active</option>
+                                <option value="0">Disabled</option>
+                            </select>
+                            <div class="invalid-feedback" data-field="status"></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary modal-submit">Save</button>
+                    </div>
+                </form>
             </div>
-            <form class="dict-modal-form" data-api-base="/api/rbac/menus">
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label class="form-label" for="menu-parentId">Parent ID</label>
-                        <input type="number" id="menu-parentId" name="parentId" class="form-control">
-                        <div class="form-error" data-field="parentId"></div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="menu-code">Code</label>
-                        <input type="text" id="menu-code" name="code" class="form-control" required>
-                        <div class="form-error" data-field="code"></div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="menu-name">Name</label>
-                        <input type="text" id="menu-name" name="name" class="form-control" required>
-                        <div class="form-error" data-field="name"></div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="menu-type">Type</label>
-                        <select id="menu-type" name="type" class="form-control">
-                            <option value="1">Directory</option>
-                            <option value="2">Menu</option>
-                            <option value="3">Button</option>
-                        </select>
-                        <div class="form-error" data-field="type"></div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="menu-path">Path</label>
-                        <input type="text" id="menu-path" name="path" class="form-control">
-                        <div class="form-error" data-field="path"></div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="menu-component">Component</label>
-                        <input type="text" id="menu-component" name="component" class="form-control">
-                        <div class="form-error" data-field="component"></div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="menu-permission">Permission</label>
-                        <input type="text" id="menu-permission" name="permission" class="form-control">
-                        <div class="form-error" data-field="permission"></div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="menu-icon">Icon</label>
-                        <input type="text" id="menu-icon" name="icon" class="form-control">
-                        <div class="form-error" data-field="icon"></div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="menu-sort">Sort</label>
-                        <input type="number" id="menu-sort" name="sort" class="form-control">
-                        <div class="form-error" data-field="sort"></div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="menu-visible">Visible</label>
-                        <select id="menu-visible" name="visible" class="form-control">
-                            <option value="1">Visible</option>
-                            <option value="0">Hidden</option>
-                        </select>
-                        <div class="form-error" data-field="visible"></div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="menu-status">Status</label>
-                        <select id="menu-status" name="status" class="form-control">
-                            <option value="1">Active</option>
-                            <option value="0">Disabled</option>
-                        </select>
-                        <div class="form-error" data-field="status"></div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
-                    <button type="button" class="btn btn-primary modal-submit">Save</button>
-                </div>
-            </form>
         </div>
     </div>
 </main>

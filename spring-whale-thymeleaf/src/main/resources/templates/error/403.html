@@ -4,12 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>403 Forbidden - Spring Whale Admin</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/admin/css/admin.css}">
 </head>
-<body>
+<body class="bg-light">
 
 <div class="error-page">
-    <div class="error-card">
+    <div class="error-card shadow text-center">
         <div class="status-code">403</div>
         <div class="divider"></div>
         <p th:text="${message} ?: 'You do not have permission to access this resource.'">You do not have permission to access this resource.</p>

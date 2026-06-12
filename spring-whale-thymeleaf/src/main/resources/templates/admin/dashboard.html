@@ -12,49 +12,64 @@
 <main layout:fragment="content">
     <div class="page-header">
         <h1>Dashboard</h1>
-        <p>Welcome to Spring Whale Admin Console</p>
+        <p class="text-secondary">Welcome to Spring Whale Admin Console</p>
     </div>
 
     <!-- Stats -->
-    <div class="dashboard-stats">
-        <div class="stat-card primary">
-            <div class="stat-card-label">Status</div>
-            <div class="stat-card-value">Online</div>
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card stat-card-primary text-white border-0">
+                <div class="card-body">
+                    <div class="stat-card-label">Status</div>
+                    <div class="stat-card-value">Online</div>
+                </div>
+            </div>
         </div>
-        <div class="stat-card">
-            <div class="stat-card-label">Modules</div>
-            <div class="stat-card-value" th:text="${menuGroups.size()}">0</div>
+        <div class="col-md-4">
+            <div class="card stat-card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="stat-card-label">Modules</div>
+                    <div class="stat-card-value" th:text="${menuGroups.size()}">0</div>
+                </div>
+            </div>
         </div>
-        <div class="stat-card">
-            <div class="stat-card-label">Version</div>
-            <div class="stat-card-value">0.0.2</div>
+        <div class="col-md-4">
+            <div class="card stat-card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="stat-card-label">Version</div>
+                    <div class="stat-card-value">0.0.2</div>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Module Cards -->
     <th:block th:if="${!menuGroups.isEmpty()}">
         <h2 class="section-title">Modules</h2>
-        <div class="dashboard-grid">
+        <div class="row g-3">
             <th:block th:each="group : ${menuGroups}">
-                <div class="dashboard-card">
-                    <div class="dashboard-card-icon" th:if="${group.icon}" th:text="${group.icon}">&#x1F4E6;</div>
-                    <h3 th:text="${group.label}">Group</h3>
-                    <ul class="dashboard-card-links">
-                        <th:block th:each="child : ${group.children}">
-                            <li><a th:href="@{${child.url}}" th:text="${child.label}">Item</a></li>
-                        </th:block>
-                    </ul>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card dashboard-card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="dashboard-card-icon" th:if="${group.icon}" th:text="${group.icon}">&#x1F4E6;</div>
+                            <h3 class="h6" th:text="${group.label}">Group</h3>
+                            <ul class="list-unstyled mb-0">
+                                <th:block th:each="child : ${group.children}">
+                                    <li class="mb-1"><a th:href="@{${child.url}}" th:text="${child.label}">Item</a></li>
+                                </th:block>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </th:block>
         </div>
     </th:block>
 
     <!-- Empty State -->
-    <div th:if="${menuGroups.isEmpty()}"
-         style="text-align:center; padding:60px 20px; color:var(--text-muted);">
-        <div style="font-size:48px; margin-bottom:16px;">&#x1F3E0;</div>
-        <p style="font-size:16px; color:var(--text-secondary); font-weight:600; margin-bottom:6px;">No modules yet</p>
-        <p style="font-size:13px;">Add AdminMenuProvider beans to register menu items here.</p>
+    <div th:if="${menuGroups.isEmpty()}" class="text-center py-5 text-muted">
+        <div class="display-1 mb-3">&#x1F3E0;</div>
+        <p class="h5 text-secondary mb-2">No modules yet</p>
+        <p class="small">Add AdminMenuProvider beans to register menu items here.</p>
     </div>
 </main>
 

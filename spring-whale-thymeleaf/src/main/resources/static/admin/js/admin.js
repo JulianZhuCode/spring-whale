@@ -1,231 +1,166 @@
 // Spring Whale Admin JS
 
-document.addEventListener('DOMContentLoaded', function () {
-
-    // ---- Sidebar toggle ----
-    var toggleBtn = document.getElementById('sidebarToggle');
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', function () {
-            document.body.classList.toggle('sidebar-collapsed');
-        });
-    }
-
-    // ---- Sidebar group toggle ----
-    var groupHeaders = document.querySelectorAll('.sidebar-menu-group-header');
-    groupHeaders.forEach(function (header) {
-        header.addEventListener('click', function () {
-            var children = this.nextElementSibling;
-            if (children && children.classList.contains('sidebar-menu-children')) {
-                var isHidden = children.style.display === 'none';
-                children.style.display = isHidden ? '' : 'none';
-                var arrow = this.querySelector('.menu-arrow');
-                if (arrow) {
-                    arrow.style.transform = isHidden ? '' : 'rotate(-90deg)';
-                }
-            }
-        });
-    });
-
-    // ---- Auto-expand active menu group ----
-    var activeLink = document.querySelector('.sidebar-menu-item a.active');
-    if (activeLink) {
-        var childrenList = activeLink.closest('.sidebar-menu-children');
-        if (childrenList) {
-            childrenList.style.display = '';
-            var groupHeader = childrenList.previousElementSibling;
-            if (groupHeader) {
-                var arrow = groupHeader.querySelector('.menu-arrow');
-                if (arrow) {
-                    arrow.style.transform = '';
-                }
-            }
-        }
-    }
-
-    // ---- Confirm dialogs for delete links ----
-    document.querySelectorAll('[data-confirm]').forEach(function (el) {
-        el.addEventListener('click', function (e) {
-            var message = this.getAttribute('data-confirm') || 'Are you sure?';
-            if (!confirm(message)) {
-                e.preventDefault();
-            }
-        });
-    });
-
-    // ---- Dict Modal ----
-    initDictModal();
-
+document.addEventListener('DOMContentLoaded', () => {
+    initSidebarToggle();
+    initSidebarGroups();
+    initConfirmDialogs();
+    initModalSystem();
 });
 
-// ---- Dict Modal System ----
-function initDictModal() {
-    var overlays = document.querySelectorAll('.dict-modal-overlay');
-    overlays.forEach(function (overlay) {
-        // Close on overlay click
-        overlay.addEventListener('click', function (e) {
-            if (e.target === overlay) {
-                closeDictModal(overlay);
-            }
+/* ===== Sidebar ===== */
+
+function initSidebarToggle() {
+    const toggleBtn = document.getElementById('sidebarToggle');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => document.body.classList.toggle('sidebar-collapsed'));
+    }
+}
+
+function initSidebarGroups() {
+    // Toggle group expand/collapse
+    document.querySelectorAll('.sidebar-menu-group-header').forEach(header => {
+        header.addEventListener('click', () => {
+            const children = header.nextElementSibling;
+            if (!children?.classList.contains('sidebar-menu-children')) return;
+            const isHidden = children.style.display === 'none';
+            children.style.display = isHidden ? '' : 'none';
+            const arrow = header.querySelector('.menu-arrow');
+            if (arrow) arrow.style.transform = isHidden ? '' : 'rotate(-90deg)';
         });
-
-        // Close button
-        var closeBtn = overlay.querySelector('.modal-close');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', function () {
-                closeDictModal(overlay);
-            });
-        }
-
-        // Cancel button
-        var cancelBtn = overlay.querySelector('.modal-cancel');
-        if (cancelBtn) {
-            cancelBtn.addEventListener('click', function () {
-                closeDictModal(overlay);
-            });
-        }
-
-        // Submit button
-        var form = overlay.querySelector('.dict-modal-form');
-        var submitBtn = overlay.querySelector('.modal-submit');
-        if (form && submitBtn) {
-            submitBtn.addEventListener('click', function () {
-                submitDictForm(form, overlay);
-            });
-        }
     });
 
-    // Open buttons
-    document.querySelectorAll('[data-modal]').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            var modalId = this.getAttribute('data-modal');
-            var overlay = document.getElementById(modalId);
-            if (overlay) {
-                openDictModal(overlay, this);
-            }
+    // Auto-expand active group
+    const activeLink = document.querySelector('.sidebar-menu-item a.active');
+    if (activeLink) {
+        const childrenList = activeLink.closest('.sidebar-menu-children');
+        if (childrenList) {
+            childrenList.style.display = '';
+            const header = childrenList.previousElementSibling;
+            const arrow = header?.querySelector('.menu-arrow');
+            if (arrow) arrow.style.transform = '';
+        }
+    }
+}
+
+function initConfirmDialogs() {
+    document.querySelectorAll('[data-confirm]').forEach(el => {
+        el.addEventListener('click', function (e) {
+            const message = this.getAttribute('data-confirm') || 'Are you sure?';
+            if (!confirm(message)) e.preventDefault();
         });
     });
 }
 
-function openDictModal(overlay, triggerBtn) {
-    var form = overlay.querySelector('.dict-modal-form');
-    if (!form) return;
+/* ===== Modal CRUD ===== */
 
-    var isEdit = triggerBtn.hasAttribute('data-edit-id');
-    var titleEl = overlay.querySelector('.modal-title');
+function initModalSystem() {
+    document.querySelectorAll('[data-modal]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const modalId = btn.getAttribute('data-modal');
+            const modalEl = document.getElementById(modalId);
+            if (!modalEl) return;
 
-    // Load groups if select exists
-    loadGroupOptions(form);
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            const form = modalEl.querySelector('.dict-modal-form');
+            if (!form) return;
 
-    if (isEdit) {
-        var id = triggerBtn.getAttribute('data-edit-id');
-        var apiUrl = form.getAttribute('data-api-base');
-        form.setAttribute('data-edit-id', id);
+            const isEdit = btn.hasAttribute('data-edit-id');
+            const titleEl = modalEl.querySelector('.modal-title');
 
-        if (titleEl) titleEl.textContent = 'Edit';
-        form.action = apiUrl + '/' + id;
-        form.method = 'put';
+            loadGroupOptions(form);
 
-        // Fetch existing data and fill form
-        fetch(apiUrl + '/' + id)
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                fillFormFields(form, data);
-            });
-    } else {
-        form.removeAttribute('data-edit-id');
-        if (titleEl) titleEl.textContent = 'Create';
-        form.action = form.getAttribute('data-api-base');
-        form.method = 'post';
-        form.reset();
-    }
+            if (isEdit) {
+                const id = btn.getAttribute('data-edit-id');
+                const apiUrl = form.getAttribute('data-api-base');
+                form.setAttribute('data-edit-id', id);
+                if (titleEl) titleEl.textContent = 'Edit';
+                form.action = apiUrl + '/' + id;
+                form.method = 'put';
+                fetch(apiUrl + '/' + id)
+                    .then(r => r.json())
+                    .then(data => fillFormFields(form, data));
+            } else {
+                form.removeAttribute('data-edit-id');
+                if (titleEl) titleEl.textContent = 'Create';
+                form.action = form.getAttribute('data-api-base');
+                form.method = 'post';
+                form.reset();
+            }
 
-    overlay.classList.remove('hidden');
-}
+            modal.show();
+        });
+    });
 
-function closeDictModal(overlay) {
-    overlay.classList.add('hidden');
-    var form = overlay.querySelector('.dict-modal-form');
-    if (form) {
-        form.reset();
-        form.removeAttribute('data-edit-id');
-        var errors = form.querySelectorAll('.form-error');
-        errors.forEach(function (e) { e.textContent = ''; });
-    }
+    // Submit buttons
+    document.querySelectorAll('.modal-submit').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const modalEl = btn.closest('.modal');
+            const form = modalEl.querySelector('.dict-modal-form');
+            if (form) submitDictForm(form, modalEl);
+        });
+    });
 }
 
 function loadGroupOptions(form) {
-    var groupSelects = form.querySelectorAll('select[name="groupId"]');
-    groupSelects.forEach(function (select) {
-        // Already loaded
+    const groupSelects = form.querySelectorAll('select[name="groupId"]');
+    groupSelects.forEach(select => {
         if (select.options.length > 1) return;
         fetch('/api/rbac/groups?page=0&size=1000')
-            .then(function (r) { return r.json(); })
-            .then(function (page) {
-                var groups = page.content || page;
-                groups.forEach(function (g) {
-                    var option = document.createElement('option');
+            .then(r => r.json())
+            .then(page => {
+                const groups = page.content || page;
+                groups.forEach(g => {
+                    const option = document.createElement('option');
                     option.value = g.id;
                     option.textContent = g.name;
                     select.appendChild(option);
                 });
             })
-            .catch(function () {
-                // Groups API not available, leave default options
-            });
+            .catch(() => {});
     });
 }
 
 function fillFormFields(form, data) {
-    var fields = form.querySelectorAll('[name]');
-    fields.forEach(function (field) {
-        var name = field.name;
-        if (data.hasOwnProperty(name)) {
-            var value = data[name];
-            if (field.tagName === 'SELECT') {
-                // Wait for options to load, then set value
-                var setVal = function () {
-                    if (value !== null && value !== undefined) {
-                        field.value = value;
-                    }
-                };
-                if (field.options.length > 1) {
-                    setVal();
-                } else {
-                    // Retry after options load
-                    var retries = 0;
-                    var timer = setInterval(function () {
-                        retries++;
-                        if (field.options.length > 1 || retries > 20) {
-                            clearInterval(timer);
-                            setVal();
-                        }
-                    }, 100);
-                }
-            } else if (Array.isArray(value)) {
-                field.value = value.join(', ');
+    form.querySelectorAll('[name]').forEach(field => {
+        const name = field.name;
+        if (!data.hasOwnProperty(name)) return;
+        const value = data[name];
+
+        if (field.tagName === 'SELECT') {
+            const setVal = () => {
+                if (value != null) field.value = value;
+            };
+            if (field.options.length > 1) {
+                setVal();
             } else {
-                field.value = value !== null && value !== undefined ? value : '';
+                let retries = 0;
+                const timer = setInterval(() => {
+                    retries++;
+                    if (field.options.length > 1 || retries > 20) {
+                        clearInterval(timer);
+                        setVal();
+                    }
+                }, 100);
             }
+        } else if (Array.isArray(value)) {
+            field.value = value.join(', ');
+        } else {
+            field.value = value != null ? value : '';
         }
     });
 }
 
-function submitDictForm(form, overlay) {
-    var id = form.getAttribute('data-edit-id');
-    var method = id ? 'PUT' : 'POST';
-    var url = form.getAttribute('action');
-    var submitBtn = overlay.querySelector('.modal-submit');
+function submitDictForm(form, modalEl) {
+    const id = form.getAttribute('data-edit-id');
+    const method = id ? 'PUT' : 'POST';
+    const url = form.getAttribute('action');
+    const submitBtn = modalEl.querySelector('.modal-submit');
 
-    // Build JSON body
-    var body = {};
-    var fields = form.querySelectorAll('[name]');
-    fields.forEach(function (field) {
-        var value = field.value;
-        // Skip empty password in edit mode
+    const body = {};
+    form.querySelectorAll('[name]').forEach(field => {
+        const value = field.value;
         if (field.name === 'password' && method === 'PUT' && !value) return;
-        // Convert number fields
-        if ((field.name === 'status' || field.name === 'groupId' || field.name === 'sort'
-                || field.name === 'parentId' || field.name === 'type' || field.name === 'visible') && value !== '') {
+        if (['status', 'groupId', 'sort', 'parentId', 'type', 'visible'].includes(field.name) && value !== '') {
             body[field.name] = parseInt(value, 10);
         } else {
             body[field.name] = value;
@@ -233,48 +168,40 @@ function submitDictForm(form, overlay) {
     });
 
     // Clear errors
-    var errors = form.querySelectorAll('.form-error');
-    errors.forEach(function (e) { e.textContent = ''; });
+    form.querySelectorAll('.invalid-feedback').forEach(e => e.textContent = '');
 
-    // Disable button
     if (submitBtn) submitBtn.disabled = true;
 
     fetch(url, {
-        method: method,
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
     })
-    .then(function (r) {
-        if (!r.ok) {
-            return r.json().then(function (err) {
-                throw err;
-            });
-        }
-        return r.json();
-    })
-    .then(function () {
-        showToast(method === 'PUT' ? 'Updated successfully' : 'Created successfully', 'success');
-        closeDictModal(overlay);
-        // Reload the page to show new data
-        setTimeout(function () { location.reload(); }, 600);
-    })
-    .catch(function (err) {
-        if (submitBtn) submitBtn.disabled = false;
-        if (err && err.errors) {
-            for (var key in err.errors) {
-                var errorEl = form.querySelector('.form-error[data-field="' + key + '"]');
-                if (errorEl) {
-                    errorEl.textContent = err.errors[key];
+        .then(r => {
+            if (!r.ok) return r.json().then(err => { throw err; });
+            return r.json();
+        })
+        .then(() => {
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+            showToast(method === 'PUT' ? 'Updated successfully' : 'Created successfully', 'success');
+            setTimeout(() => location.reload(), 600);
+        })
+        .catch(err => {
+            if (submitBtn) submitBtn.disabled = false;
+            if (err?.errors) {
+                for (const key in err.errors) {
+                    const errorEl = form.querySelector(`.invalid-feedback[data-field="${key}"]`);
+                    if (errorEl) errorEl.textContent = err.errors[key];
                 }
+            } else {
+                showToast('Operation failed. Please try again.', 'error');
             }
-        } else {
-            showToast('Operation failed. Please try again.', 'error');
-        }
-    });
+        });
 }
 
 function showToast(message, type) {
-    var toast = document.getElementById('dict-toast');
+    let toast = document.getElementById('dict-toast');
     if (!toast) {
         toast = document.createElement('div');
         toast.id = 'dict-toast';
@@ -285,7 +212,83 @@ function showToast(message, type) {
     toast.textContent = message;
     toast.classList.add('show');
     clearTimeout(toast._timer);
-    toast._timer = setTimeout(function () {
-        toast.classList.remove('show');
-    }, 2500);
+    toast._timer = setTimeout(() => toast.classList.remove('show'), 2500);
 }
+
+/* ===== Login Form ===== */
+
+(function initLogin() {
+    const form = document.getElementById('loginForm');
+    if (!form) return;
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        let errorDiv = document.querySelector('.login-error');
+
+        document.querySelectorAll('.alert-warning, .alert-info').forEach(el => el.style.display = 'none');
+
+        if (!username || !password) {
+            showLoginError(errorDiv, 'Please enter both username and password.');
+            return;
+        }
+
+        const btn = e.target.querySelector('button[type="submit"]');
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Signing in...';
+
+        fetch('/api/rbac/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        try {
+                            const json = JSON.parse(text);
+                            throw new Error(json.message || text);
+                        } catch (err) {
+                            if (err.message !== text) throw err;
+                            throw new Error(text || 'Invalid username or password');
+                        }
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                const token = data.token || (data.data && data.data.token);
+                if (!token) throw new Error('No token in login response');
+                document.getElementById('tokenField').value = token;
+                HTMLFormElement.prototype.submit.call(e.target);
+            })
+            .catch(err => {
+                showLoginError(errorDiv, 'Login failed: ' + err.message);
+                btn.disabled = false;
+                btn.textContent = originalText;
+            });
+    });
+
+    function showLoginError(container, message) {
+        if (!container) {
+            container = document.createElement('div');
+            container.className = 'alert alert-danger login-error';
+            const form = document.getElementById('loginForm');
+            form.parentNode.insertBefore(container, form);
+        }
+        container.textContent = message;
+        container.style.display = '';
+    }
+
+    ['username', 'password'].forEach(id => {
+        document.getElementById(id).addEventListener('input', () => {
+            const errorDiv = document.querySelector('.login-error');
+            if (errorDiv) errorDiv.style.display = 'none';
+        });
+    });
+
+    document.getElementById('username').focus();
+})();
