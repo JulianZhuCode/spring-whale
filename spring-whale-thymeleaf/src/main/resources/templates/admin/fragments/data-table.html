@@ -41,17 +41,35 @@
 
 <th:block th:fragment="pagination(baseUrl,page)">
     <div th:if="${page != null and page.totalPages > 1}" class="d-flex justify-content-center pt-3 pb-2">
-        <th:block th:with="current=${page.number}, total=${page.totalPages}">
+        <th:block th:with="current=${page.number}, total=${page.totalPages}, half=4,
+                           start=${(total <= 9) ? 0 : ((current - half) < 0 ? 0 : ((current + half) >= total ? (total - 9) : (current - half)))},
+                           end=${(total <= 9) ? (total - 1) : (start + 8)}">
             <ul class="pagination">
                 <li class="page-item" th:classappend="${page.first} ? 'disabled'">
                     <a th:if="${!page.first}" th:href="@{${baseUrl}(page=${current - 1})}" class="page-link">Prev</a>
                     <span th:if="${page.first}" class="page-link">Prev</span>
                 </li>
-                <th:block th:each="i : ${#numbers.sequence(0, total - 1)}">
+
+                <li th:if="${start > 0}" class="page-item">
+                    <a class="page-link" th:href="@{${baseUrl}(page=0)}">1</a>
+                </li>
+                <li th:if="${start > 1}" class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+
+                <th:block th:each="i : ${#numbers.sequence(start, end)}">
                     <li class="page-item" th:classappend="${i == current} ? 'active'">
                         <a class="page-link" th:href="@{${baseUrl}(page=${i})}" th:text="${i + 1}">1</a>
                     </li>
                 </th:block>
+
+                <li th:if="${end < total - 2}" class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+                <li th:if="${end < total - 1}" class="page-item">
+                    <a class="page-link" th:href="@{${baseUrl}(page=${total - 1})}" th:text="${total}">1</a>
+                </li>
+
                 <li class="page-item" th:classappend="${page.last} ? 'disabled'">
                     <a th:if="${!page.last}" th:href="@{${baseUrl}(page=${current + 1})}" class="page-link">Next</a>
                     <span th:if="${page.last}" class="page-link">Next</span>

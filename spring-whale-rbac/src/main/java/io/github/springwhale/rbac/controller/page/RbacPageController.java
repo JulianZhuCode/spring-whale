@@ -15,7 +15,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -49,12 +48,6 @@ public class RbacPageController {
         return "admin/rbac/users";
     }
 
-    @GetMapping("/users/{id}")
-    public String userDetail(@PathVariable Integer id, Model model) {
-        model.addAttribute("user", userService.findById(id).orElse(null));
-        return "admin/rbac/user-detail";
-    }
-
     // ---- Roles ----
 
     @GetMapping("/roles")
@@ -65,12 +58,6 @@ public class RbacPageController {
         model.addAttribute("roles", rolePage.getContent());
         model.addAttribute("page", rolePage);
         return "admin/rbac/roles";
-    }
-
-    @GetMapping("/roles/{id}")
-    public String roleDetail(@PathVariable Integer id, Model model) {
-        model.addAttribute("role", roleService.findById(id).orElse(null));
-        return "admin/rbac/role-detail";
     }
 
     // ---- Menus ----
@@ -85,12 +72,6 @@ public class RbacPageController {
         return "admin/rbac/menus";
     }
 
-    @GetMapping("/menus/{id}")
-    public String menuDetail(@PathVariable Integer id, Model model) {
-        model.addAttribute("menu", menuService.findById(id).orElse(null));
-        return "admin/rbac/menu-detail";
-    }
-
     // ---- Groups ----
 
     @GetMapping("/groups")
@@ -103,9 +84,4 @@ public class RbacPageController {
         return "admin/rbac/groups";
     }
 
-    @GetMapping("/groups/{id}")
-    public String groupDetail(@PathVariable Integer id, Model model) {
-        model.addAttribute("group", groupService.findById(id).orElse(null));
-        return "admin/rbac/group-detail";
-    }
 }
