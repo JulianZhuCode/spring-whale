@@ -26,4 +26,8 @@ public class SpringWhaleWebMvcExceptionProperties {
     private String message409 = "Duplicate records!";
 
     private String code409 = "http.error.409";
+
+    private String message404 = "Resource not found!";
+
+    private String code404 = "http.error.404";
 }

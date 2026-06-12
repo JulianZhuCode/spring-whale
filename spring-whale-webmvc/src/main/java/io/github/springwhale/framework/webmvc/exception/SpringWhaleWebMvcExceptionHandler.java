@@ -14,6 +14,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.yaml.snakeyaml.constructor.DuplicateKeyException;
 
 @Slf4j
@@ -64,6 +65,12 @@ public class SpringWhaleWebMvcExceptionHandler {
             log.debug("http request method not supported exception occurred, stack trace:", e);
         }
         return ApiResult.error("405", getI18nMessage(properties.getMessage405(), properties.getCode405()));
+    }
+
+    @ExceptionHandler(value = NoResourceFoundException.class)
+    public ApiResult<Boolean> handleNoResourceFoundException(NoResourceFoundException e) {
+        log.debug("no resource found: {}", e.getMessage());
+        return ApiResult.error("404", getI18nMessage(properties.getMessage404(), properties.getCode404()));
     }
 
     @ExceptionHandler(value = DuplicateKeyException.class)

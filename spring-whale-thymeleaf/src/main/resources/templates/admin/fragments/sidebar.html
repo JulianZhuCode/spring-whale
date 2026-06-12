@@ -36,7 +36,7 @@
                     <ul class="sidebar-menu-children">
                         <th:block th:each="child : ${group.children}">
                             <li class="sidebar-menu-item">
-                                <a th:classappend="${#strings.startsWith(currentPath, child.url)} ? 'active' : ''"
+                                <a th:classappend="${currentPath == child.url} ? 'active' : ''"
                                    th:href="@{${child.url}}"
                                    th:text="${child.label}">Item</a>
                             </li>

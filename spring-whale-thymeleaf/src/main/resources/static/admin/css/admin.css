@@ -263,6 +263,17 @@
     border-radius: 8px;
 }
 
+/* Quick link cards */
+.quick-link-card {
+    border-radius: 10px;
+    transition: all .2s ease;
+}
+.quick-link-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,.08);
+    background: #fff !important;
+}
+
 /* ===== Badge ===== */
 .badge-purple { background: #f0e8f8; color: #6b4c8a; }
 
