@@ -38,7 +38,9 @@ public class SpringWhaleMessageSourceConfig {
 
     private static final String MESSAGES_PATTERN = "classpath*:messages-*.properties";
 
-    /** Matches locale-suffixed files like {@code messages-admin_ja_JP.properties}. */
+    /**
+     * Matches locale-suffixed files like {@code messages-admin_ja_JP.properties}.
+     */
     private static final String LOCALE_SUFFIX_REGEX = ".*_[a-z]{2,3}(_[A-Z]{1,3})?\\.properties";
 
     @Bean

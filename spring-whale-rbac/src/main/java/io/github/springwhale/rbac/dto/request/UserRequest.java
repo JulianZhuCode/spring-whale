@@ -8,10 +8,10 @@ import lombok.Data;
  */
 @Data
 public class UserRequest {
-    
+
     @NotBlank(message = "Username must not be empty")
     private String username;
-    
+
     private String password;
     private String realName;
     private String email;

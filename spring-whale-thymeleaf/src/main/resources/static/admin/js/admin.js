@@ -114,7 +114,8 @@ function loadGroupOptions(form) {
                     select.appendChild(option);
                 });
             })
-            .catch(() => {});
+            .catch(() => {
+            });
     });
 }
 
@@ -172,7 +173,7 @@ function submitDictForm(form, modalEl) {
 
     fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(body)
     })
         .then(r => r.json())
@@ -313,8 +314,8 @@ function apiCall(url, options = {}) {
 
         fetch('/api/rbac/auth/login', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({username, password})
         })
             .then(response => {
                 if (!response.ok) {

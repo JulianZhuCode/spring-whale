@@ -1,6 +1,7 @@
 # Spring Whale グローバル例外処理
 
-Spring Whale フレームワークは、Spring Boot の `@RestControllerAdvice` に基づく強力なグローバル例外処理機能を提供し、さまざまな一般的な例外の自動処理と国際化をサポートします。
+Spring Whale フレームワークは、Spring Boot の `@RestControllerAdvice`
+に基づく強力なグローバル例外処理機能を提供し、さまざまな一般的な例外の自動処理と国際化をサポートします。
 
 ## 目次
 
@@ -24,16 +25,16 @@ Spring Whale フレームワークは、Spring Boot の `@RestControllerAdvice` 
 
 ### HTTP ステータスコードマッピング
 
-| 例外タイプ | HTTP ステータス | 説明 |
-|------------|----------------|------|
-| `Exception` | 500 | サーバー内部エラー |
-| `BusinessException` | 動的 | ビジネス例外、エラーコードはビジネスによって決定 |
-| `IllegalArgumentException` | 400 | 違法引数例外 |
-| `ValidationException` | 400 | JSR-303 検証例外 |
-| `MethodArgumentNotValidException` | 400 | @Validated パラメータ検証失敗 |
-| `BindException` | 400 | パラメータバインド失敗 |
-| `HttpRequestMethodNotSupportedException` | 405 | HTTP メソッド未サポート |
-| `DuplicateKeyException` | 409 | 重複キー（一意制約競合） |
+| 例外タイプ                                    | HTTP ステータス | 説明                       |
+|------------------------------------------|------------|--------------------------|
+| `Exception`                              | 500        | サーバー内部エラー                |
+| `BusinessException`                      | 動的         | ビジネス例外、エラーコードはビジネスによって決定 |
+| `IllegalArgumentException`               | 400        | 違法引数例外                   |
+| `ValidationException`                    | 400        | JSR-303 検証例外             |
+| `MethodArgumentNotValidException`        | 400        | @Validated パラメータ検証失敗     |
+| `BindException`                          | 400        | パラメータバインド失敗              |
+| `HttpRequestMethodNotSupportedException` | 405        | HTTP メソッド未サポート           |
+| `DuplicateKeyException`                  | 409        | 重複キー（一意制約競合）             |
 
 ## サポートされている例外タイプ
 
@@ -47,6 +48,7 @@ public ApiResult<Boolean> handleException(Exception e)
 ```
 
 **レスポンス例：**
+
 ```json
 {
   "code": "500",
@@ -67,6 +69,7 @@ public ApiResult<?> handleBusinessException(BusinessException e)
 ```
 
 **レスポンス例：**
+
 ```json
 {
   "code": "USER_MODULE_USER_NOT_FOUND",
@@ -79,6 +82,7 @@ public ApiResult<?> handleBusinessException(BusinessException e)
 ```
 
 **特徴：**
+
 - モジュール式エラーコードをサポート（例：`user-module_USER_NOT_FOUND`）
 - 拡張データの携带をサポート
 - 国際化メッセージをサポート
@@ -99,6 +103,7 @@ public ApiResult<Boolean> handleIllegalArgumentException(Throwable e)
 ```
 
 **レスポンス例：**
+
 ```json
 {
   "code": "400",
@@ -121,6 +126,7 @@ public ApiResult<Boolean> handleHttpRequestMethodNotSupportedException(
 ```
 
 **レスポンス例：**
+
 ```json
 {
   "code": "405",
@@ -141,6 +147,7 @@ public ApiResult<Boolean> handleDuplicateKeyException(DuplicateKeyException e)
 ```
 
 **レスポンス例：**
+
 ```json
 {
   "code": "409",
@@ -180,17 +187,17 @@ spring:
 
 ### 設定項目
 
-| 項目 | タイプ | デフォルト | 説明 |
-|------|--------|-----------|------|
-| `enable-i18n` | boolean | false | 国際化メッセージを有効にする |
-| `message-500` | String | サーバーエラー... | 500 エラーのデフォルトメッセージ |
-| `code-500` | String | http.error.500 | 500 エラーの国際化キー |
-| `message-400` | String | 無効なリクエスト... | 400 エラーのデフォルトメッセージ |
-| `code-400` | String | http.error.400 | 400 エラーの国際化キー |
-| `message-405` | String | メソッドが許可... | 405 エラーのデフォルトメッセージ |
-| `code-405` | String | http.error.405 | 405 エラーの国際化キー |
-| `message-409` | String | 重複レコード！ | 409 エラーのデフォルトメッセージ |
-| `code-409` | String | http.error.409 | 409 エラーの国際化キー |
+| 項目            | タイプ     | デフォルト          | 説明                 |
+|---------------|---------|----------------|--------------------|
+| `enable-i18n` | boolean | false          | 国際化メッセージを有効にする     |
+| `message-500` | String  | サーバーエラー...     | 500 エラーのデフォルトメッセージ |
+| `code-500`    | String  | http.error.500 | 500 エラーの国際化キー      |
+| `message-400` | String  | 無効なリクエスト...    | 400 エラーのデフォルトメッセージ |
+| `code-400`    | String  | http.error.400 | 400 エラーの国際化キー      |
+| `message-405` | String  | メソッドが許可...     | 405 エラーのデフォルトメッセージ |
+| `code-405`    | String  | http.error.405 | 405 エラーの国際化キー      |
+| `message-409` | String  | 重複レコード！        | 409 エラーのデフォルトメッセージ |
+| `code-409`    | String  | http.error.409 | 409 エラーの国際化キー      |
 
 ### 国際化設定
 
@@ -329,6 +336,7 @@ public class UserController {
 ```
 
 **自動変換：**
+
 - `User` → `ApiResult<User>`
 - `List<User>` → `ApiResult<List<User>>`
 - `void` → `ApiResult<Boolean>` (値は true)
@@ -387,6 +395,7 @@ public class CreateUserRequest {
 ```
 
 **成功レスポンス：**
+
 ```json
 {
   "code": "200",
@@ -400,6 +409,7 @@ public class CreateUserRequest {
 ```
 
 **検証失敗レスポンス：**
+
 ```json
 {
   "code": "400",
@@ -522,12 +532,12 @@ fetch('/api/users', {
 
 すべての Controller の戻り値は自動的に `ApiResult` 形式にラップされます：
 
-| シナリオ | HTTP ステータス | レスポンス本文形式 |
-|----------|----------------|-------------------|
-| 成功 | 200 | `{ code: '200', message: 'success', data: {...} }` |
-| ビジネス例外 | 200 | `{ code: 'ERROR_CODE', message: 'エラーメッセージ', data: null/false }` |
-| パラメータ検証失敗 | 200 | `{ code: '400', message: '無効なリクエストパラメータ！', data: false }` |
-| サーバーエラー | 200 | `{ code: '500', message: 'サーバーエラー', data: false }` |
+| シナリオ      | HTTP ステータス | レスポンス本文形式                                                       |
+|-----------|------------|-----------------------------------------------------------------|
+| 成功        | 200        | `{ code: '200', message: 'success', data: {...} }`              |
+| ビジネス例外    | 200        | `{ code: 'ERROR_CODE', message: 'エラーメッセージ', data: null/false }` |
+| パラメータ検証失敗 | 200        | `{ code: '400', message: '無効なリクエストパラメータ！', data: false }`       |
+| サーバーエラー   | 200        | `{ code: '500', message: 'サーバーエラー', data: false }`              |
 
 **注意：** すべての例外は HTTP 200 を返し、`code` フィールドで区別します。
 
@@ -536,6 +546,7 @@ fetch('/api/users', {
 ### 1. ビジネス例外使用基準
 
 **推奨：**
+
 ```java
 // ✅ 意味のあるエラーコードを使用
 throw BusinessException.create("USER_NOT_FOUND", "ユーザーが見つかりません");
@@ -563,6 +574,7 @@ throw BusinessException.createWithI18n(
 ```
 
 **非推奨：**
+
 ```java
 // ❌ 意味のないエラーコード
 throw BusinessException.create("ERROR_1", "エラーが発生しました");
@@ -587,6 +599,7 @@ throw BusinessException.create("DB_ERROR", e.getMessage());
 ### 3. 国際化ベストプラクティス
 
 **本番環境：**
+
 ```yaml
 spring:
   whale:
@@ -596,6 +609,7 @@ spring:
 ```
 
 **開発環境：**
+
 ```yaml
 spring:
   whale:
@@ -605,6 +619,7 @@ spring:
 ```
 
 **国際化リソースファイルの構成：**
+
 ```
 resources/
 ├── messages.properties          # デフォルト（英語）
@@ -623,6 +638,7 @@ resources/
 ```
 
 **例：**
+
 - `USER_NOT_FOUND` - ユーザーが見つかりません
 - `ORDER_CREATE_FAILED` - 注文作成に失敗
 - `PAYMENT_INSUFFICIENT_BALANCE` - 支払い残高不足
@@ -676,6 +692,7 @@ public class ExceptionHandlerTest {
 ### 2. セキュリティ
 
 **機密情報を公開しないでください：**
+
 ```java
 // ❌ セキュリティ上問題あり - データベースエラーの詳細を公開
 throw new RuntimeException(e.getMessage());

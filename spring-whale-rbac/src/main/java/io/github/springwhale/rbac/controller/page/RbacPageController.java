@@ -1,5 +1,6 @@
 package io.github.springwhale.rbac.controller.page;
 
+import io.github.springwhale.framework.thymeleaf.controller.AdminPage;
 import io.github.springwhale.rbac.dto.vo.GroupVO;
 import io.github.springwhale.rbac.dto.vo.MenuVO;
 import io.github.springwhale.rbac.dto.vo.RoleVO;
@@ -7,7 +8,6 @@ import io.github.springwhale.rbac.dto.vo.UserVO;
 import io.github.springwhale.rbac.service.GroupService;
 import io.github.springwhale.rbac.service.MenuService;
 import io.github.springwhale.rbac.service.RoleService;
-import io.github.springwhale.framework.thymeleaf.controller.AdminPage;
 import io.github.springwhale.rbac.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

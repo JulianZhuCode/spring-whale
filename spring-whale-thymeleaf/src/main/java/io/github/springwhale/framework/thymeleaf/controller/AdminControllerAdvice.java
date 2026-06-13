@@ -33,6 +33,36 @@ public class AdminControllerAdvice {
     private final List<AdminMenuProvider> menuProviders;
     private final AdminProperties adminProperties;
 
+    /**
+     * Extracts authority strings from the current SecurityContext.
+     * Returns an empty set if not authenticated.
+     */
+    private static Set<String> getCurrentAuthorities() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return Set.of();
+        }
+        return auth.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * A menu item is visible when:
+     * <ul>
+     *   <li>It has no permission requirement, OR</li>
+     *   <li>The user holds the wildcard ({@code *}), OR</li>
+     *   <li>The user holds the specific permission</li>
+     * </ul>
+     */
+    private static boolean isVisible(MenuItem item, Set<String> authorities) {
+        String permission = item.getPermission();
+        if (permission == null || permission.isEmpty()) {
+            return true;
+        }
+        return authorities.contains(WILDCARD) || authorities.contains(permission);
+    }
+
     @ModelAttribute("menuGroups")
     public List<MenuItem.MenuGroup> menuGroups() {
         Set<String> authorities = getCurrentAuthorities();
@@ -66,35 +96,5 @@ public class AdminControllerAdvice {
     @ModelAttribute("adminProps")
     public AdminProperties adminProps() {
         return adminProperties;
-    }
-
-    /**
-     * Extracts authority strings from the current SecurityContext.
-     * Returns an empty set if not authenticated.
-     */
-    private static Set<String> getCurrentAuthorities() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
-            return Set.of();
-        }
-        return auth.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toSet());
-    }
-
-    /**
-     * A menu item is visible when:
-     * <ul>
-     *   <li>It has no permission requirement, OR</li>
-     *   <li>The user holds the wildcard ({@code *}), OR</li>
-     *   <li>The user holds the specific permission</li>
-     * </ul>
-     */
-    private static boolean isVisible(MenuItem item, Set<String> authorities) {
-        String permission = item.getPermission();
-        if (permission == null || permission.isEmpty()) {
-            return true;
-        }
-        return authorities.contains(WILDCARD) || authorities.contains(permission);
     }
 }

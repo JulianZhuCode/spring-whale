@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
+<html th:lang="${#locale.language}"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      th:lang="${#locale.language}">
+      xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE" th:text="${adminProps.brandName + ' Admin'}">Admin</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE" th:text="${adminProps.brandName + ' Admin'}">
+        Admin</title>
     <link rel="icon" th:href="@{/admin/favicon.svg}" type="image/svg+xml">
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/webjars/bootstrap-icons/1.11.3/font/bootstrap-icons.css}">

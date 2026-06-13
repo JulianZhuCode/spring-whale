@@ -1,16 +1,8 @@
 package io.github.springwhale.rbac.config;
 
 import io.github.springwhale.rbac.constant.RbacConstants;
-import io.github.springwhale.rbac.entity.GroupEntity;
-import io.github.springwhale.rbac.entity.MenuEntity;
-import io.github.springwhale.rbac.entity.RoleEntity;
-import io.github.springwhale.rbac.entity.UserEntity;
-import io.github.springwhale.rbac.entity.UserRoleEntity;
-import io.github.springwhale.rbac.repository.GroupRepository;
-import io.github.springwhale.rbac.repository.MenuRepository;
-import io.github.springwhale.rbac.repository.RoleRepository;
-import io.github.springwhale.rbac.repository.UserRepository;
-import io.github.springwhale.rbac.repository.UserRoleRepository;
+import io.github.springwhale.rbac.entity.*;
+import io.github.springwhale.rbac.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
@@ -18,7 +10,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
 
 
 /**
@@ -180,8 +171,8 @@ public class AdminInitializer implements CommandLineRunner {
     }
 
     private MenuEntity createMenu(Integer parentId, String code, String name, int type,
-                                   String path, String component, String permission,
-                                   String icon, int sort) {
+                                  String path, String component, String permission,
+                                  String icon, int sort) {
         MenuEntity menu = new MenuEntity();
         menu.setParentId(parentId);
         menu.setCode(code);
@@ -201,7 +192,7 @@ public class AdminInitializer implements CommandLineRunner {
      * Creates a menu item and its standard CRUD button permissions.
      */
     private void createMenuWithButtons(MenuEntity parent, String baseCode, String name,
-                                        String path, int sort) {
+                                       String path, int sort) {
         // Main menu
         MenuEntity menu = createMenu(parent.getId(), baseCode, name, RbacConstants.MENU_TYPE_MENU,
                 path, null, null, "file-text", sort);

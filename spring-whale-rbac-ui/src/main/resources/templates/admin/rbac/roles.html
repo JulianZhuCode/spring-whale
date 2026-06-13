@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
+<html layout:decorate="~{admin/layout}"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{admin/layout}">
+      xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <title th:text="#{rbac.roles.title}">Roles</title>
@@ -42,12 +42,15 @@
             <td th:text="${item.groupName} ?: '-'">Root Group</td>
             <td th:text="${item.sort}">1</td>
             <td>
-                <span th:if="${item.status == 1}" class="badge bg-success" th:text="#{status.active}">Active</span>
-                <span th:if="${item.status == 0}" class="badge bg-danger" th:text="#{status.disabled}">Disabled</span>
+                <span class="badge bg-success" th:if="${item.status == 1}" th:text="#{status.active}">Active</span>
+                <span class="badge bg-danger" th:if="${item.status == 0}" th:text="#{status.disabled}">Disabled</span>
             </td>
             <td>
-                <button th:if="${#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:role:update')}"
-                        data-modal="role-modal" th:attr="data-edit-id=${item.id}" class="btn btn-outline-primary btn-sm" th:text="#{action.edit}">Edit</button>
+                <button class="btn btn-outline-primary btn-sm"
+                        data-modal="role-modal" th:attr="data-edit-id=${item.id}"
+                        th:if="${#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:role:update')}"
+                        th:text="#{action.edit}">Edit
+                </button>
             </td>
         </th:block>
     </th:block>
@@ -58,49 +61,52 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" th:text="#{rbac.roles.create}">Create Role</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button class="btn-close" data-bs-dismiss="modal" type="button"></button>
                 </div>
                 <form class="dict-modal-form" data-api-base="/api/rbac/roles">
                     <div class="modal-body">
                         <div class="mb-3">
                             <label class="form-label" for="role-code" th:text="#{rbac.roles.code}">Code</label>
-                            <input type="text" id="role-code" name="code" class="form-control" required>
+                            <input class="form-control" id="role-code" name="code" required type="text">
                             <div class="invalid-feedback" data-field="code"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="role-name" th:text="#{rbac.roles.name}">Name</label>
-                            <input type="text" id="role-name" name="name" class="form-control" required>
+                            <input class="form-control" id="role-name" name="name" required type="text">
                             <div class="invalid-feedback" data-field="name"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="role-description" th:text="#{rbac.roles.description}">Description</label>
-                            <input type="text" id="role-description" name="description" class="form-control">
+                            <input class="form-control" id="role-description" name="description" type="text">
                             <div class="invalid-feedback" data-field="description"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="role-groupId" th:text="#{rbac.roles.group}">Group</label>
-                            <select id="role-groupId" name="groupId" class="form-select">
-                                <option value="" th:text="#{rbac.roles.select_group}">-- Select --</option>
+                            <select class="form-select" id="role-groupId" name="groupId">
+                                <option th:text="#{rbac.roles.select_group}" value="">-- Select --</option>
                             </select>
                             <div class="invalid-feedback" data-field="groupId"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="role-sort" th:text="#{rbac.roles.sort}">Sort</label>
-                            <input type="number" id="role-sort" name="sort" class="form-control">
+                            <input class="form-control" id="role-sort" name="sort" type="number">
                             <div class="invalid-feedback" data-field="sort"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="role-status" th:text="#{rbac.roles.status}">Status</label>
-                            <select id="role-status" name="status" class="form-select">
-                                <option value="1" th:text="#{status.active}">Active</option>
-                                <option value="0" th:text="#{status.disabled}">Disabled</option>
+                            <select class="form-select" id="role-status" name="status">
+                                <option th:text="#{status.active}" value="1">Active</option>
+                                <option th:text="#{status.disabled}" value="0">Disabled</option>
                             </select>
                             <div class="invalid-feedback" data-field="status"></div>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{action.cancel}">Cancel</button>
-                        <button type="button" class="btn btn-primary modal-submit" th:text="#{action.save}">Save</button>
+                        <button class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{action.cancel}"
+                                type="button">Cancel
+                        </button>
+                        <button class="btn btn-primary modal-submit" th:text="#{action.save}" type="button">Save
+                        </button>
                     </div>
                 </form>
             </div>

@@ -24,7 +24,7 @@ public class SpringWhaleWebMvcResponseBodyAdvice implements ResponseBodyAdvice<O
     private final Set<Class<?>> ignoreList = new HashSet<>();
 
     public SpringWhaleWebMvcResponseBodyAdvice() {
-                addIgnore(ApiResult.class);
+        addIgnore(ApiResult.class);
         addIgnore(ResponseEntity.class);
         addIgnore(HttpEntity.class);
         addIgnore(ModelAndView.class);
@@ -32,33 +32,29 @@ public class SpringWhaleWebMvcResponseBodyAdvice implements ResponseBodyAdvice<O
 
     @Override
     public boolean supports(MethodParameter returnType, @NonNull Class<? extends HttpMessageConverter<?>> converterType) {
-                Class<?> returnClass = returnType.getParameterType();
+        Class<?> returnClass = returnType.getParameterType();
 
-                if (ignoreList.contains(returnClass)) {
+        if (ignoreList.contains(returnClass)) {
             return false;
         }
 
-                if (returnType.hasMethodAnnotation(AdviceIgnore.class)) {
+        if (returnType.hasMethodAnnotation(AdviceIgnore.class)) {
             return false;
         }
 
-                if (ResponseEntity.class.isAssignableFrom(returnClass) ||
-                HttpEntity.class.isAssignableFrom(returnClass)) {
-            return false;
-        }
-
-        return true;
+        return !ResponseEntity.class.isAssignableFrom(returnClass) &&
+                !HttpEntity.class.isAssignableFrom(returnClass);
     }
 
     @Override
     public @Nullable Object beforeBodyWrite(@Nullable Object body, MethodParameter returnType, MediaType selectedContentType, Class<? extends HttpMessageConverter<?>> selectedConverterType, ServerHttpRequest request, ServerHttpResponse response) {
-                Class<?> returnTypeClass = returnType.getParameterType();
+        Class<?> returnTypeClass = returnType.getParameterType();
 
-                if (returnTypeClass.equals(Void.TYPE)) {
+        if (returnTypeClass.equals(Void.TYPE)) {
             return ApiResult.success();
         }
 
-                return ApiResult.success(body);
+        return ApiResult.success(body);
     }
 
     public void addIgnore(Class<?> clz) {

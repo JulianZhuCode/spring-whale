@@ -8,13 +8,13 @@ import lombok.Data;
  */
 @Data
 public class AssignMenuRequest {
-    
+
     /**
      * Role ID
      */
     @NotNull(message = "Role ID must not be empty")
     private Integer roleId;
-    
+
     /**
      * Menu ID
      */

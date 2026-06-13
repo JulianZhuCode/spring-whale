@@ -1,6 +1,7 @@
 # Spring Whale Global Exception Handling
 
-Spring Whale framework provides powerful global exception handling capabilities based on Spring Boot's `@RestControllerAdvice`, supporting automatic handling and internationalization of various common exceptions.
+Spring Whale framework provides powerful global exception handling capabilities based on Spring Boot's
+`@RestControllerAdvice`, supporting automatic handling and internationalization of various common exceptions.
 
 ## Table of Contents
 
@@ -15,7 +16,8 @@ Spring Whale framework provides powerful global exception handling capabilities 
 ### Core Features
 
 - ✅ **Unified Response Format** - All exceptions return a unified `ApiResult` format
-- ✅ **Multiple Exception Types** - Supports business exceptions, parameter validation exceptions, HTTP method not supported, etc.
+- ✅ **Multiple Exception Types** - Supports business exceptions, parameter validation exceptions, HTTP method not
+  supported, etc.
 - ✅ **Internationalization Support** - Error messages support multi-language i18n
 - ✅ **Hierarchical Logging** - Automatically logs different levels based on exception type
 - ✅ **Error Code Management** - Supports modular error code naming
@@ -24,16 +26,16 @@ Spring Whale framework provides powerful global exception handling capabilities 
 
 ### HTTP Status Code Mapping
 
-| Exception Type | HTTP Status | Description |
-|----------------|-------------|-------------|
-| `Exception` | 500 | Server internal error |
-| `BusinessException` | Dynamic | Business exception, error code determined by business |
-| `IllegalArgumentException` | 400 | Illegal argument exception |
-| `ValidationException` | 400 | JSR-303 validation exception |
-| `MethodArgumentNotValidException` | 400 | @Validated parameter validation failed |
-| `BindException` | 400 | Parameter binding failed |
-| `HttpRequestMethodNotSupportedException` | 405 | HTTP method not supported |
-| `DuplicateKeyException` | 409 | Duplicate key (unique constraint conflict) |
+| Exception Type                           | HTTP Status | Description                                           |
+|------------------------------------------|-------------|-------------------------------------------------------|
+| `Exception`                              | 500         | Server internal error                                 |
+| `BusinessException`                      | Dynamic     | Business exception, error code determined by business |
+| `IllegalArgumentException`               | 400         | Illegal argument exception                            |
+| `ValidationException`                    | 400         | JSR-303 validation exception                          |
+| `MethodArgumentNotValidException`        | 400         | @Validated parameter validation failed                |
+| `BindException`                          | 400         | Parameter binding failed                              |
+| `HttpRequestMethodNotSupportedException` | 405         | HTTP method not supported                             |
+| `DuplicateKeyException`                  | 409         | Duplicate key (unique constraint conflict)            |
 
 ## Supported Exception Types
 
@@ -47,6 +49,7 @@ public ApiResult<Boolean> handleException(Exception e)
 ```
 
 **Response Example:**
+
 ```json
 {
   "code": "500",
@@ -67,6 +70,7 @@ public ApiResult<?> handleBusinessException(BusinessException e)
 ```
 
 **Response Example:**
+
 ```json
 {
   "code": "USER_MODULE_USER_NOT_FOUND",
@@ -79,6 +83,7 @@ public ApiResult<?> handleBusinessException(BusinessException e)
 ```
 
 **Features:**
+
 - Supports modular error codes (e.g., `user-module_USER_NOT_FOUND`)
 - Supports carrying extended data
 - Supports internationalized messages
@@ -99,6 +104,7 @@ public ApiResult<Boolean> handleIllegalArgumentException(Throwable e)
 ```
 
 **Response Example:**
+
 ```json
 {
   "code": "400",
@@ -121,6 +127,7 @@ public ApiResult<Boolean> handleHttpRequestMethodNotSupportedException(
 ```
 
 **Response Example:**
+
 ```json
 {
   "code": "405",
@@ -141,6 +148,7 @@ public ApiResult<Boolean> handleDuplicateKeyException(DuplicateKeyException e)
 ```
 
 **Response Example:**
+
 ```json
 {
   "code": "409",
@@ -180,17 +188,17 @@ spring:
 
 ### Configuration Items
 
-| Item | Type | Default | Description |
-|------|------|---------|-------------|
-| `enable-i18n` | boolean | false | Enable internationalized messages |
-| `message-500` | String | Server abnormal... | Default message for 500 errors |
-| `code-500` | String | http.error.500 | I18n key for 500 errors |
-| `message-400` | String | Invalid request... | Default message for 400 errors |
-| `code-400` | String | http.error.400 | I18n key for 400 errors |
-| `message-405` | String | Method not allowed! | Default message for 405 errors |
-| `code-405` | String | http.error.405 | I18n key for 405 errors |
-| `message-409` | String | Duplicate records! | Default message for 409 errors |
-| `code-409` | String | http.error.409 | I18n key for 409 errors |
+| Item          | Type    | Default             | Description                       |
+|---------------|---------|---------------------|-----------------------------------|
+| `enable-i18n` | boolean | false               | Enable internationalized messages |
+| `message-500` | String  | Server abnormal...  | Default message for 500 errors    |
+| `code-500`    | String  | http.error.500      | I18n key for 500 errors           |
+| `message-400` | String  | Invalid request...  | Default message for 400 errors    |
+| `code-400`    | String  | http.error.400      | I18n key for 400 errors           |
+| `message-405` | String  | Method not allowed! | Default message for 405 errors    |
+| `code-405`    | String  | http.error.405      | I18n key for 405 errors           |
+| `message-409` | String  | Duplicate records!  | Default message for 409 errors    |
+| `code-409`    | String  | http.error.409      | I18n key for 409 errors           |
 
 ### Internationalization Configuration
 
@@ -329,6 +337,7 @@ public class UserController {
 ```
 
 **Automatic Conversion:**
+
 - `User` → `ApiResult<User>`
 - `List<User>` → `ApiResult<List<User>>`
 - `void` → `ApiResult<Boolean>` (value is true)
@@ -387,6 +396,7 @@ public class CreateUserRequest {
 ```
 
 **Success Response:**
+
 ```json
 {
   "code": "200",
@@ -400,6 +410,7 @@ public class CreateUserRequest {
 ```
 
 **Validation Failed Response:**
+
 ```json
 {
   "code": "400",
@@ -522,12 +533,12 @@ fetch('/api/users', {
 
 All Controller return values are automatically wrapped as `ApiResult` format:
 
-| Scenario | HTTP Status | Response Body Format |
-|----------|-------------|---------------------|
-| Success | 200 | `{ code: '200', message: 'success', data: {...} }` |
-| Business Exception | 200 | `{ code: 'ERROR_CODE', message: 'Error message', data: null/false }` |
-| Parameter Validation Failed | 200 | `{ code: '400', message: 'Invalid request parameters!', data: false }` |
-| Server Error | 200 | `{ code: '500', message: 'Server abnormal', data: false }` |
+| Scenario                    | HTTP Status | Response Body Format                                                   |
+|-----------------------------|-------------|------------------------------------------------------------------------|
+| Success                     | 200         | `{ code: '200', message: 'success', data: {...} }`                     |
+| Business Exception          | 200         | `{ code: 'ERROR_CODE', message: 'Error message', data: null/false }`   |
+| Parameter Validation Failed | 200         | `{ code: '400', message: 'Invalid request parameters!', data: false }` |
+| Server Error                | 200         | `{ code: '500', message: 'Server abnormal', data: false }`             |
 
 **Note:** All exceptions return HTTP 200, distinguished by the `code` field.
 
@@ -536,6 +547,7 @@ All Controller return values are automatically wrapped as `ApiResult` format:
 ### 1. Business Exception Usage Standards
 
 **Recommended:**
+
 ```java
 // ✅ Use meaningful error codes
 throw BusinessException.create("USER_NOT_FOUND", "User not found");
@@ -563,6 +575,7 @@ throw BusinessException.createWithI18n(
 ```
 
 **Not Recommended:**
+
 ```java
 // ❌ Error code without meaning
 throw BusinessException.create("ERROR_1", "Something went wrong");
@@ -587,6 +600,7 @@ No need to duplicate logging in business code.
 ### 3. Internationalization Best Practices
 
 **Production Environment:**
+
 ```yaml
 spring:
   whale:
@@ -596,6 +610,7 @@ spring:
 ```
 
 **Development Environment:**
+
 ```yaml
 spring:
   whale:
@@ -605,6 +620,7 @@ spring:
 ```
 
 **I18n Resource File Organization:**
+
 ```
 resources/
 ├── messages.properties          # Default (English)
@@ -623,6 +639,7 @@ resources/
 ```
 
 **Examples:**
+
 - `USER_NOT_FOUND` - User not found
 - `ORDER_CREATE_FAILED` - Order creation failed
 - `PAYMENT_INSUFFICIENT_BALANCE` - Payment insufficient balance
@@ -676,6 +693,7 @@ public class ExceptionHandlerTest {
 ### 2. Security
 
 **Don't expose sensitive information:**
+
 ```java
 // ❌ Insecure - Exposes database error details
 throw new RuntimeException(e.getMessage());

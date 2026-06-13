@@ -1,6 +1,7 @@
 # Spring Whale 响应体自动包装
 
-Spring Whale 框架提供了智能的响应体自动包装功能，基于 Spring MVC 的 `ResponseBodyAdvice` 接口实现，可以自动将 Controller 方法的返回值包装为统一的 `ApiResult` 格式。
+Spring Whale 框架提供了智能的响应体自动包装功能，基于 Spring MVC 的 `ResponseBodyAdvice` 接口实现，可以自动将 Controller
+方法的返回值包装为统一的 `ApiResult` 格式。
 
 ## 目录
 
@@ -25,19 +26,19 @@ Spring Whale 框架提供了智能的响应体自动包装功能，基于 Spring
 
 ### 包装规则
 
-| 返回类型 | 是否包装 | 说明 |
-|---------|---------|------|
-| 普通对象（POJO） | ✅ 是 | 包装为 `ApiResult.success(data)` |
-| String | ✅ 是 | 包装为 `ApiResult.success(data)` |
-| List/Set | ✅ 是 | 包装为 `ApiResult.success(data)` |
-| Map | ✅ 是 | 包装为 `ApiResult.success(data)` |
-| 基本数据类型 | ✅ 是 | 包装为 `ApiResult.success(data)` |
-| void | ✅ 是 | 返回 `ApiResult.success()` |
-| ApiResult | ❌ 否 | 直接返回，不重复包装 |
-| ResponseEntity | ❌ 否 | 直接返回，保持原有行为 |
-| HttpEntity | ❌ 否 | 直接返回，保持原有行为 |
-| ModelAndView | ❌ 否 | 直接返回，用于视图渲染 |
-| @AdviceIgnore 标记的方法 | ❌ 否 | 直接返回，跳过包装 |
+| 返回类型                | 是否包装 | 说明                            |
+|---------------------|------|-------------------------------|
+| 普通对象（POJO）          | ✅ 是  | 包装为 `ApiResult.success(data)` |
+| String              | ✅ 是  | 包装为 `ApiResult.success(data)` |
+| List/Set            | ✅ 是  | 包装为 `ApiResult.success(data)` |
+| Map                 | ✅ 是  | 包装为 `ApiResult.success(data)` |
+| 基本数据类型              | ✅ 是  | 包装为 `ApiResult.success(data)` |
+| void                | ✅ 是  | 返回 `ApiResult.success()`      |
+| ApiResult           | ❌ 否  | 直接返回，不重复包装                    |
+| ResponseEntity      | ❌ 否  | 直接返回，保持原有行为                   |
+| HttpEntity          | ❌ 否  | 直接返回，保持原有行为                   |
+| ModelAndView        | ❌ 否  | 直接返回，用于视图渲染                   |
+| @AdviceIgnore 标记的方法 | ❌ 否  | 直接返回，跳过包装                     |
 
 ## 工作原理
 
@@ -62,12 +63,8 @@ public boolean supports(MethodParameter returnType,
     }
     
     // 检查是否是 ResponseEntity 或 HttpEntity 的子类
-    if (ResponseEntity.class.isAssignableFrom(returnClass) ||
-        HttpEntity.class.isAssignableFrom(returnClass)) {
-        return false;
-    }
-    
-    return true;
+    return !ResponseEntity.class.isAssignableFrom(returnClass) &&
+            !HttpEntity.class.isAssignableFrom(returnClass);
 }
 ```
 
@@ -106,6 +103,7 @@ public User getUser() {
 ```
 
 **实际响应：**
+
 ```json
 {
   "code": "200",
@@ -127,6 +125,7 @@ public String hello() {
 ```
 
 **实际响应：**
+
 ```json
 {
   "code": "200",
@@ -145,6 +144,7 @@ public List<User> listUsers() {
 ```
 
 **实际响应：**
+
 ```json
 {
   "code": "200",
@@ -166,6 +166,7 @@ public void doSomething() {
 ```
 
 **实际响应：**
+
 ```json
 {
   "code": "200",
@@ -186,6 +187,7 @@ public ApiResult<User> getUser() {
 ```
 
 **实际响应：**
+
 ```json
 {
   "code": "200",
@@ -209,6 +211,7 @@ public ResponseEntity<User> getUser() {
 ```
 
 **实际响应：**
+
 ```json
 {
   "id": 1,
@@ -230,6 +233,7 @@ public HttpEntity<User> getUser() {
 ```
 
 **实际响应：**
+
 ```json
 {
   "id": 1,
@@ -253,6 +257,7 @@ public CustomResponseEntity<User> getUser() {
 ```
 
 **实际响应：**
+
 ```json
 {
   "id": 1,

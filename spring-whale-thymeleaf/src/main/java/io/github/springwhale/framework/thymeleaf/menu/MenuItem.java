@@ -60,24 +60,6 @@ public class MenuItem {
 
     // ---- Getters ----
 
-    public String getKey() { return key; }
-    public String getParentKey() { return parentKey; }
-    public String getLabel() { return label; }
-    public String getUrl() { return url; }
-    public String getIcon() { return icon; }
-    public String getPermission() { return permission; }
-    public int getSort() { return sort; }
-
-    public boolean isGroup() {
-        return parentKey == null;
-    }
-
-    public boolean isLeaf() {
-        return parentKey != null;
-    }
-
-    // ---- Tree building ----
-
     /**
      * Builds a sorted menu tree from a flat list of items from all providers.
      * Returns only top-level groups with children populated.
@@ -108,6 +90,56 @@ public class MenuItem {
         return groups;
     }
 
+    public String getKey() {
+        return key;
+    }
+
+    public String getParentKey() {
+        return parentKey;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public String getIcon() {
+        return icon;
+    }
+
+    public String getPermission() {
+        return permission;
+    }
+
+    public int getSort() {
+        return sort;
+    }
+
+    public boolean isGroup() {
+        return parentKey == null;
+    }
+
+    // ---- Tree building ----
+
+    public boolean isLeaf() {
+        return parentKey != null;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof MenuItem menuItem)) return false;
+        return sort == menuItem.sort && Objects.equals(key, menuItem.key);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(key, sort);
+    }
+
     /**
      * A group node in the menu tree, containing child menu items.
      */
@@ -130,22 +162,24 @@ public class MenuItem {
             children.sort(Comparator.comparingInt(MenuItem::getSort));
         }
 
-        public String getKey() { return key; }
-        public String getLabel() { return label; }
-        public String getIcon() { return icon; }
-        public int getSort() { return sort; }
-        public List<MenuItem> getChildren() { return children; }
-    }
+        public String getKey() {
+            return key;
+        }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof MenuItem menuItem)) return false;
-        return sort == menuItem.sort && Objects.equals(key, menuItem.key);
-    }
+        public String getLabel() {
+            return label;
+        }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(key, sort);
+        public String getIcon() {
+            return icon;
+        }
+
+        public int getSort() {
+            return sort;
+        }
+
+        public List<MenuItem> getChildren() {
+            return children;
+        }
     }
 }

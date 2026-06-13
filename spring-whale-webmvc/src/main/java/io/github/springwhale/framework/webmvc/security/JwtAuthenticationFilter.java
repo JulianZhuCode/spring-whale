@@ -36,7 +36,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String jwt = getJwtFromRequest(request);
 
-            if (jwt == null || !StringUtils.hasText(jwt)) {
+            if (!StringUtils.hasText(jwt)) {
                 // Only log for admin pages (skip static resources to reduce noise)
                 if (requestURI.startsWith("/admin") && !requestURI.startsWith("/admin/css") && !requestURI.startsWith("/admin/js")) {
                     log.warn("JWT not found in request: {}", requestURI);
@@ -45,8 +45,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
 
-            log.info("JWT found for request: {}, token length: {}, token preview: {}...", 
-                     requestURI, jwt.length(), jwt.substring(0, Math.min(30, jwt.length())));
+            log.info("JWT found for request: {}, token length: {}, token preview: {}...",
+                    requestURI, jwt.length(), jwt.substring(0, Math.min(30, jwt.length())));
 
             if (jwtUtil.validateToken(jwt)) {
                 String username = jwtUtil.getUsernameFromToken(jwt);
@@ -68,8 +68,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 log.info("Set authentication for user: {} on request: {}", username, requestURI);
             } else {
-                log.warn("JWT validation failed for request: {}, token preview: {}...", 
-                         requestURI, jwt.substring(0, Math.min(30, jwt.length())));
+                log.warn("JWT validation failed for request: {}, token preview: {}...",
+                        requestURI, jwt.substring(0, Math.min(30, jwt.length())));
             }
         } catch (Exception e) {
             log.error("Could not set user authentication in security context for request: {}", requestURI, e);

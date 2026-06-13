@@ -18,7 +18,7 @@ public abstract class SimpleBaseEntity {
 
     private Integer createBy;
 
-        @PrePersist
+    @PrePersist
     public void prePersist() {
         this.createBy = AuthUtil.getUserId();
         this.createTime = LocalDateTime.now();

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
+<html layout:decorate="~{admin/layout}"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{admin/layout}">
+      xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <title th:text="#{rbac.users.title}">Users</title>
@@ -42,12 +42,15 @@
             <td th:text="${item.phone}">13800138000</td>
             <td th:text="${item.groupName} ?: '-'">Root Group</td>
             <td>
-                <span th:if="${item.status == 1}" class="badge bg-success" th:text="#{status.active}">Active</span>
-                <span th:if="${item.status == 0}" class="badge bg-danger" th:text="#{status.disabled}">Disabled</span>
+                <span class="badge bg-success" th:if="${item.status == 1}" th:text="#{status.active}">Active</span>
+                <span class="badge bg-danger" th:if="${item.status == 0}" th:text="#{status.disabled}">Disabled</span>
             </td>
             <td>
-                <button th:if="${#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:user:update')}"
-                        data-modal="user-modal" th:attr="data-edit-id=${item.id}" class="btn btn-outline-primary btn-sm" th:text="#{action.edit}">Edit</button>
+                <button class="btn btn-outline-primary btn-sm"
+                        data-modal="user-modal" th:attr="data-edit-id=${item.id}"
+                        th:if="${#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:user:update')}"
+                        th:text="#{action.edit}">Edit
+                </button>
             </td>
         </th:block>
     </th:block>
@@ -58,54 +61,60 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" th:text="#{rbac.users.create}">Create User</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button class="btn-close" data-bs-dismiss="modal" type="button"></button>
                 </div>
                 <form class="dict-modal-form" data-api-base="/api/rbac/users">
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label" for="user-username" th:text="#{rbac.users.username}">Username</label>
-                            <input type="text" id="user-username" name="username" class="form-control" required>
+                            <label class="form-label" for="user-username"
+                                   th:text="#{rbac.users.username}">Username</label>
+                            <input class="form-control" id="user-username" name="username" required type="text">
                             <div class="invalid-feedback" data-field="username"></div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label" for="user-password" th:text="#{rbac.users.password}">Password</label>
-                            <input type="password" id="user-password" name="password" class="form-control">
+                            <label class="form-label" for="user-password"
+                                   th:text="#{rbac.users.password}">Password</label>
+                            <input class="form-control" id="user-password" name="password" type="password">
                             <div class="invalid-feedback" data-field="password"></div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label" for="user-realName" th:text="#{rbac.users.real_name}">Real Name</label>
-                            <input type="text" id="user-realName" name="realName" class="form-control">
+                            <label class="form-label" for="user-realName" th:text="#{rbac.users.real_name}">Real
+                                Name</label>
+                            <input class="form-control" id="user-realName" name="realName" type="text">
                             <div class="invalid-feedback" data-field="realName"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="user-email" th:text="#{rbac.users.email}">Email</label>
-                            <input type="email" id="user-email" name="email" class="form-control">
+                            <input class="form-control" id="user-email" name="email" type="email">
                             <div class="invalid-feedback" data-field="email"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="user-phone" th:text="#{rbac.users.phone}">Phone</label>
-                            <input type="text" id="user-phone" name="phone" class="form-control">
+                            <input class="form-control" id="user-phone" name="phone" type="text">
                             <div class="invalid-feedback" data-field="phone"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="user-groupId" th:text="#{rbac.users.group}">Group</label>
-                            <select id="user-groupId" name="groupId" class="form-select">
-                                <option value="" th:text="#{rbac.users.select_group}">-- Select --</option>
+                            <select class="form-select" id="user-groupId" name="groupId">
+                                <option th:text="#{rbac.users.select_group}" value="">-- Select --</option>
                             </select>
                             <div class="invalid-feedback" data-field="groupId"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="user-status" th:text="#{rbac.users.status}">Status</label>
-                            <select id="user-status" name="status" class="form-select">
-                                <option value="1" th:text="#{status.active}">Active</option>
-                                <option value="0" th:text="#{status.disabled}">Disabled</option>
+                            <select class="form-select" id="user-status" name="status">
+                                <option th:text="#{status.active}" value="1">Active</option>
+                                <option th:text="#{status.disabled}" value="0">Disabled</option>
                             </select>
                             <div class="invalid-feedback" data-field="status"></div>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{action.cancel}">Cancel</button>
-                        <button type="button" class="btn btn-primary modal-submit" th:text="#{action.save}">Save</button>
+                        <button class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{action.cancel}"
+                                type="button">Cancel
+                        </button>
+                        <button class="btn btn-primary modal-submit" th:text="#{action.save}" type="button">Save
+                        </button>
                     </div>
                 </form>
             </div>

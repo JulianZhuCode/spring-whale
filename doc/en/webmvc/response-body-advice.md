@@ -1,6 +1,8 @@
 # Spring Whale Response Body Auto-Wrapping
 
-Spring Whale framework provides intelligent response body auto-wrapping functionality based on Spring MVC's `ResponseBodyAdvice` interface, which can automatically wrap Controller method return values into a unified `ApiResult` format.
+Spring Whale framework provides intelligent response body auto-wrapping functionality based on Spring MVC's
+`ResponseBodyAdvice` interface, which can automatically wrap Controller method return values into a unified `ApiResult`
+format.
 
 ## Table of Contents
 
@@ -16,7 +18,8 @@ Spring Whale framework provides intelligent response body auto-wrapping function
 ### Core Features
 
 - ✅ **Auto-wrapping** - Plain objects are automatically wrapped as `ApiResult.success(data)`
-- ✅ **Smart Recognition** - Automatically recognizes types that don't need wrapping (such as `ApiResult`, `ResponseEntity`)
+- ✅ **Smart Recognition** - Automatically recognizes types that don't need wrapping (such as `ApiResult`,
+  `ResponseEntity`)
 - ✅ **Unified Format** - All successful responses return a unified `ApiResult` format
 - ✅ **Flexible Control** - Supports skipping wrapping for specific methods via annotations
 - ✅ **Subclass Support** - Automatically recognizes subclasses of `ResponseEntity` and `HttpEntity`
@@ -25,23 +28,24 @@ Spring Whale framework provides intelligent response body auto-wrapping function
 
 ### Wrapping Rules
 
-| Return Type | Wrapped? | Description |
-|------------|----------|-------------|
-| Plain Object (POJO) | ✅ Yes | Wrapped as `ApiResult.success(data)` |
-| String | ✅ Yes | Wrapped as `ApiResult.success(data)` |
-| List/Set | ✅ Yes | Wrapped as `ApiResult.success(data)` |
-| Map | ✅ Yes | Wrapped as `ApiResult.success(data)` |
-| Primitive Types | ✅ Yes | Wrapped as `ApiResult.success(data)` |
-| void | ✅ Yes | Returns `ApiResult.success()` |
-| ApiResult | ❌ No | Returned directly, no double-wrapping |
-| ResponseEntity | ❌ No | Returned directly, preserves original behavior |
-| HttpEntity | ❌ No | Returned directly, preserves original behavior |
-| ModelAndView | ❌ No | Returned directly, used for view rendering |
-| Methods marked with @AdviceIgnore | ❌ No | Returned directly, skips wrapping |
+| Return Type                       | Wrapped? | Description                                    |
+|-----------------------------------|----------|------------------------------------------------|
+| Plain Object (POJO)               | ✅ Yes    | Wrapped as `ApiResult.success(data)`           |
+| String                            | ✅ Yes    | Wrapped as `ApiResult.success(data)`           |
+| List/Set                          | ✅ Yes    | Wrapped as `ApiResult.success(data)`           |
+| Map                               | ✅ Yes    | Wrapped as `ApiResult.success(data)`           |
+| Primitive Types                   | ✅ Yes    | Wrapped as `ApiResult.success(data)`           |
+| void                              | ✅ Yes    | Returns `ApiResult.success()`                  |
+| ApiResult                         | ❌ No     | Returned directly, no double-wrapping          |
+| ResponseEntity                    | ❌ No     | Returned directly, preserves original behavior |
+| HttpEntity                        | ❌ No     | Returned directly, preserves original behavior |
+| ModelAndView                      | ❌ No     | Returned directly, used for view rendering     |
+| Methods marked with @AdviceIgnore | ❌ No     | Returned directly, skips wrapping              |
 
 ## How It Works
 
-`SpringWhaleWebMvcResponseBodyAdvice` implements Spring MVC's `ResponseBodyAdvice<Object>` interface and controls response body processing through two core methods:
+`SpringWhaleWebMvcResponseBodyAdvice` implements Spring MVC's `ResponseBodyAdvice<Object>` interface and controls
+response body processing through two core methods:
 
 ### 1. supports() Method
 
@@ -62,12 +66,8 @@ public boolean supports(MethodParameter returnType,
     }
     
     // Check if is subclass of ResponseEntity or HttpEntity
-    if (ResponseEntity.class.isAssignableFrom(returnClass) ||
-        HttpEntity.class.isAssignableFrom(returnClass)) {
-        return false;
-    }
-    
-    return true;
+    return !ResponseEntity.class.isAssignableFrom(returnClass) &&
+            !HttpEntity.class.isAssignableFrom(returnClass);
 }
 ```
 
@@ -106,6 +106,7 @@ public User getUser() {
 ```
 
 **Actual Response:**
+
 ```json
 {
   "code": "200",
@@ -127,6 +128,7 @@ public String hello() {
 ```
 
 **Actual Response:**
+
 ```json
 {
   "code": "200",
@@ -145,6 +147,7 @@ public List<User> listUsers() {
 ```
 
 **Actual Response:**
+
 ```json
 {
   "code": "200",
@@ -166,6 +169,7 @@ public void doSomething() {
 ```
 
 **Actual Response:**
+
 ```json
 {
   "code": "200",
@@ -186,6 +190,7 @@ public ApiResult<User> getUser() {
 ```
 
 **Actual Response:**
+
 ```json
 {
   "code": "200",
@@ -209,6 +214,7 @@ public ResponseEntity<User> getUser() {
 ```
 
 **Actual Response:**
+
 ```json
 {
   "id": 1,
@@ -216,7 +222,8 @@ public ResponseEntity<User> getUser() {
 }
 ```
 
-**Note:** `ResponseEntity` is not wrapped and returns the User object directly. Suitable for scenarios requiring custom HTTP status codes.
+**Note:** `ResponseEntity` is not wrapped and returns the User object directly. Suitable for scenarios requiring custom
+HTTP status codes.
 
 #### HttpEntity Type
 
@@ -230,6 +237,7 @@ public HttpEntity<User> getUser() {
 ```
 
 **Actual Response:**
+
 ```json
 {
   "id": 1,
@@ -253,6 +261,7 @@ public CustomResponseEntity<User> getUser() {
 ```
 
 **Actual Response:**
+
 ```json
 {
   "id": 1,

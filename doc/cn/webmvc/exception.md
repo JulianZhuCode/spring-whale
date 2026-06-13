@@ -24,16 +24,16 @@ Spring Whale 框架提供了强大的全局异常处理功能，基于 Spring Bo
 
 ### HTTP 状态码映射
 
-| 异常类型 | HTTP 状态码 | 说明 |
-|---------|-----------|------|
-| `Exception` | 500 | 服务器内部错误 |
-| `BusinessException` | 动态 | 业务异常，错误码由业务决定 |
-| `IllegalArgumentException` | 400 | 非法参数异常 |
-| `ValidationException` | 400 | JSR-303 验证异常 |
-| `MethodArgumentNotValidException` | 400 | @Validated 参数验证失败 |
-| `BindException` | 400 | 参数绑定失败 |
-| `HttpRequestMethodNotSupportedException` | 405 | HTTP 方法不支持 |
-| `DuplicateKeyException` | 409 | 重复键（唯一约束冲突） |
+| 异常类型                                     | HTTP 状态码 | 说明                |
+|------------------------------------------|----------|-------------------|
+| `Exception`                              | 500      | 服务器内部错误           |
+| `BusinessException`                      | 动态       | 业务异常，错误码由业务决定     |
+| `IllegalArgumentException`               | 400      | 非法参数异常            |
+| `ValidationException`                    | 400      | JSR-303 验证异常      |
+| `MethodArgumentNotValidException`        | 400      | @Validated 参数验证失败 |
+| `BindException`                          | 400      | 参数绑定失败            |
+| `HttpRequestMethodNotSupportedException` | 405      | HTTP 方法不支持        |
+| `DuplicateKeyException`                  | 409      | 重复键（唯一约束冲突）       |
 
 ## 支持的异常类型
 
@@ -47,6 +47,7 @@ public ApiResult<Boolean> handleException(Exception e)
 ```
 
 **响应示例：**
+
 ```json
 {
   "code": "500",
@@ -67,6 +68,7 @@ public ApiResult<?> handleBusinessException(BusinessException e)
 ```
 
 **响应示例：**
+
 ```json
 {
   "code": "USER_MODULE_USER_NOT_FOUND",
@@ -79,6 +81,7 @@ public ApiResult<?> handleBusinessException(BusinessException e)
 ```
 
 **特点：**
+
 - 支持模块化错误码（如 `user-module_USER_NOT_FOUND`）
 - 支持携带扩展数据
 - 支持国际化消息
@@ -99,6 +102,7 @@ public ApiResult<Boolean> handleIllegalArgumentException(Throwable e)
 ```
 
 **响应示例：**
+
 ```json
 {
   "code": "400",
@@ -121,6 +125,7 @@ public ApiResult<Boolean> handleHttpRequestMethodNotSupportedException(
 ```
 
 **响应示例：**
+
 ```json
 {
   "code": "405",
@@ -141,6 +146,7 @@ public ApiResult<Boolean> handleDuplicateKeyException(DuplicateKeyException e)
 ```
 
 **响应示例：**
+
 ```json
 {
   "code": "409",
@@ -180,17 +186,17 @@ spring:
 
 ### 配置项说明
 
-| 配置项 | 类型 | 默认值 | 说明 |
-|--------|------|--------|------|
-| `enable-i18n` | boolean | false | 是否启用国际化消息 |
-| `message-500` | String | 服务器异常，请稍后重试！ | 500 错误的默认消息 |
-| `code-500` | String | http.error.500 | 500 错误的国际化 key |
-| `message-400` | String | 无效请求参数！ | 400 错误的默认消息 |
-| `code-400` | String | http.error.400 | 400 错误的国际化 key |
-| `message-405` | String | 方法不允许！ | 405 错误的默认消息 |
-| `code-405` | String | http.error.405 | 405 错误的国际化 key |
-| `message-409` | String | 重复记录！ | 409 错误的默认消息 |
-| `code-409` | String | http.error.409 | 409 错误的国际化 key |
+| 配置项           | 类型      | 默认值            | 说明             |
+|---------------|---------|----------------|----------------|
+| `enable-i18n` | boolean | false          | 是否启用国际化消息      |
+| `message-500` | String  | 服务器异常，请稍后重试！   | 500 错误的默认消息    |
+| `code-500`    | String  | http.error.500 | 500 错误的国际化 key |
+| `message-400` | String  | 无效请求参数！        | 400 错误的默认消息    |
+| `code-400`    | String  | http.error.400 | 400 错误的国际化 key |
+| `message-405` | String  | 方法不允许！         | 405 错误的默认消息    |
+| `code-405`    | String  | http.error.405 | 405 错误的国际化 key |
+| `message-409` | String  | 重复记录！          | 409 错误的默认消息    |
+| `code-409`    | String  | http.error.409 | 409 错误的国际化 key |
 
 ### 国际化配置
 
@@ -329,6 +335,7 @@ public class UserController {
 ```
 
 **自动转换说明：**
+
 - `User` → `ApiResult<User>`
 - `List<User>` → `ApiResult<List<User>>`
 - `void` → `ApiResult<Boolean>` (值为 true)
@@ -387,6 +394,7 @@ public class CreateUserRequest {
 ```
 
 **响应示例（成功）：**
+
 ```json
 {
   "code": "200",
@@ -400,6 +408,7 @@ public class CreateUserRequest {
 ```
 
 **响应示例（验证失败）：**
+
 ```json
 {
   "code": "400",
@@ -522,12 +531,12 @@ fetch('/api/users', {
 
 所有 Controller 的返回值都会被自动包装为 `ApiResult` 格式：
 
-| 场景 | HTTP 状态码 | 响应体格式 |
-|------|-----------|----------|
-| 成功 | 200 | `{ code: '200', message: 'success', data: {...} }` |
-| 业务异常 | 200 | `{ code: 'ERROR_CODE', message: '错误消息', data: null/false }` |
-| 参数验证失败 | 200 | `{ code: '400', message: '无效请求参数！', data: false }` |
-| 服务器错误 | 200 | `{ code: '500', message: '服务器异常', data: false }` |
+| 场景     | HTTP 状态码 | 响应体格式                                                       |
+|--------|----------|-------------------------------------------------------------|
+| 成功     | 200      | `{ code: '200', message: 'success', data: {...} }`          |
+| 业务异常   | 200      | `{ code: 'ERROR_CODE', message: '错误消息', data: null/false }` |
+| 参数验证失败 | 200      | `{ code: '400', message: '无效请求参数！', data: false }`          |
+| 服务器错误  | 200      | `{ code: '500', message: '服务器异常', data: false }`            |
 
 **注意：** 所有异常都会返回 HTTP 200，通过 `code` 字段区分错误类型。
 
@@ -536,6 +545,7 @@ fetch('/api/users', {
 ### 1. 业务异常使用规范
 
 **推荐做法：**
+
 ```java
 // ✅ 使用有意义的错误码
 throw BusinessException.create("USER_NOT_FOUND", "用户不存在");
@@ -563,6 +573,7 @@ throw BusinessException.createWithI18n(
 ```
 
 **不推荐做法：**
+
 ```java
 // ❌ 错误码没有意义
 throw BusinessException.create("ERROR_1", "出错了");
@@ -587,6 +598,7 @@ throw BusinessException.create("DB_ERROR", e.getMessage());
 ### 3. 国际化最佳实践
 
 **生产环境配置：**
+
 ```yaml
 spring:
   whale:
@@ -596,6 +608,7 @@ spring:
 ```
 
 **开发环境配置：**
+
 ```yaml
 spring:
   whale:
@@ -605,6 +618,7 @@ spring:
 ```
 
 **国际化资源文件组织：**
+
 ```
 resources/
 ├── messages.properties          # 默认（英文）
@@ -623,6 +637,7 @@ resources/
 ```
 
 **示例：**
+
 - `USER_NOT_FOUND` - 用户不存在
 - `ORDER_CREATE_FAILED` - 创建订单失败
 - `PAYMENT_INSUFFICIENT_BALANCE` - 支付余额不足
@@ -676,6 +691,7 @@ public class ExceptionHandlerTest {
 ### 2. 安全性
 
 **不要暴露敏感信息：**
+
 ```java
 // ❌ 不安全 - 暴露数据库错误详情
 throw new RuntimeException(e.getMessage());

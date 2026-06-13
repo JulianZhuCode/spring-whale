@@ -8,13 +8,13 @@ import lombok.Data;
  */
 @Data
 public class ChangePasswordRequest {
-    
+
     /**
      * Old password
      */
     @NotBlank(message = "Old password must not be empty")
     private String oldPassword;
-    
+
     /**
      * New password
      */

@@ -10,19 +10,23 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0">
                 <li class="breadcrumb-item">
-                    <a th:href="@{/admin}" class="d-flex align-items-center gap-1 text-decoration-none">
+                    <a class="d-flex align-items-center gap-1 text-decoration-none" th:href="@{/admin}">
                         <i class="bi bi-house-door-fill breadcrumb-home-icon"></i> <span th:text="#{breadcrumb.admin}">Admin</span>
                     </a>
                 </li>
-                <li class="breadcrumb-item active" th:if="${currentPath == '/admin'}" th:text="#{breadcrumb.dashboard}">Dashboard</li>
-                <li class="breadcrumb-item active" th:unless="${currentPath == '/admin'}"
-                    th:text="${currentPath.replace('/admin/', '').replace('/', ' / ')}">Page</li>
+                <li class="breadcrumb-item active" th:if="${currentPath == '/admin'}" th:text="#{breadcrumb.dashboard}">
+                    Dashboard
+                </li>
+                <li class="breadcrumb-item active" th:text="${currentPath.replace('/admin/', '').replace('/', ' / ')}"
+                    th:unless="${currentPath == '/admin'}">Page
+                </li>
             </ol>
         </nav>
     </div>
     <div class="d-flex align-items-center gap-3">
         <span class="header-version" th:text="'v' + ${adminProps.version}">v0.0.2</span>
-        <a th:href="@{/admin/logout}" class="btn btn-sm btn-outline-secondary header-link-logout" th:title="#{header.logout}">
+        <a class="btn btn-sm btn-outline-secondary header-link-logout" th:href="@{/admin/logout}"
+           th:title="#{header.logout}">
             <i class="bi bi-box-arrow-right"></i>
         </a>
     </div>

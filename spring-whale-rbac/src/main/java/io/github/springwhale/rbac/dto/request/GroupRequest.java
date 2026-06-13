@@ -8,15 +8,15 @@ import lombok.Data;
  */
 @Data
 public class GroupRequest {
-    
+
     private Integer parentId;
-    
+
     @NotBlank(message = "Department code must not be empty")
     private String code;
-    
+
     @NotBlank(message = "Department name must not be empty")
     private String name;
-    
+
     private String description;
     private String leader;
     private String phone;

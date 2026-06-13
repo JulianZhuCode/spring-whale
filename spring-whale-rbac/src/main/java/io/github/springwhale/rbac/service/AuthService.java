@@ -1,6 +1,7 @@
 package io.github.springwhale.rbac.service;
 
 import io.github.springwhale.framework.core.exception.BusinessException;
+import io.github.springwhale.framework.webmvc.security.JwtUtil;
 import io.github.springwhale.rbac.dto.request.ChangePasswordRequest;
 import io.github.springwhale.rbac.dto.request.LoginRequest;
 import io.github.springwhale.rbac.dto.request.RegisterRequest;
@@ -9,7 +10,6 @@ import io.github.springwhale.rbac.dto.vo.UserVO;
 import io.github.springwhale.rbac.entity.UserEntity;
 import io.github.springwhale.rbac.mapper.UserMapper;
 import io.github.springwhale.rbac.repository.UserRepository;
-import io.github.springwhale.framework.webmvc.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -86,14 +86,14 @@ public class AuthService {
         user.setPhone(request.getPhone());
         user.setAvatar(request.getAvatar());
         user.setGroupId(request.getGroupId());
-        
+
         // Set default status
         if (user.getStatus() == null) {
             user.setStatus(1);
         }
 
         UserEntity savedUser = userRepository.save(user);
-        
+
         // Convert to VO
         return userMapper.toVO(savedUser);
     }
@@ -113,7 +113,7 @@ public class AuthService {
         // Update new password
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
-        
+
         log.info("User {} changed password", userId);
     }
 }

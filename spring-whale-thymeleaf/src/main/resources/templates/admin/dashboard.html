@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
+<html layout:decorate="~{admin/layout}"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{admin/layout}">
+      xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <title th:text="#{dashboard.title}">Dashboard</title>
@@ -51,7 +51,8 @@
                 <div class="col-lg-4 col-md-6">
                     <div class="card dashboard-card border-0 shadow-sm h-100">
                         <div class="card-body">
-                            <div class="dashboard-card-icon" th:if="${group.icon}" th:text="${group.icon}">&#x1F4E6;</div>
+                            <div class="dashboard-card-icon" th:if="${group.icon}" th:text="${group.icon}">&#x1F4E6;
+                            </div>
                             <h3 class="h6" th:text="${group.label}">Group</h3>
                             <ul class="list-unstyled mb-0">
                                 <th:block th:each="child : ${group.children}">
@@ -66,7 +67,7 @@
     </th:block>
 
     <!-- Empty State -->
-    <div th:if="${menuGroups.isEmpty()}" class="text-center py-5 text-muted">
+    <div class="text-center py-5 text-muted" th:if="${menuGroups.isEmpty()}">
         <div class="display-1 mb-3">&#x1F3E0;</div>
         <p class="h5 text-secondary mb-2" th:text="#{dashboard.empty_title}">No modules yet</p>
         <p class="small" th:text="#{dashboard.empty_desc}">Add AdminMenuProvider beans to register menu items here.</p>

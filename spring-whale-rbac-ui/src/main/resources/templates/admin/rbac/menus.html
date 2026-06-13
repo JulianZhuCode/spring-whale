@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
+<html layout:decorate="~{admin/layout}"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{admin/layout}">
+      xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <title th:text="#{rbac.menus.title}">Menus</title>
@@ -40,20 +40,24 @@
             <td><code th:text="${item.code}">user:list</code></td>
             <td th:text="${item.name}">Users</td>
             <td>
-                <span th:if="${item.type == 1}" class="badge bg-info text-dark" th:text="#{rbac.menus.badge.menu}">Menu</span>
-                <span th:if="${item.type == 2}" class="badge bg-warning text-dark" th:text="#{rbac.menus.badge.button}">Button</span>
-                <span th:if="${item.type == 3}" class="badge badge-purple" th:text="#{rbac.menus.badge.api}">API</span>
+                <span class="badge bg-info text-dark" th:if="${item.type == 1}"
+                      th:text="#{rbac.menus.badge.menu}">Menu</span>
+                <span class="badge bg-warning text-dark" th:if="${item.type == 2}" th:text="#{rbac.menus.badge.button}">Button</span>
+                <span class="badge badge-purple" th:if="${item.type == 3}" th:text="#{rbac.menus.badge.api}">API</span>
             </td>
             <td th:text="${item.path}">/admin/rbac/users</td>
             <td><code th:text="${item.permission}">user:list</code></td>
             <td th:text="${item.sort}">1</td>
             <td>
-                <span th:if="${item.status == 1}" class="badge bg-success" th:text="#{status.active}">Active</span>
-                <span th:if="${item.status == 0}" class="badge bg-danger" th:text="#{status.disabled}">Disabled</span>
+                <span class="badge bg-success" th:if="${item.status == 1}" th:text="#{status.active}">Active</span>
+                <span class="badge bg-danger" th:if="${item.status == 0}" th:text="#{status.disabled}">Disabled</span>
             </td>
             <td>
-                <button th:if="${#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:menu:update')}"
-                        data-modal="menu-modal" th:attr="data-edit-id=${item.id}" class="btn btn-outline-primary btn-sm" th:text="#{action.edit}">Edit</button>
+                <button class="btn btn-outline-primary btn-sm"
+                        data-modal="menu-modal" th:attr="data-edit-id=${item.id}"
+                        th:if="${#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:menu:update')}"
+                        th:text="#{action.edit}">Edit
+                </button>
             </td>
         </th:block>
     </th:block>
@@ -64,79 +68,84 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" th:text="#{rbac.menus.create}">Create Menu</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button class="btn-close" data-bs-dismiss="modal" type="button"></button>
                 </div>
                 <form class="dict-modal-form" data-api-base="/api/rbac/menus">
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label" for="menu-parentId" th:text="#{rbac.menus.parent_id}">Parent ID</label>
-                            <input type="number" id="menu-parentId" name="parentId" class="form-control">
+                            <label class="form-label" for="menu-parentId" th:text="#{rbac.menus.parent_id}">Parent
+                                ID</label>
+                            <input class="form-control" id="menu-parentId" name="parentId" type="number">
                             <div class="invalid-feedback" data-field="parentId"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="menu-code" th:text="#{rbac.menus.code}">Code</label>
-                            <input type="text" id="menu-code" name="code" class="form-control" required>
+                            <input class="form-control" id="menu-code" name="code" required type="text">
                             <div class="invalid-feedback" data-field="code"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="menu-name" th:text="#{rbac.menus.name}">Name</label>
-                            <input type="text" id="menu-name" name="name" class="form-control" required>
+                            <input class="form-control" id="menu-name" name="name" required type="text">
                             <div class="invalid-feedback" data-field="name"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="menu-type" th:text="#{rbac.menus.type}">Type</label>
-                            <select id="menu-type" name="type" class="form-select">
-                                <option value="1" th:text="#{rbac.menus.type.directory}">Directory</option>
-                                <option value="2" th:text="#{rbac.menus.type.menu}">Menu</option>
-                                <option value="3" th:text="#{rbac.menus.type.button}">Button</option>
+                            <select class="form-select" id="menu-type" name="type">
+                                <option th:text="#{rbac.menus.type.directory}" value="1">Directory</option>
+                                <option th:text="#{rbac.menus.type.menu}" value="2">Menu</option>
+                                <option th:text="#{rbac.menus.type.button}" value="3">Button</option>
                             </select>
                             <div class="invalid-feedback" data-field="type"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="menu-path" th:text="#{rbac.menus.path}">Path</label>
-                            <input type="text" id="menu-path" name="path" class="form-control">
+                            <input class="form-control" id="menu-path" name="path" type="text">
                             <div class="invalid-feedback" data-field="path"></div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label" for="menu-component" th:text="#{rbac.menus.component}">Component</label>
-                            <input type="text" id="menu-component" name="component" class="form-control">
+                            <label class="form-label" for="menu-component"
+                                   th:text="#{rbac.menus.component}">Component</label>
+                            <input class="form-control" id="menu-component" name="component" type="text">
                             <div class="invalid-feedback" data-field="component"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="menu-permission" th:text="#{rbac.menus.permission}">Permission</label>
-                            <input type="text" id="menu-permission" name="permission" class="form-control">
+                            <input class="form-control" id="menu-permission" name="permission" type="text">
                             <div class="invalid-feedback" data-field="permission"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="menu-icon" th:text="#{rbac.menus.icon}">Icon</label>
-                            <input type="text" id="menu-icon" name="icon" class="form-control">
+                            <input class="form-control" id="menu-icon" name="icon" type="text">
                             <div class="invalid-feedback" data-field="icon"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="menu-sort" th:text="#{rbac.menus.sort}">Sort</label>
-                            <input type="number" id="menu-sort" name="sort" class="form-control">
+                            <input class="form-control" id="menu-sort" name="sort" type="number">
                             <div class="invalid-feedback" data-field="sort"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="menu-visible" th:text="#{rbac.menus.visible}">Visible</label>
-                            <select id="menu-visible" name="visible" class="form-select">
-                                <option value="1" th:text="#{rbac.menus.visible.visible}">Visible</option>
-                                <option value="0" th:text="#{rbac.menus.visible.hidden}">Hidden</option>
+                            <select class="form-select" id="menu-visible" name="visible">
+                                <option th:text="#{rbac.menus.visible.visible}" value="1">Visible</option>
+                                <option th:text="#{rbac.menus.visible.hidden}" value="0">Hidden</option>
                             </select>
                             <div class="invalid-feedback" data-field="visible"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="menu-status" th:text="#{rbac.menus.status}">Status</label>
-                            <select id="menu-status" name="status" class="form-select">
-                                <option value="1" th:text="#{status.active}">Active</option>
-                                <option value="0" th:text="#{status.disabled}">Disabled</option>
+                            <select class="form-select" id="menu-status" name="status">
+                                <option th:text="#{status.active}" value="1">Active</option>
+                                <option th:text="#{status.disabled}" value="0">Disabled</option>
                             </select>
                             <div class="invalid-feedback" data-field="status"></div>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{action.cancel}">Cancel</button>
-                        <button type="button" class="btn btn-primary modal-submit" th:text="#{action.save}">Save</button>
+                        <button class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{action.cancel}"
+                                type="button">Cancel
+                        </button>
+                        <button class="btn btn-primary modal-submit" th:text="#{action.save}" type="button">Save
+                        </button>
                     </div>
                 </form>
             </div>

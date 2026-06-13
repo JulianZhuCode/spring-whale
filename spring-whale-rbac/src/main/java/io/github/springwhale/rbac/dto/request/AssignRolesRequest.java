@@ -11,13 +11,13 @@ import java.util.List;
  */
 @Data
 public class AssignRolesRequest {
-    
+
     /**
      * User ID
      */
     @NotNull(message = "User ID must not be empty")
     private Integer userId;
-    
+
     /**
      * Role ID list
      */

@@ -47,7 +47,7 @@ public class RoleMenuService {
         if (roleMenuRepository.findByRoleIdAndMenuId(roleId, menuId).isPresent()) {
             throw BusinessException.create("ROLE_MENU_ALREADY_EXISTS", "Role already has this menu permission");
         }
-        
+
         RoleMenuEntity roleMenu = new RoleMenuEntity();
         roleMenu.setRoleId(roleId);
         roleMenu.setMenuId(menuId);
@@ -61,7 +61,7 @@ public class RoleMenuService {
     public void assignMenusToRole(Integer roleId, List<Integer> menuIds) {
         // Remove all existing menu associations for role first
         roleMenuRepository.deleteByRoleId(roleId);
-        
+
         // Reassign
         for (Integer menuId : menuIds) {
             RoleMenuEntity roleMenu = new RoleMenuEntity();

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
+<html layout:decorate="~{admin/layout}"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{admin/layout}">
+      xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <title th:text="#{rbac.groups.title}">Groups</title>
@@ -42,12 +42,15 @@
             <td th:text="${item.leader}">John</td>
             <td th:text="${item.sort}">1</td>
             <td>
-                <span th:if="${item.status == 1}" class="badge bg-success" th:text="#{status.active}">Active</span>
-                <span th:if="${item.status == 0}" class="badge bg-danger" th:text="#{status.disabled}">Disabled</span>
+                <span class="badge bg-success" th:if="${item.status == 1}" th:text="#{status.active}">Active</span>
+                <span class="badge bg-danger" th:if="${item.status == 0}" th:text="#{status.disabled}">Disabled</span>
             </td>
             <td>
-                <button th:if="${#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:group:update')}"
-                        data-modal="group-modal" th:attr="data-edit-id=${item.id}" class="btn btn-outline-primary btn-sm" th:text="#{action.edit}">Edit</button>
+                <button class="btn btn-outline-primary btn-sm"
+                        data-modal="group-modal" th:attr="data-edit-id=${item.id}"
+                        th:if="${#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:group:update')}"
+                        th:text="#{action.edit}">Edit
+                </button>
             </td>
         </th:block>
     </th:block>
@@ -58,62 +61,66 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" th:text="#{rbac.groups.create}">Create Group</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button class="btn-close" data-bs-dismiss="modal" type="button"></button>
                 </div>
                 <form class="dict-modal-form" data-api-base="/api/rbac/groups">
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label" for="group-parentId" th:text="#{rbac.groups.parent_id}">Parent ID</label>
-                            <input type="number" id="group-parentId" name="parentId" class="form-control">
+                            <label class="form-label" for="group-parentId" th:text="#{rbac.groups.parent_id}">Parent
+                                ID</label>
+                            <input class="form-control" id="group-parentId" name="parentId" type="number">
                             <div class="invalid-feedback" data-field="parentId"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="group-code" th:text="#{rbac.groups.code}">Code</label>
-                            <input type="text" id="group-code" name="code" class="form-control" required>
+                            <input class="form-control" id="group-code" name="code" required type="text">
                             <div class="invalid-feedback" data-field="code"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="group-name" th:text="#{rbac.groups.name}">Name</label>
-                            <input type="text" id="group-name" name="name" class="form-control" required>
+                            <input class="form-control" id="group-name" name="name" required type="text">
                             <div class="invalid-feedback" data-field="name"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="group-description" th:text="#{rbac.groups.description}">Description</label>
-                            <input type="text" id="group-description" name="description" class="form-control">
+                            <input class="form-control" id="group-description" name="description" type="text">
                             <div class="invalid-feedback" data-field="description"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="group-leader" th:text="#{rbac.groups.leader}">Leader</label>
-                            <input type="text" id="group-leader" name="leader" class="form-control">
+                            <input class="form-control" id="group-leader" name="leader" type="text">
                             <div class="invalid-feedback" data-field="leader"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="group-phone" th:text="#{rbac.groups.phone}">Phone</label>
-                            <input type="text" id="group-phone" name="phone" class="form-control">
+                            <input class="form-control" id="group-phone" name="phone" type="text">
                             <div class="invalid-feedback" data-field="phone"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="group-email" th:text="#{rbac.groups.email}">Email</label>
-                            <input type="email" id="group-email" name="email" class="form-control">
+                            <input class="form-control" id="group-email" name="email" type="email">
                             <div class="invalid-feedback" data-field="email"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="group-sort" th:text="#{rbac.groups.sort}">Sort</label>
-                            <input type="number" id="group-sort" name="sort" class="form-control">
+                            <input class="form-control" id="group-sort" name="sort" type="number">
                             <div class="invalid-feedback" data-field="sort"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="group-status" th:text="#{rbac.groups.status}">Status</label>
-                            <select id="group-status" name="status" class="form-select">
-                                <option value="1" th:text="#{status.active}">Active</option>
-                                <option value="0" th:text="#{status.disabled}">Disabled</option>
+                            <select class="form-select" id="group-status" name="status">
+                                <option th:text="#{status.active}" value="1">Active</option>
+                                <option th:text="#{status.disabled}" value="0">Disabled</option>
                             </select>
                             <div class="invalid-feedback" data-field="status"></div>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{action.cancel}">Cancel</button>
-                        <button type="button" class="btn btn-primary modal-submit" th:text="#{action.save}">Save</button>
+                        <button class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{action.cancel}"
+                                type="button">Cancel
+                        </button>
+                        <button class="btn btn-primary modal-submit" th:text="#{action.save}" type="button">Save
+                        </button>
                     </div>
                 </form>
             </div>

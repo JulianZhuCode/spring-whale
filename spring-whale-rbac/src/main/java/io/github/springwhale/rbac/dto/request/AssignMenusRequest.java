@@ -11,13 +11,13 @@ import java.util.List;
  */
 @Data
 public class AssignMenusRequest {
-    
+
     /**
      * Role ID
      */
     @NotNull(message = "Role ID must not be empty")
     private Integer roleId;
-    
+
     /**
      * Menu ID list
      */

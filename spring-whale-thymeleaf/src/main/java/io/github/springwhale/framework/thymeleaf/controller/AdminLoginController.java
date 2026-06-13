@@ -7,11 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Admin login page controller.
@@ -55,8 +51,8 @@ public class AdminLoginController {
     public String processLogin(@RequestParam(name = "token") String token,
                                @RequestParam(name = "redirect", required = false) String redirect,
                                HttpServletResponse response) {
-        log.info("Processing login: token length={}, redirect={}", 
-                 token != null ? token.length() : 0, redirect);
+        log.info("Processing login: token length={}, redirect={}",
+                token != null ? token.length() : 0, redirect);
 
         Cookie cookie = new Cookie(TOKEN_COOKIE, token);
         cookie.setHttpOnly(true);

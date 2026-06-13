@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title th:text="#{error.title(${status}, ${adminProps.brandName} + ' Admin')}">Error</title>
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/admin/css/admin.css}">
@@ -14,8 +14,9 @@
         <div class="status-code" th:text="${status}">404</div>
         <div class="divider"></div>
         <p th:text="${message}">An error occurred.</p>
-        <a href="/admin" class="btn btn-primary" th:text="#{error.back_to_dashboard}">Back to Dashboard</a>
-        <p class="error-footer" th:text="#{footer.copyright('2026', ${adminProps.copyright})}">&copy; 2026 Spring Whale Framework</p>
+        <a class="btn btn-primary" href="/admin" th:text="#{error.back_to_dashboard}">Back to Dashboard</a>
+        <p class="error-footer" th:text="#{footer.copyright('2026', ${adminProps.copyright})}">&copy; 2026 Spring Whale
+            Framework</p>
     </div>
 </div>
 

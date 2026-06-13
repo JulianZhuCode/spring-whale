@@ -47,7 +47,7 @@ public class UserRoleService {
         if (userRoleRepository.findByUserIdAndRoleId(userId, roleId).isPresent()) {
             throw BusinessException.create("USER_ROLE_ALREADY_EXISTS", "User already has this role");
         }
-        
+
         UserRoleEntity userRole = new UserRoleEntity();
         userRole.setUserId(userId);
         userRole.setRoleId(roleId);
@@ -61,7 +61,7 @@ public class UserRoleService {
     public void assignRolesToUser(Integer userId, List<Integer> roleIds) {
         // Remove all existing role associations for user first
         userRoleRepository.deleteByUserId(userId);
-        
+
         // Reassign
         for (Integer roleId : roleIds) {
             UserRoleEntity userRole = new UserRoleEntity();
