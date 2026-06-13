@@ -120,6 +120,16 @@ function loadGroupOptions(form) {
 }
 
 function fillFormFields(form, data) {
+    // Ensure any tag selectors in this form are initialized before populating
+    const modalEl = form.closest('.modal');
+    if (modalEl) {
+        modalEl.querySelectorAll('.tag-selector').forEach(function (ts) {
+            if (!ts._inited && typeof window.initTagSelectors === 'function') {
+                window.initTagSelectors();
+            }
+        });
+    }
+
     form.querySelectorAll('[name]').forEach(field => {
         const name = field.name;
         if (!data.hasOwnProperty(name)) return;
@@ -141,6 +151,18 @@ function fillFormFields(form, data) {
                     }
                 }, 100);
             }
+        } else if (name === 'relatedWords' || name === 'relatedGrammars') {
+            // Tag selector: populate via component API
+            const tagSelector = form.querySelector('.tag-selector[data-field="' + name + '"]');
+            const itemsKey = name === 'relatedWords' ? 'relatedWordItems' : 'relatedGrammarItems';
+            if (tagSelector && typeof tagSelector.setTagData === 'function') {
+                tagSelector.setTagData(data[itemsKey]);
+                field.value = value ? value.join(',') : '';
+            } else if (Array.isArray(value)) {
+                field.value = value.join(', ');
+            } else {
+                field.value = value != null ? value : '';
+            }
         } else if (Array.isArray(value)) {
             field.value = value.join(', ');
         } else {
@@ -155,12 +177,21 @@ function submitDictForm(form, modalEl) {
     const url = form.getAttribute('action');
     const submitBtn = modalEl.querySelector('.modal-submit');
 
+    // Fields that should be sent as string arrays (comma-separated input)
+    const stringArrayFields = ['meaning', 'notes'];
+    // Fields that should be sent as integer arrays (comma-separated IDs)
+    const intArrayFields = ['relatedWords', 'relatedGrammars'];
+
     const body = {};
     form.querySelectorAll('[name]').forEach(field => {
         const value = field.value;
         if (field.name === 'password' && method === 'PUT' && !value) return;
         if (['status', 'groupId', 'sort', 'parentId', 'type', 'visible'].includes(field.name) && value !== '') {
             body[field.name] = parseInt(value, 10);
+        } else if (stringArrayFields.includes(field.name)) {
+            body[field.name] = value ? value.split(',').map(s => s.trim()).filter(s => s) : [];
+        } else if (intArrayFields.includes(field.name)) {
+            body[field.name] = value ? value.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n)) : [];
         } else {
             body[field.name] = value;
         }
