@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initSidebarGroups();
     initConfirmDialogs();
     initModalSystem();
+    initDeleteButtons();
 });
 
 /* ===== Sidebar ===== */
@@ -47,6 +48,42 @@ function initConfirmDialogs() {
         el.addEventListener('click', function (e) {
             const message = this.getAttribute('data-confirm') || 'Are you sure?';
             if (!confirm(message)) e.preventDefault();
+        });
+    });
+}
+
+/* ===== Delete Buttons ===== */
+
+function initDeleteButtons() {
+    document.querySelectorAll('[data-delete-api]').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const id = this.getAttribute('data-delete-id');
+            const api = this.getAttribute('data-delete-api');
+            const name = this.getAttribute('data-delete-name') || '';
+            const message = name
+                ? '确认删除「' + name + '」？此操作不可撤销。'
+                : '确认删除？此操作不可撤销。';
+
+            if (!confirm(message)) return;
+
+            var origHtml = this.innerHTML;
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+            fetch(api + '/' + id, { method: 'DELETE' })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (data.code && data.code !== '200') {
+                        throw new Error(data.message || '删除失败');
+                    }
+                    showToast('删除成功', 'success');
+                    setTimeout(function () { location.reload(); }, 500);
+                })
+                .catch(function (err) {
+                    btn.disabled = false;
+                    btn.innerHTML = origHtml;
+                    showPageError(err.message || '删除失败', 'error');
+                });
         });
     });
 }
