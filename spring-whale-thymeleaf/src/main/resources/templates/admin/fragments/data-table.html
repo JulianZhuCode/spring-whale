@@ -3,7 +3,7 @@
 <body>
 
 <th:block
-        th:fragment="table(title,description,createUrl,createPermission,items,emptyMessage,baseUrl,page,colspan,headers,rows)">
+        th:fragment="table(title,description,createUrl,createPermission,items,emptyMessage,baseUrl,page,colspan,headers,rows,beforeTable)">
     <div class="page-header card mb-4">
         <div class="card-body d-flex align-items-start justify-content-between gap-3">
             <div>
@@ -21,6 +21,8 @@
             </button>
         </div>
     </div>
+
+    <th:block th:if="${beforeTable != null}" th:replace="${beforeTable}"></th:block>
 
     <div class="table-wrapper card">
         <div class="table-responsive">
