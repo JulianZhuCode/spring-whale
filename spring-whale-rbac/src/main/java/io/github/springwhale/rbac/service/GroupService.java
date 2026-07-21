@@ -34,6 +34,28 @@ public class GroupService {
     }
 
     /**
+     * Find groups with filter
+     */
+    public Page<GroupVO> findWithFilter(String keyword, Integer status, Pageable pageable) {
+        Page<GroupVO> page;
+        boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
+        boolean hasStatus = status != null;
+
+        if (hasKeyword && hasStatus) {
+            page = groupRepository.findByCodeContainingOrNameContainingOrLeaderContainingAndStatus(
+                    keyword, keyword, keyword, status, pageable).map(groupMapper::toVO);
+        } else if (hasKeyword) {
+            page = groupRepository.findByCodeContainingOrNameContainingOrLeaderContaining(
+                    keyword, keyword, keyword, pageable).map(groupMapper::toVO);
+        } else if (hasStatus) {
+            page = groupRepository.findByStatus(status, pageable).map(groupMapper::toVO);
+        } else {
+            page = groupRepository.findAll(pageable).map(groupMapper::toVO);
+        }
+        return page;
+    }
+
+    /**
      * Find department by ID
      */
     public Optional<GroupVO> findById(Integer id) {

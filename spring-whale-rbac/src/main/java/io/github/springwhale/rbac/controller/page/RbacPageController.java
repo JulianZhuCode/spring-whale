@@ -41,10 +41,14 @@ public class RbacPageController {
     @GetMapping("/users")
     public String users(@RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "10") int size,
+                        @RequestParam(required = false) String keyword,
+                        @RequestParam(required = false) Integer status,
                         Model model) {
-        Page<UserVO> userPage = userService.findAll(PageRequest.of(page, size));
+        Page<UserVO> userPage = userService.findWithFilter(keyword, status, PageRequest.of(page, size));
         model.addAttribute("users", userPage.getContent());
         model.addAttribute("page", userPage);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("selectedStatus", status != null ? status.toString() : null);
         return "admin/rbac/users";
     }
 
@@ -53,10 +57,14 @@ public class RbacPageController {
     @GetMapping("/roles")
     public String roles(@RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "10") int size,
+                        @RequestParam(required = false) String keyword,
+                        @RequestParam(required = false) Integer status,
                         Model model) {
-        Page<RoleVO> rolePage = roleService.findAll(PageRequest.of(page, size));
+        Page<RoleVO> rolePage = roleService.findWithFilter(keyword, status, PageRequest.of(page, size));
         model.addAttribute("roles", rolePage.getContent());
         model.addAttribute("page", rolePage);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("selectedStatus", status != null ? status.toString() : null);
         return "admin/rbac/roles";
     }
 
@@ -65,10 +73,16 @@ public class RbacPageController {
     @GetMapping("/menus")
     public String menus(@RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "10") int size,
+                        @RequestParam(required = false) String keyword,
+                        @RequestParam(required = false) Integer type,
+                        @RequestParam(required = false) Integer status,
                         Model model) {
-        Page<MenuVO> menuPage = menuService.findAll(PageRequest.of(page, size));
+        Page<MenuVO> menuPage = menuService.findWithFilter(keyword, type, status, PageRequest.of(page, size));
         model.addAttribute("menus", menuPage.getContent());
         model.addAttribute("page", menuPage);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("selectedType", type != null ? type.toString() : null);
+        model.addAttribute("selectedStatus", status != null ? status.toString() : null);
         return "admin/rbac/menus";
     }
 
@@ -77,10 +91,14 @@ public class RbacPageController {
     @GetMapping("/groups")
     public String groups(@RequestParam(defaultValue = "0") int page,
                          @RequestParam(defaultValue = "10") int size,
+                         @RequestParam(required = false) String keyword,
+                         @RequestParam(required = false) Integer status,
                          Model model) {
-        Page<GroupVO> groupPage = groupService.findAll(PageRequest.of(page, size));
+        Page<GroupVO> groupPage = groupService.findWithFilter(keyword, status, PageRequest.of(page, size));
         model.addAttribute("groups", groupPage.getContent());
         model.addAttribute("page", groupPage);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("selectedStatus", status != null ? status.toString() : null);
         return "admin/rbac/groups";
     }
 

@@ -3,7 +3,7 @@
 <body>
 
 <th:block
-        th:fragment="table(title,description,createUrl,createPermission,items,emptyMessage,baseUrl,page,colspan,headers,rows,beforeTable)">
+        th:fragment="table(title,description,createUrl,createPermission,items,emptyMessage,baseUrl,page,colspan,headers,rows,filter)">
     <div class="page-header card mb-4">
         <div class="card-body d-flex align-items-start justify-content-between gap-3">
             <div>
@@ -20,9 +20,12 @@
                     th:text="#{table.new}">+ New
             </button>
         </div>
+        <th:block th:if="${filter != null}">
+            <div class="card-body border-top pt-3">
+                <th:block th:replace="${filter}"></th:block>
+            </div>
+        </th:block>
     </div>
-
-    <th:block th:if="${beforeTable != null}" th:replace="${beforeTable}"></th:block>
 
     <div class="table-wrapper card">
         <div class="table-responsive">
@@ -57,13 +60,12 @@
                            end=${(total <= 9) ? (total - 1) : (start + 8)}">
             <ul class="pagination">
                 <li class="page-item" th:classappend="${page.first} ? 'disabled'">
-                    <a class="page-link" th:href="@{${baseUrl}(page=${current - 1})}" th:if="${!page.first}"
-                       th:text="#{table.pagination.prev}">Prev</a>
+                    <a class="page-link" th:if="${!page.first}" th:text="#{table.pagination.prev}">Prev</a>
                     <span class="page-link" th:if="${page.first}" th:text="#{table.pagination.prev}">Prev</span>
                 </li>
 
                 <li class="page-item" th:if="${start > 0}">
-                    <a class="page-link" th:href="@{${baseUrl}(page=0)}">1</a>
+                    <a class="page-link">1</a>
                 </li>
                 <li class="page-item disabled" th:if="${start > 1}">
                     <span class="page-link">...</span>
@@ -71,7 +73,7 @@
 
                 <th:block th:each="i : ${#numbers.sequence(start, end)}">
                     <li class="page-item" th:classappend="${i == current} ? 'active'">
-                        <a class="page-link" th:href="@{${baseUrl}(page=${i})}" th:text="${i + 1}">1</a>
+                        <a class="page-link" th:text="${i + 1}">1</a>
                     </li>
                 </th:block>
 
@@ -79,17 +81,42 @@
                     <span class="page-link">...</span>
                 </li>
                 <li class="page-item" th:if="${end < total - 1}">
-                    <a class="page-link" th:href="@{${baseUrl}(page=${total - 1})}" th:text="${total}">1</a>
+                    <a class="page-link" th:text="${total}">1</a>
                 </li>
 
                 <li class="page-item" th:classappend="${page.last} ? 'disabled'">
-                    <a class="page-link" th:href="@{${baseUrl}(page=${current + 1})}" th:if="${!page.last}"
-                       th:text="#{table.pagination.next}">Next</a>
+                    <a class="page-link" th:if="${!page.last}" th:text="#{table.pagination.next}">Next</a>
                     <span class="page-link" th:if="${page.last}" th:text="#{table.pagination.next}">Next</span>
                 </li>
             </ul>
         </th:block>
     </div>
+    <script>
+        (function () {
+            var links = document.querySelectorAll('.pagination a.page-link');
+            var url = new URL(window.location.href);
+            links.forEach(function (link) {
+                var pageNum = link.textContent.trim();
+                var newUrl = new URL(url);
+                if (pageNum === 'Prev') {
+                    var currentPage = parseInt(newUrl.searchParams.get('page') || '0');
+                    var prevPage = currentPage - 1;
+                    if (prevPage >= 0) {
+                        newUrl.searchParams.set('page', prevPage.toString());
+                        link.href = newUrl.toString();
+                    }
+                } else if (pageNum === 'Next') {
+                    var currentPage = parseInt(newUrl.searchParams.get('page') || '0');
+                    var nextPage = currentPage + 1;
+                    newUrl.searchParams.set('page', nextPage.toString());
+                    link.href = newUrl.toString();
+                } else {
+                    newUrl.searchParams.set('page', (parseInt(pageNum) - 1).toString());
+                    link.href = newUrl.toString();
+                }
+            });
+        })();
+    </script>
 </th:block>
 
 </body>

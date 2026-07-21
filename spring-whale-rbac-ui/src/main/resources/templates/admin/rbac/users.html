@@ -22,8 +22,32 @@
         page=${page},
         colspan=8,
         headers=~{::#user-headers},
-        rows=~{::#user-row}
+        rows=~{::#user-row},
+        filter=~{::#user-filter}
     )}">
+        <th:block id="user-filter">
+            <div class="row g-2">
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input class="form-control" id="userSearchInput"
+                               th:placeholder="#{rbac.users.search_placeholder}"
+                               th:value="${keyword}" type="text">
+                        <button class="btn btn-outline-secondary" id="userSearchClear" style="display:none"
+                                type="button">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="userStatusFilter">
+                        <option value="" th:text="#{rbac.users.all_status}">All Status</option>
+                        <option th:selected="${selectedStatus != null and selectedStatus == '1'}" value="1" th:text="#{status.active}">Active</option>
+                        <option th:selected="${selectedStatus != null and selectedStatus == '0'}" value="0" th:text="#{status.disabled}">Disabled</option>
+                    </select>
+                </div>
+            </div>
+        </th:block>
         <th:block id="user-headers">
             <th>ID</th>
             <th th:text="#{rbac.users.username}">Username</th>
@@ -55,7 +79,66 @@
         </th:block>
     </th:block>
 
-    <!-- User Modal -->
+    <script th:inline="javascript">
+    (function () {
+        var searchInput = document.getElementById('userSearchInput');
+        var statusFilter = document.getElementById('userStatusFilter');
+        var clearBtn = document.getElementById('userSearchClear');
+        var DEBOUNCE_MS = 400;
+        var searchTimer = null;
+
+        function doSearch() {
+            var keyword = searchInput ? searchInput.value.trim() : '';
+            var status = statusFilter ? statusFilter.value : '';
+            var params = new URLSearchParams();
+            if (keyword) params.set('keyword', keyword);
+            if (status) params.set('status', status);
+            var url = '/admin/rbac/users';
+            var qs = params.toString();
+            if (qs) url += '?' + qs;
+            window.location.href = url;
+        }
+
+        function updateClearBtn() {
+            if (clearBtn) {
+                clearBtn.style.display = searchInput.value ? '' : 'none';
+            }
+        }
+
+        if (searchInput) {
+            updateClearBtn();
+            searchInput.addEventListener('input', function () {
+                updateClearBtn();
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(doSearch, DEBOUNCE_MS);
+            });
+            searchInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    clearTimeout(searchTimer);
+                    doSearch();
+                }
+            });
+        }
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function () {
+                searchInput.value = '';
+                updateClearBtn();
+                clearTimeout(searchTimer);
+                doSearch();
+            });
+        }
+
+        if (statusFilter) {
+            statusFilter.addEventListener('change', function () {
+                clearTimeout(searchTimer);
+                doSearch();
+            });
+        }
+    })();
+</script>
+
+<!-- User Modal -->
     <div class="modal fade" id="user-modal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">

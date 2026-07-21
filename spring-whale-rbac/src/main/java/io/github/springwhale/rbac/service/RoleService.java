@@ -41,6 +41,29 @@ public class RoleService {
     }
 
     /**
+     * Find roles with filter
+     */
+    public Page<RoleVO> findWithFilter(String keyword, Integer status, Pageable pageable) {
+        Page<RoleVO> page;
+        boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
+        boolean hasStatus = status != null;
+
+        if (hasKeyword && hasStatus) {
+            page = roleRepository.findByCodeContainingOrNameContainingOrDescriptionContainingAndStatus(
+                    keyword, keyword, keyword, status, pageable).map(roleMapper::toVO);
+        } else if (hasKeyword) {
+            page = roleRepository.findByCodeContainingOrNameContainingOrDescriptionContaining(
+                    keyword, keyword, keyword, pageable).map(roleMapper::toVO);
+        } else if (hasStatus) {
+            page = roleRepository.findByStatus(status, pageable).map(roleMapper::toVO);
+        } else {
+            page = roleRepository.findAll(pageable).map(roleMapper::toVO);
+        }
+        enrichGroupNames(page.getContent());
+        return page;
+    }
+
+    /**
      * Find role by ID
      */
     public Optional<RoleVO> findById(Integer id) {

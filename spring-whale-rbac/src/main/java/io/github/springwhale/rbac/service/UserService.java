@@ -41,6 +41,29 @@ public class UserService {
     }
 
     /**
+     * Find users with filter
+     */
+    public Page<UserVO> findWithFilter(String keyword, Integer status, Pageable pageable) {
+        Page<UserVO> page;
+        boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
+        boolean hasStatus = status != null;
+
+        if (hasKeyword && hasStatus) {
+            page = userRepository.findByUsernameContainingOrRealNameContainingOrEmailContainingAndStatus(
+                    keyword, keyword, keyword, status, pageable).map(userMapper::toVO);
+        } else if (hasKeyword) {
+            page = userRepository.findByUsernameContainingOrRealNameContainingOrEmailContaining(
+                    keyword, keyword, keyword, pageable).map(userMapper::toVO);
+        } else if (hasStatus) {
+            page = userRepository.findByStatus(status, pageable).map(userMapper::toVO);
+        } else {
+            page = userRepository.findAll(pageable).map(userMapper::toVO);
+        }
+        enrichGroupNames(page.getContent());
+        return page;
+    }
+
+    /**
      * Find user by ID
      */
     public Optional<UserVO> findById(Integer id) {

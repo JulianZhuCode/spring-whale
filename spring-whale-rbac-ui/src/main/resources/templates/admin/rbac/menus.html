@@ -22,8 +22,40 @@
         page=${page},
         colspan=9,
         headers=~{::#menu-headers},
-        rows=~{::#menu-row}
+        rows=~{::#menu-row},
+        filter=~{::#menu-filter}
     )}">
+        <th:block id="menu-filter">
+            <div class="row g-2">
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input class="form-control" id="menuSearchInput"
+                               th:placeholder="#{rbac.menus.search_placeholder}"
+                               th:value="${keyword}" type="text">
+                        <button class="btn btn-outline-secondary" id="menuSearchClear" style="display:none"
+                                type="button">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="menuTypeFilter">
+                        <option value="" th:text="#{rbac.menus.all_types}">All Types</option>
+                        <option th:selected="${selectedType != null and selectedType == '1'}" value="1" th:text="#{rbac.menus.type.directory}">Directory</option>
+                        <option th:selected="${selectedType != null and selectedType == '2'}" value="2" th:text="#{rbac.menus.type.menu}">Menu</option>
+                        <option th:selected="${selectedType != null and selectedType == '3'}" value="3" th:text="#{rbac.menus.type.button}">Button</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="menuStatusFilter">
+                        <option value="" th:text="#{rbac.menus.all_status}">All Status</option>
+                        <option th:selected="${selectedStatus != null and selectedStatus == '1'}" value="1" th:text="#{status.active}">Active</option>
+                        <option th:selected="${selectedStatus != null and selectedStatus == '0'}" value="0" th:text="#{status.disabled}">Disabled</option>
+                    </select>
+                </div>
+            </div>
+        </th:block>
         <th:block id="menu-headers">
             <th>ID</th>
             <th th:text="#{rbac.menus.code}">Code</th>
@@ -62,7 +94,76 @@
         </th:block>
     </th:block>
 
-    <!-- Menu Modal -->
+    <script th:inline="javascript">
+    (function () {
+        var searchInput = document.getElementById('menuSearchInput');
+        var typeFilter = document.getElementById('menuTypeFilter');
+        var statusFilter = document.getElementById('menuStatusFilter');
+        var clearBtn = document.getElementById('menuSearchClear');
+        var DEBOUNCE_MS = 400;
+        var searchTimer = null;
+
+        function doSearch() {
+            var keyword = searchInput ? searchInput.value.trim() : '';
+            var type = typeFilter ? typeFilter.value : '';
+            var status = statusFilter ? statusFilter.value : '';
+            var params = new URLSearchParams();
+            if (keyword) params.set('keyword', keyword);
+            if (type) params.set('type', type);
+            if (status) params.set('status', status);
+            var url = '/admin/rbac/menus';
+            var qs = params.toString();
+            if (qs) url += '?' + qs;
+            window.location.href = url;
+        }
+
+        function updateClearBtn() {
+            if (clearBtn) {
+                clearBtn.style.display = searchInput.value ? '' : 'none';
+            }
+        }
+
+        if (searchInput) {
+            updateClearBtn();
+            searchInput.addEventListener('input', function () {
+                updateClearBtn();
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(doSearch, DEBOUNCE_MS);
+            });
+            searchInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    clearTimeout(searchTimer);
+                    doSearch();
+                }
+            });
+        }
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function () {
+                searchInput.value = '';
+                updateClearBtn();
+                clearTimeout(searchTimer);
+                doSearch();
+            });
+        }
+
+        if (typeFilter) {
+            typeFilter.addEventListener('change', function () {
+                clearTimeout(searchTimer);
+                doSearch();
+            });
+        }
+
+        if (statusFilter) {
+            statusFilter.addEventListener('change', function () {
+                clearTimeout(searchTimer);
+                doSearch();
+            });
+        }
+    })();
+</script>
+
+<!-- Menu Modal -->
     <div class="modal fade" id="menu-modal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">

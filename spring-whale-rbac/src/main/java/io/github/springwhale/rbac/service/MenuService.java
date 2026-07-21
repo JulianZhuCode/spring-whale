@@ -34,6 +34,39 @@ public class MenuService {
     }
 
     /**
+     * Find menus with filter
+     */
+    public Page<MenuVO> findWithFilter(String keyword, Integer type, Integer status, Pageable pageable) {
+        Page<MenuVO> page;
+        boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
+        boolean hasType = type != null;
+        boolean hasStatus = status != null;
+
+        if (hasKeyword && hasType && hasStatus) {
+            page = menuRepository.findByCodeContainingOrNameContainingOrPathContainingAndTypeAndStatus(
+                    keyword, keyword, keyword, type, status, pageable).map(menuMapper::toVO);
+        } else if (hasKeyword && hasType) {
+            page = menuRepository.findByCodeContainingOrNameContainingOrPathContainingAndType(
+                    keyword, keyword, keyword, type, pageable).map(menuMapper::toVO);
+        } else if (hasKeyword && hasStatus) {
+            page = menuRepository.findByCodeContainingOrNameContainingOrPathContainingAndStatus(
+                    keyword, keyword, keyword, status, pageable).map(menuMapper::toVO);
+        } else if (hasType && hasStatus) {
+            page = menuRepository.findByTypeAndStatus(type, status, pageable).map(menuMapper::toVO);
+        } else if (hasKeyword) {
+            page = menuRepository.findByCodeContainingOrNameContainingOrPathContaining(
+                    keyword, keyword, keyword, pageable).map(menuMapper::toVO);
+        } else if (hasType) {
+            page = menuRepository.findByType(type, pageable).map(menuMapper::toVO);
+        } else if (hasStatus) {
+            page = menuRepository.findByStatus(status, pageable).map(menuMapper::toVO);
+        } else {
+            page = menuRepository.findAll(pageable).map(menuMapper::toVO);
+        }
+        return page;
+    }
+
+    /**
      * Find menu by ID
      */
     public Optional<MenuVO> findById(Integer id) {
