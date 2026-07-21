@@ -24,15 +24,18 @@ public class MenuController {
     private final MenuService menuService;
 
     /**
-     * Find all menus with pagination
-     * GET /api/rbac/menus?page=0&size=20
+     * Find all menus with pagination and filter
+     * GET /api/rbac/menus?page=0&size=20&keyword=&type=&status=
      */
     @GetMapping
     public Page<MenuVO> findAll(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Integer type,
+            @RequestParam(required = false) Integer status) {
         Pageable pageable = PageRequest.of(page, size);
-        return menuService.findAll(pageable);
+        return menuService.findWithFilter(keyword, type, status, pageable);
     }
 
     /**

@@ -24,15 +24,17 @@ public class UserController {
     private final UserService userService;
 
     /**
-     * Find all users with pagination
-     * GET /api/rbac/users?page=0&size=20
+     * Find all users with pagination and filter
+     * GET /api/rbac/users?page=0&size=20&keyword=&status=
      */
     @GetMapping
     public Page<UserVO> findAll(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Integer status) {
         Pageable pageable = PageRequest.of(page, size);
-        return userService.findAll(pageable);
+        return userService.findWithFilter(keyword, status, pageable);
     }
 
     /**

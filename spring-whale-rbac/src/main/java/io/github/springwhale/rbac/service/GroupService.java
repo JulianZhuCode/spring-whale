@@ -1,5 +1,6 @@
 package io.github.springwhale.rbac.service;
 
+import io.github.springwhale.database.JpaQueryWrapper;
 import io.github.springwhale.framework.core.exception.BusinessException;
 import io.github.springwhale.rbac.dto.request.GroupRequest;
 import io.github.springwhale.rbac.dto.vo.GroupVO;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -37,22 +39,14 @@ public class GroupService {
      * Find groups with filter
      */
     public Page<GroupVO> findWithFilter(String keyword, Integer status, Pageable pageable) {
-        Page<GroupVO> page;
-        boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
-        boolean hasStatus = status != null;
-
-        if (hasKeyword && hasStatus) {
-            page = groupRepository.findByCodeContainingOrNameContainingOrLeaderContainingAndStatus(
-                    keyword, keyword, keyword, status, pageable).map(groupMapper::toVO);
-        } else if (hasKeyword) {
-            page = groupRepository.findByCodeContainingOrNameContainingOrLeaderContaining(
-                    keyword, keyword, keyword, pageable).map(groupMapper::toVO);
-        } else if (hasStatus) {
-            page = groupRepository.findByStatus(status, pageable).map(groupMapper::toVO);
-        } else {
-            page = groupRepository.findAll(pageable).map(groupMapper::toVO);
-        }
-        return page;
+        var spec = JpaQueryWrapper.of(GroupEntity.class)
+                .or(!ObjectUtils.isEmpty(keyword), w -> w
+                        .likeIgnoreCase(GroupEntity::getCode, keyword)
+                        .likeIgnoreCase(GroupEntity::getName, keyword)
+                        .likeIgnoreCase(GroupEntity::getLeader, keyword))
+                .eq(status != null, GroupEntity::getStatus, status)
+                .buildSpec();
+        return groupRepository.findAll(spec, pageable).map(groupMapper::toVO);
     }
 
     /**

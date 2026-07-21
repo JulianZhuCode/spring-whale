@@ -1,5 +1,6 @@
 package io.github.springwhale.rbac.service;
 
+import io.github.springwhale.database.JpaQueryWrapper;
 import io.github.springwhale.framework.core.exception.BusinessException;
 import io.github.springwhale.rbac.dto.request.RoleRequest;
 import io.github.springwhale.rbac.dto.vo.RoleVO;
@@ -12,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -44,21 +46,14 @@ public class RoleService {
      * Find roles with filter
      */
     public Page<RoleVO> findWithFilter(String keyword, Integer status, Pageable pageable) {
-        Page<RoleVO> page;
-        boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
-        boolean hasStatus = status != null;
-
-        if (hasKeyword && hasStatus) {
-            page = roleRepository.findByCodeContainingOrNameContainingOrDescriptionContainingAndStatus(
-                    keyword, keyword, keyword, status, pageable).map(roleMapper::toVO);
-        } else if (hasKeyword) {
-            page = roleRepository.findByCodeContainingOrNameContainingOrDescriptionContaining(
-                    keyword, keyword, keyword, pageable).map(roleMapper::toVO);
-        } else if (hasStatus) {
-            page = roleRepository.findByStatus(status, pageable).map(roleMapper::toVO);
-        } else {
-            page = roleRepository.findAll(pageable).map(roleMapper::toVO);
-        }
+        var spec = JpaQueryWrapper.of(RoleEntity.class)
+                .or(!ObjectUtils.isEmpty(keyword), w -> w
+                        .likeIgnoreCase(RoleEntity::getCode, keyword)
+                        .likeIgnoreCase(RoleEntity::getName, keyword)
+                        .likeIgnoreCase(RoleEntity::getDescription, keyword))
+                .eq(status != null, RoleEntity::getStatus, status)
+                .buildSpec();
+        Page<RoleVO> page = roleRepository.findAll(spec, pageable).map(roleMapper::toVO);
         enrichGroupNames(page.getContent());
         return page;
     }

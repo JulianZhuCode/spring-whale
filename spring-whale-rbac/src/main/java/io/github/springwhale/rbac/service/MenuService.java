@@ -1,5 +1,6 @@
 package io.github.springwhale.rbac.service;
 
+import io.github.springwhale.database.JpaQueryWrapper;
 import io.github.springwhale.framework.core.exception.BusinessException;
 import io.github.springwhale.rbac.dto.request.MenuRequest;
 import io.github.springwhale.rbac.dto.vo.MenuVO;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -37,33 +39,15 @@ public class MenuService {
      * Find menus with filter
      */
     public Page<MenuVO> findWithFilter(String keyword, Integer type, Integer status, Pageable pageable) {
-        Page<MenuVO> page;
-        boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
-        boolean hasType = type != null;
-        boolean hasStatus = status != null;
-
-        if (hasKeyword && hasType && hasStatus) {
-            page = menuRepository.findByCodeContainingOrNameContainingOrPathContainingAndTypeAndStatus(
-                    keyword, keyword, keyword, type, status, pageable).map(menuMapper::toVO);
-        } else if (hasKeyword && hasType) {
-            page = menuRepository.findByCodeContainingOrNameContainingOrPathContainingAndType(
-                    keyword, keyword, keyword, type, pageable).map(menuMapper::toVO);
-        } else if (hasKeyword && hasStatus) {
-            page = menuRepository.findByCodeContainingOrNameContainingOrPathContainingAndStatus(
-                    keyword, keyword, keyword, status, pageable).map(menuMapper::toVO);
-        } else if (hasType && hasStatus) {
-            page = menuRepository.findByTypeAndStatus(type, status, pageable).map(menuMapper::toVO);
-        } else if (hasKeyword) {
-            page = menuRepository.findByCodeContainingOrNameContainingOrPathContaining(
-                    keyword, keyword, keyword, pageable).map(menuMapper::toVO);
-        } else if (hasType) {
-            page = menuRepository.findByType(type, pageable).map(menuMapper::toVO);
-        } else if (hasStatus) {
-            page = menuRepository.findByStatus(status, pageable).map(menuMapper::toVO);
-        } else {
-            page = menuRepository.findAll(pageable).map(menuMapper::toVO);
-        }
-        return page;
+        var spec = JpaQueryWrapper.of(MenuEntity.class)
+                .or(!ObjectUtils.isEmpty(keyword), w -> w
+                        .likeIgnoreCase(MenuEntity::getCode, keyword)
+                        .likeIgnoreCase(MenuEntity::getName, keyword)
+                        .likeIgnoreCase(MenuEntity::getPath, keyword))
+                .eq(type != null, MenuEntity::getType, type)
+                .eq(status != null, MenuEntity::getStatus, status)
+                .buildSpec();
+        return menuRepository.findAll(spec, pageable).map(menuMapper::toVO);
     }
 
     /**

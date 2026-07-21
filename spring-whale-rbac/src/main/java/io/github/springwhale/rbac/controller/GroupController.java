@@ -24,15 +24,17 @@ public class GroupController {
     private final GroupService groupService;
 
     /**
-     * Find all departments with pagination
-     * GET /api/rbac/groups?page=0&size=20
+     * Find all departments with pagination and filter
+     * GET /api/rbac/groups?page=0&size=20&keyword=&status=
      */
     @GetMapping
     public Page<GroupVO> findAll(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Integer status) {
         Pageable pageable = PageRequest.of(page, size);
-        return groupService.findAll(pageable);
+        return groupService.findWithFilter(keyword, status, pageable);
     }
 
     /**

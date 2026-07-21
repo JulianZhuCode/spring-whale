@@ -24,15 +24,17 @@ public class RoleController {
     private final RoleService roleService;
 
     /**
-     * Find all roles with pagination
-     * GET /api/rbac/roles?page=0&size=20
+     * Find all roles with pagination and filter
+     * GET /api/rbac/roles?page=0&size=20&keyword=&status=
      */
     @GetMapping
     public Page<RoleVO> findAll(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Integer status) {
         Pageable pageable = PageRequest.of(page, size);
-        return roleService.findAll(pageable);
+        return roleService.findWithFilter(keyword, status, pageable);
     }
 
     /**
