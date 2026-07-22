@@ -20,7 +20,7 @@
         emptyMessage=#{rbac.menus.empty},
         baseUrl='/admin/rbac/menus',
         page=${page},
-        colspan=9,
+        colspan=8,
         headers=~{::#menu-headers},
         rows=~{::#menu-row},
         filter=~{::#menu-filter}
@@ -57,7 +57,6 @@
             </div>
         </th:block>
         <th:block id="menu-headers">
-            <th>ID</th>
             <th th:text="#{rbac.menus.code}">Code</th>
             <th th:text="#{rbac.menus.name}">Name</th>
             <th th:text="#{rbac.menus.type}">Type</th>
@@ -68,7 +67,6 @@
             <th th:text="#{rbac.menus.actions}">Actions</th>
         </th:block>
         <th:block id="menu-row">
-            <td th:text="${item.id}">1</td>
             <td><code th:text="${item.code}">user:list</code></td>
             <td th:text="${item.name}">Users</td>
             <td>
@@ -107,14 +105,15 @@
             var keyword = searchInput ? searchInput.value.trim() : '';
             var type = typeFilter ? typeFilter.value : '';
             var status = statusFilter ? statusFilter.value : '';
-            var params = new URLSearchParams();
+            var params = new URLSearchParams(window.location.search);
             if (keyword) params.set('keyword', keyword);
+            else params.delete('keyword');
             if (type) params.set('type', type);
+            else params.delete('type');
             if (status) params.set('status', status);
-            var url = '/admin/rbac/menus';
-            var qs = params.toString();
-            if (qs) url += '?' + qs;
-            window.location.href = url;
+            else params.delete('status');
+            params.delete('page');
+            window.location.href = '/admin/rbac/menus?' + params.toString();
         }
 
         function updateClearBtn() {

@@ -1,6 +1,7 @@
 package io.github.springwhale.rbac.controller;
 
 import io.github.springwhale.framework.core.exception.BusinessException;
+import io.github.springwhale.database.SortUtils;
 import io.github.springwhale.rbac.dto.request.RoleRequest;
 import io.github.springwhale.rbac.dto.vo.RoleVO;
 import io.github.springwhale.rbac.service.RoleService;
@@ -9,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,8 +34,10 @@ public class RoleController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Integer status) {
-        Pageable pageable = PageRequest.of(page, size);
+            @RequestParam(required = false) Integer status,
+            @RequestParam(required = false) String sort) {
+        Sort sortObj = SortUtils.buildSort(sort);
+        Pageable pageable = PageRequest.of(page, size, sortObj);
         return roleService.findWithFilter(keyword, status, pageable);
     }
 

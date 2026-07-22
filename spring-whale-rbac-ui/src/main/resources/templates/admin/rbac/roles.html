@@ -20,7 +20,7 @@
         emptyMessage=#{rbac.roles.empty},
         baseUrl='/admin/rbac/roles',
         page=${page},
-        colspan=8,
+        colspan=7,
         headers=~{::#role-headers},
         rows=~{::#role-row},
         filter=~{::#role-filter}
@@ -49,7 +49,6 @@
             </div>
         </th:block>
         <th:block id="role-headers">
-            <th>ID</th>
             <th th:text="#{rbac.roles.code}">Code</th>
             <th th:text="#{rbac.roles.name}">Name</th>
             <th th:text="#{rbac.roles.description}">Description</th>
@@ -59,7 +58,6 @@
             <th th:text="#{rbac.roles.actions}">Actions</th>
         </th:block>
         <th:block id="role-row">
-            <td th:text="${item.id}">1</td>
             <td><code th:text="${item.code}">ROLE_ADMIN</code></td>
             <td th:text="${item.name}">Admin</td>
             <td th:text="${item.description}">Administrator role</td>
@@ -90,13 +88,13 @@
         function doSearch() {
             var keyword = searchInput ? searchInput.value.trim() : '';
             var status = statusFilter ? statusFilter.value : '';
-            var params = new URLSearchParams();
+            var params = new URLSearchParams(window.location.search);
             if (keyword) params.set('keyword', keyword);
+            else params.delete('keyword');
             if (status) params.set('status', status);
-            var url = '/admin/rbac/roles';
-            var qs = params.toString();
-            if (qs) url += '?' + qs;
-            window.location.href = url;
+            else params.delete('status');
+            params.delete('page');
+            window.location.href = '/admin/rbac/roles?' + params.toString();
         }
 
         function updateClearBtn() {

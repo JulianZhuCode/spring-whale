@@ -20,7 +20,7 @@
         emptyMessage=#{rbac.groups.empty},
         baseUrl='/admin/rbac/groups',
         page=${page},
-        colspan=8,
+        colspan=7,
         headers=~{::#group-headers},
         rows=~{::#group-row},
         filter=~{::#group-filter}
@@ -49,7 +49,6 @@
             </div>
         </th:block>
         <th:block id="group-headers">
-            <th>ID</th>
             <th th:text="#{rbac.groups.code}">Code</th>
             <th th:text="#{rbac.groups.name}">Name</th>
             <th th:text="#{rbac.groups.description}">Description</th>
@@ -59,7 +58,6 @@
             <th th:text="#{rbac.groups.actions}">Actions</th>
         </th:block>
         <th:block id="group-row">
-            <td th:text="${item.id}">1</td>
             <td><code th:text="${item.code}">IT</code></td>
             <td th:text="${item.name}">IT Dept</td>
             <td th:text="${item.description}">IT Department</td>
@@ -90,13 +88,13 @@
         function doSearch() {
             var keyword = searchInput ? searchInput.value.trim() : '';
             var status = statusFilter ? statusFilter.value : '';
-            var params = new URLSearchParams();
+            var params = new URLSearchParams(window.location.search);
             if (keyword) params.set('keyword', keyword);
+            else params.delete('keyword');
             if (status) params.set('status', status);
-            var url = '/admin/rbac/groups';
-            var qs = params.toString();
-            if (qs) url += '?' + qs;
-            window.location.href = url;
+            else params.delete('status');
+            params.delete('page');
+            window.location.href = '/admin/rbac/groups?' + params.toString();
         }
 
         function updateClearBtn() {

@@ -20,7 +20,7 @@
         emptyMessage=#{rbac.users.empty},
         baseUrl='/admin/rbac/users',
         page=${page},
-        colspan=8,
+        colspan=7,
         headers=~{::#user-headers},
         rows=~{::#user-row},
         filter=~{::#user-filter}
@@ -49,7 +49,6 @@
             </div>
         </th:block>
         <th:block id="user-headers">
-            <th>ID</th>
             <th th:text="#{rbac.users.username}">Username</th>
             <th th:text="#{rbac.users.real_name}">Real Name</th>
             <th th:text="#{rbac.users.email}">Email</th>
@@ -59,7 +58,6 @@
             <th th:text="#{rbac.users.actions}">Actions</th>
         </th:block>
         <th:block id="user-row">
-            <td th:text="${item.id}">1</td>
             <td th:text="${item.username}">admin</td>
             <td th:text="${item.realName}">Admin</td>
             <td th:text="${item.email}">admin@example.com</td>
@@ -90,13 +88,13 @@
         function doSearch() {
             var keyword = searchInput ? searchInput.value.trim() : '';
             var status = statusFilter ? statusFilter.value : '';
-            var params = new URLSearchParams();
+            var params = new URLSearchParams(window.location.search);
             if (keyword) params.set('keyword', keyword);
+            else params.delete('keyword');
             if (status) params.set('status', status);
-            var url = '/admin/rbac/users';
-            var qs = params.toString();
-            if (qs) url += '?' + qs;
-            window.location.href = url;
+            else params.delete('status');
+            params.delete('page');
+            window.location.href = '/admin/rbac/users?' + params.toString();
         }
 
         function updateClearBtn() {

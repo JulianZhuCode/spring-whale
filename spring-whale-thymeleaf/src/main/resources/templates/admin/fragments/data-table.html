@@ -4,53 +4,61 @@
 
 <th:block
         th:fragment="table(title,description,createUrl,createPermission,items,emptyMessage,baseUrl,page,colspan,headers,rows,filter)">
-    <div class="page-header card mb-4">
-        <div class="card-body d-flex align-items-start justify-content-between gap-3">
-            <div>
-                <h1 class="mb-1" th:text="${title}">Title</h1>
-                <p class="text-secondary mb-0" th:text="${description}">Description</p>
+    <th:block th:with="sortableId=${#ctx.containsVariable('sortableId') ? sortableId : 'true'}">
+        <div class="page-header card mb-4">
+            <div class="card-body d-flex align-items-start justify-content-between gap-3">
+                <div>
+                    <h1 class="mb-1" th:text="${title}">Title</h1>
+                    <p class="text-secondary mb-0" th:text="${description}">Description</p>
+                </div>
+                <a class="btn btn-primary btn-new shadow-sm"
+                   th:href="@{${createUrl}}"
+                   th:if="${createUrl != null and (createPermission == null or #sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, createPermission))}"
+                   th:text="#{table.new}" th:unless="${createModal != null}">+ New</a>
+                <button class="btn btn-primary btn-new shadow-sm"
+                        th:attr="data-modal=${createModal}"
+                        th:if="${createUrl != null and createModal != null and (createPermission == null or #sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, createPermission))}"
+                        th:text="#{table.new}">+ New
+                </button>
             </div>
-            <a class="btn btn-primary btn-new shadow-sm"
-               th:href="@{${createUrl}}"
-               th:if="${createUrl != null and (createPermission == null or #sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, createPermission))}"
-               th:text="#{table.new}" th:unless="${createModal != null}">+ New</a>
-            <button class="btn btn-primary btn-new shadow-sm"
-                    th:attr="data-modal=${createModal}"
-                    th:if="${createUrl != null and createModal != null and (createPermission == null or #sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, createPermission))}"
-                    th:text="#{table.new}">+ New
-            </button>
+            <th:block th:if="${filter != null}">
+                <div class="card-body border-top pt-3">
+                    <th:block th:replace="${filter}"></th:block>
+                </div>
+            </th:block>
         </div>
-        <th:block th:if="${filter != null}">
-            <div class="card-body border-top pt-3">
-                <th:block th:replace="${filter}"></th:block>
-            </div>
-        </th:block>
-    </div>
 
-    <div class="table-wrapper card">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                <tr>
-                    <th:block th:replace="${headers}"></th:block>
-                </tr>
-                </thead>
-                <tbody>
-                <th:block th:each="item : ${items}">
+        <div class="table-wrapper card">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
                     <tr>
-                        <th:block th:replace="${rows}"></th:block>
+                        <th th:if="${sortableId != 'false'}">
+                            <a th:href="@{${baseUrl}(sort=${sortField == 'id' and sortDirection == 'desc' ? 'id,asc' : 'id,desc'})}" class="text-dark text-decoration-none">
+                                ID <i th:class="${sortField == 'id' ? (sortDirection == 'asc' ? 'bi bi-arrow-up-short' : 'bi bi-arrow-down-short') : 'bi bi-sort'}" class="bi bi-sort"></i>
+                            </a>
+                        </th>
+                        <th:block th:replace="${headers}"></th:block>
                     </tr>
-                </th:block>
-                <tr th:if="${items == null or #lists.isEmpty(items)}">
-                    <td class="text-center text-muted py-5" th:attr="colspan=${colspan}" th:text="${emptyMessage}">No
-                        data found
-                    </td>
-                </tr>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                    <th:block th:each="item : ${items}">
+                        <tr>
+                            <td th:if="${sortableId != 'false'}" th:text="${item.id}">1</td>
+                            <th:block th:replace="${rows}"></th:block>
+                        </tr>
+                    </th:block>
+                    <tr th:if="${items == null or #lists.isEmpty(items)}">
+                        <td class="text-center text-muted py-5" th:attr="colspan=${colspan}" th:text="${emptyMessage}">No
+                            data found
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <th:block th:replace="~{admin/fragments/data-table :: pagination(baseUrl=${baseUrl}, page=${page})}"></th:block>
         </div>
-        <th:block th:replace="~{admin/fragments/data-table :: pagination(baseUrl=${baseUrl}, page=${page})}"></th:block>
-    </div>
+    </th:block>
 </th:block>
 
 <th:block th:fragment="pagination(baseUrl,page)">

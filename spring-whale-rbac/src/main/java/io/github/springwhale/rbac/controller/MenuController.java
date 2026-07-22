@@ -1,6 +1,7 @@
 package io.github.springwhale.rbac.controller;
 
 import io.github.springwhale.framework.core.exception.BusinessException;
+import io.github.springwhale.database.SortUtils;
 import io.github.springwhale.rbac.dto.request.MenuRequest;
 import io.github.springwhale.rbac.dto.vo.MenuVO;
 import io.github.springwhale.rbac.service.MenuService;
@@ -9,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,8 +35,10 @@ public class MenuController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Integer type,
-            @RequestParam(required = false) Integer status) {
-        Pageable pageable = PageRequest.of(page, size);
+            @RequestParam(required = false) Integer status,
+            @RequestParam(required = false) String sort) {
+        Sort sortObj = SortUtils.buildSort(sort);
+        Pageable pageable = PageRequest.of(page, size, sortObj);
         return menuService.findWithFilter(keyword, type, status, pageable);
     }
 
