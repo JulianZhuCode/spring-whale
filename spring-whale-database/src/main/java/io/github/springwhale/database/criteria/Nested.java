@@ -2,18 +2,17 @@ package io.github.springwhale.database.criteria;
 
 import java.util.function.Consumer;
 
-public interface Nested<T, Children extends AbstractWrapper<T, Children>> {
+public interface Nested<T, Children extends AbstractWrapper<T, Children>> extends Wrapper<T, Children> {
 
     default Children or(boolean condition, Consumer<Children> consumer) {
         if (condition) {
-            AbstractWrapper<T, Children> wrapper = (AbstractWrapper<T, Children>) this;
-            Children subWrapper = wrapper.createSubWrapper();
+            Children subWrapper = getWrapper().createSubWrapper();
             consumer.accept(subWrapper);
-            if (!subWrapper.conditions.isEmpty()) {
-                wrapper.addCondition(new AbstractWrapper.CompositeCondition<>(subWrapper.conditions, true));
+            if (!subWrapper.getWrapper().conditions.isEmpty()) {
+                getWrapper().addCondition(new AbstractWrapper.CompositeCondition<>(subWrapper.getWrapper().conditions, true));
             }
         }
-        return (Children) this;
+        return getWrapper().self();
     }
 
     default Children or(Consumer<Children> consumer) {
@@ -22,19 +21,16 @@ public interface Nested<T, Children extends AbstractWrapper<T, Children>> {
 
     default Children and(boolean condition, Consumer<Children> consumer) {
         if (condition) {
-            AbstractWrapper<T, Children> wrapper = (AbstractWrapper<T, Children>) this;
-            Children subWrapper = wrapper.createSubWrapper();
+            Children subWrapper = getWrapper().createSubWrapper();
             consumer.accept(subWrapper);
-            if (!subWrapper.conditions.isEmpty()) {
-                wrapper.addCondition(new AbstractWrapper.CompositeCondition<>(subWrapper.conditions, false));
+            if (!subWrapper.getWrapper().conditions.isEmpty()) {
+                getWrapper().addCondition(new AbstractWrapper.CompositeCondition<>(subWrapper.getWrapper().conditions, false));
             }
         }
-        return (Children) this;
+        return getWrapper().self();
     }
 
     default Children and(Consumer<Children> consumer) {
         return and(true, consumer);
     }
-
-
 }

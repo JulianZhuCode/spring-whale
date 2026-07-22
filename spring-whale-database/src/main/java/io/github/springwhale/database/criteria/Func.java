@@ -5,14 +5,13 @@ import io.github.springwhale.database.SerializableFunction;
 import java.util.Arrays;
 import java.util.List;
 
-public interface Func<T, Children extends AbstractWrapper<T, Children>> {
+public interface Func<T, Children extends AbstractWrapper<T, Children>> extends Wrapper<T, Children> {
 
     default Children isNull(boolean condition, SerializableFunction<T, ?> field) {
         if (condition) {
-            AbstractWrapper<T, Children> wrapper = (AbstractWrapper<T, Children>) this;
-            wrapper.addCondition((root, cb) -> cb.isNull(root.get(AbstractWrapper.getPropertyName(field))));
+            getWrapper().addCondition((root, cb) -> cb.isNull(root.get(AbstractWrapper.getPropertyName(field))));
         }
-        return (Children) this;
+        return getWrapper().self();
     }
 
     default Children isNull(SerializableFunction<T, ?> field) {
@@ -21,10 +20,9 @@ public interface Func<T, Children extends AbstractWrapper<T, Children>> {
 
     default Children isNull(boolean condition, String field) {
         if (condition) {
-            AbstractWrapper<T, Children> wrapper = (AbstractWrapper<T, Children>) this;
-            wrapper.addCondition((root, cb) -> cb.isNull(root.get(field)));
+            getWrapper().addCondition((root, cb) -> cb.isNull(root.get(field)));
         }
-        return (Children) this;
+        return getWrapper().self();
     }
 
     default Children isNull(String field) {
@@ -33,10 +31,9 @@ public interface Func<T, Children extends AbstractWrapper<T, Children>> {
 
     default Children isNotNull(boolean condition, SerializableFunction<T, ?> field) {
         if (condition) {
-            AbstractWrapper<T, Children> wrapper = (AbstractWrapper<T, Children>) this;
-            wrapper.addCondition((root, cb) -> cb.isNotNull(root.get(AbstractWrapper.getPropertyName(field))));
+            getWrapper().addCondition((root, cb) -> cb.isNotNull(root.get(AbstractWrapper.getPropertyName(field))));
         }
-        return (Children) this;
+        return getWrapper().self();
     }
 
     default Children isNotNull(SerializableFunction<T, ?> field) {
@@ -45,10 +42,9 @@ public interface Func<T, Children extends AbstractWrapper<T, Children>> {
 
     default Children isNotNull(boolean condition, String field) {
         if (condition) {
-            AbstractWrapper<T, Children> wrapper = (AbstractWrapper<T, Children>) this;
-            wrapper.addCondition((root, cb) -> cb.isNotNull(root.get(field)));
+            getWrapper().addCondition((root, cb) -> cb.isNotNull(root.get(field)));
         }
-        return (Children) this;
+        return getWrapper().self();
     }
 
     default Children isNotNull(String field) {
@@ -57,10 +53,9 @@ public interface Func<T, Children extends AbstractWrapper<T, Children>> {
 
     default Children in(boolean condition, SerializableFunction<T, ?> field, Object... values) {
         if (condition) {
-            AbstractWrapper<T, Children> wrapper = (AbstractWrapper<T, Children>) this;
-            wrapper.addCondition((root, cb) -> root.get(AbstractWrapper.getPropertyName(field)).in(Arrays.asList(values)));
+            getWrapper().addCondition((root, cb) -> root.get(AbstractWrapper.getPropertyName(field)).in(Arrays.asList(values)));
         }
-        return (Children) this;
+        return getWrapper().self();
     }
 
     default Children in(SerializableFunction<T, ?> field, Object... values) {
@@ -69,10 +64,9 @@ public interface Func<T, Children extends AbstractWrapper<T, Children>> {
 
     default Children in(boolean condition, String field, Object... values) {
         if (condition) {
-            AbstractWrapper<T, Children> wrapper = (AbstractWrapper<T, Children>) this;
-            wrapper.addCondition((root, cb) -> root.get(field).in(Arrays.asList(values)));
+            getWrapper().addCondition((root, cb) -> root.get(field).in(Arrays.asList(values)));
         }
-        return (Children) this;
+        return getWrapper().self();
     }
 
     default Children in(String field, Object... values) {
@@ -81,10 +75,9 @@ public interface Func<T, Children extends AbstractWrapper<T, Children>> {
 
     default Children in(boolean condition, SerializableFunction<T, ?> field, List<?> values) {
         if (condition) {
-            AbstractWrapper<T, Children> wrapper = (AbstractWrapper<T, Children>) this;
-            wrapper.addCondition((root, cb) -> root.get(AbstractWrapper.getPropertyName(field)).in(values));
+            getWrapper().addCondition((root, cb) -> root.get(AbstractWrapper.getPropertyName(field)).in(values));
         }
-        return (Children) this;
+        return getWrapper().self();
     }
 
     default Children in(SerializableFunction<T, ?> field, List<?> values) {
@@ -93,10 +86,9 @@ public interface Func<T, Children extends AbstractWrapper<T, Children>> {
 
     default Children in(boolean condition, String field, List<?> values) {
         if (condition) {
-            AbstractWrapper<T, Children> wrapper = (AbstractWrapper<T, Children>) this;
-            wrapper.addCondition((root, cb) -> root.get(field).in(values));
+            getWrapper().addCondition((root, cb) -> root.get(field).in(values));
         }
-        return (Children) this;
+        return getWrapper().self();
     }
 
     default Children in(String field, List<?> values) {
@@ -105,11 +97,10 @@ public interface Func<T, Children extends AbstractWrapper<T, Children>> {
 
     default Children between(boolean condition, SerializableFunction<T, ?> field, Object start, Object end) {
         if (condition) {
-            AbstractWrapper<T, Children> wrapper = (AbstractWrapper<T, Children>) this;
-            wrapper.addCondition(new AbstractWrapper.RangeCondition<>(
+            getWrapper().addCondition(new AbstractWrapper.RangeCondition<>(
                     AbstractWrapper.getPropertyName(field), start, end, AbstractWrapper.RangeType.BETWEEN));
         }
-        return (Children) this;
+        return getWrapper().self();
     }
 
     default Children between(SerializableFunction<T, ?> field, Object start, Object end) {
@@ -118,11 +109,10 @@ public interface Func<T, Children extends AbstractWrapper<T, Children>> {
 
     default Children between(boolean condition, String field, Object start, Object end) {
         if (condition) {
-            AbstractWrapper<T, Children> wrapper = (AbstractWrapper<T, Children>) this;
-            wrapper.addCondition(new AbstractWrapper.RangeCondition<>(
+            getWrapper().addCondition(new AbstractWrapper.RangeCondition<>(
                     field, start, end, AbstractWrapper.RangeType.BETWEEN));
         }
-        return (Children) this;
+        return getWrapper().self();
     }
 
     default Children between(String field, Object start, Object end) {

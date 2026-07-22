@@ -2,29 +2,25 @@ package io.github.springwhale.database.criteria;
 
 import io.github.springwhale.database.SerializableFunction;
 
-public interface OrderBy<T, Children extends AbstractWrapper<T, Children>> {
+public interface OrderBy<T, Children extends AbstractWrapper<T, Children>> extends Wrapper<T, Children> {
 
     default Children orderByAsc(SerializableFunction<T, ?> field) {
-        AbstractWrapper<T, Children> wrapper = (AbstractWrapper<T, Children>) this;
-        wrapper.addSort(AbstractWrapper.getPropertyName(field), true);
-        return (Children) this;
+        getWrapper().addSort(AbstractWrapper.getPropertyName(field), true);
+        return getWrapper().self();
     }
 
     default Children orderByAsc(String field) {
-        AbstractWrapper<T, Children> wrapper = (AbstractWrapper<T, Children>) this;
-        wrapper.addSort(field, true);
-        return (Children) this;
+        getWrapper().addSort(field, true);
+        return getWrapper().self();
     }
 
     default Children orderByDesc(SerializableFunction<T, ?> field) {
-        AbstractWrapper<T, Children> wrapper = (AbstractWrapper<T, Children>) this;
-        wrapper.addSort(AbstractWrapper.getPropertyName(field), false);
-        return (Children) this;
+        getWrapper().addSort(AbstractWrapper.getPropertyName(field), false);
+        return getWrapper().self();
     }
 
     default Children orderByDesc(String field) {
-        AbstractWrapper<T, Children> wrapper = (AbstractWrapper<T, Children>) this;
-        wrapper.addSort(field, false);
-        return (Children) this;
+        getWrapper().addSort(field, false);
+        return getWrapper().self();
     }
 }

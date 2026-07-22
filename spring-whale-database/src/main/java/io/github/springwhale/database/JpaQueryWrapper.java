@@ -26,7 +26,7 @@ public class JpaQueryWrapper<T> extends AbstractWrapper<T, JpaQueryWrapper<T>>
     }
 
     @Override
-    protected JpaQueryWrapper<T> self() {
+    public JpaQueryWrapper<T> self() {
         return this;
     }
 

@@ -10,7 +10,7 @@ import java.lang.invoke.SerializedLambda;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class AbstractWrapper<T, Children extends AbstractWrapper<T, Children>> {
+public abstract class AbstractWrapper<T, Children extends AbstractWrapper<T, Children>> implements Wrapper<T, Children> {
 
     protected final List<Condition<T>> conditions = new ArrayList<>();
     protected final List<SortInfo> sorts = new ArrayList<>();
@@ -74,7 +74,7 @@ public abstract class AbstractWrapper<T, Children extends AbstractWrapper<T, Chi
         return Character.toLowerCase(str.charAt(0)) + str.substring(1);
     }
 
-    protected abstract Children self();
+    public abstract Children self();
 
     protected abstract Children createSubWrapper();
 
@@ -149,7 +149,6 @@ public abstract class AbstractWrapper<T, Children extends AbstractWrapper<T, Chi
     protected record LikeCondition<T>(String fieldName, String pattern, boolean ignoreCase) implements Condition<T> {
 
         @Override
-        @SuppressWarnings("unchecked")
         public Predicate apply(Root<T> root, CriteriaBuilder cb) {
             if (ignoreCase) {
                 return cb.like(cb.lower(root.get(fieldName)), pattern);
@@ -164,20 +163,13 @@ public abstract class AbstractWrapper<T, Children extends AbstractWrapper<T, Chi
         @Override
         @SuppressWarnings("unchecked")
         public Predicate apply(Root<T> root, CriteriaBuilder cb) {
-            switch (type) {
-                case BETWEEN:
-                    return cb.between(root.get(fieldName), (Comparable) start, (Comparable) end);
-                case GREATER_THAN:
-                    return cb.greaterThan(root.get(fieldName), (Comparable) start);
-                case GREATER_THAN_OR_EQUAL:
-                    return cb.greaterThanOrEqualTo(root.get(fieldName), (Comparable) start);
-                case LESS_THAN:
-                    return cb.lessThan(root.get(fieldName), (Comparable) end);
-                case LESS_THAN_OR_EQUAL:
-                    return cb.lessThanOrEqualTo(root.get(fieldName), (Comparable) end);
-                default:
-                    return null;
-            }
+            return switch (type) {
+                case BETWEEN -> cb.between(root.get(fieldName), (Comparable) start, (Comparable) end);
+                case GREATER_THAN -> cb.greaterThan(root.get(fieldName), (Comparable) start);
+                case GREATER_THAN_OR_EQUAL -> cb.greaterThanOrEqualTo(root.get(fieldName), (Comparable) start);
+                case LESS_THAN -> cb.lessThan(root.get(fieldName), (Comparable) end);
+                case LESS_THAN_OR_EQUAL -> cb.lessThanOrEqualTo(root.get(fieldName), (Comparable) end);
+            };
         }
     }
 
