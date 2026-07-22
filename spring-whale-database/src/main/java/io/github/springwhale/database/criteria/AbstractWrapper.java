@@ -44,24 +44,19 @@ public abstract class AbstractWrapper<T, Children extends AbstractWrapper<T, Chi
             writeReplaceMethod.setAccessible(true);
             return (SerializedLambda) writeReplaceMethod.invoke(field);
         } catch (NoSuchMethodException e) {
-            try {
-                try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                     ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-                    oos.writeObject(field);
-                    byte[] bytes = baos.toByteArray();
-                    try (java.io.ObjectInputStream ois = new java.io.ObjectInputStream(new java.io.ByteArrayInputStream(bytes))) {
-                        Object obj = ois.readObject();
-                        if (obj instanceof SerializedLambda) {
-                            return (SerializedLambda) obj;
-                        }
+            try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                 ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+                oos.writeObject(field);
+                try (java.io.ObjectInputStream ois = new java.io.ObjectInputStream(new java.io.ByteArrayInputStream(baos.toByteArray()))) {
+                    Object obj = ois.readObject();
+                    if (obj instanceof SerializedLambda) {
+                        return (SerializedLambda) obj;
                     }
                 }
-            } catch (Exception ex) {
-                throw new RuntimeException("Failed to extract SerializedLambda. " +
-                        "This may be due to JDK version restrictions.", ex);
             }
+            throw new RuntimeException("Failed to extract SerializedLambda. " +
+                    "This may be due to JDK version restrictions.");
         }
-        throw new RuntimeException("Failed to extract SerializedLambda");
     }
 
     protected static String decapitalize(String str) {
@@ -127,6 +122,10 @@ public abstract class AbstractWrapper<T, Children extends AbstractWrapper<T, Chi
     public Specification<T> buildSpec() {
         return (root, query, cb) -> {
             List<Predicate> predicates = buildPredicates(root, cb);
+            List<Order> orders = buildOrders(root, cb);
+            if (!orders.isEmpty()) {
+                query.orderBy(orders);
+            }
             if (!predicates.isEmpty()) {
                 return cb.and(predicates.toArray(new Predicate[0]));
             }

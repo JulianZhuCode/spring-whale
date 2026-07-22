@@ -98,7 +98,7 @@ public class UserService {
      * Search users by username or real name (fuzzy)
      */
     public List<UserVO> search(String keyword) {
-        if (keyword == null || keyword.trim().isEmpty()) {
+        if (ObjectUtils.isEmpty(keyword)) {
             return List.of();
         }
         List<UserEntity> byUsername = userRepository.findByUsernameContaining(keyword);

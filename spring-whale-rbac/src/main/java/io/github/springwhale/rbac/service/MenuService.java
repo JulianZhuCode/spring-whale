@@ -75,7 +75,7 @@ public class MenuService {
      * Search menus by name (fuzzy)
      */
     public List<MenuVO> search(String keyword) {
-        if (keyword == null || keyword.trim().isEmpty()) {
+        if (ObjectUtils.isEmpty(keyword)) {
             return List.of();
         }
         return menuMapper.toVOList(menuRepository.findByNameContaining(keyword));

@@ -80,7 +80,7 @@ public class RoleService {
      * Search roles by name (fuzzy)
      */
     public List<RoleVO> search(String keyword) {
-        if (keyword == null || keyword.trim().isEmpty()) {
+        if (ObjectUtils.isEmpty(keyword)) {
             return List.of();
         }
         List<RoleVO> vos = roleMapper.toVOList(roleRepository.findByNameContaining(keyword));

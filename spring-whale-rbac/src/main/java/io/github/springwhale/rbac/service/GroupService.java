@@ -74,7 +74,7 @@ public class GroupService {
      * Search departments by name (fuzzy)
      */
     public List<GroupVO> search(String keyword) {
-        if (keyword == null || keyword.trim().isEmpty()) {
+        if (ObjectUtils.isEmpty(keyword)) {
             return List.of();
         }
         return groupMapper.toVOList(groupRepository.findByNameContaining(keyword));
