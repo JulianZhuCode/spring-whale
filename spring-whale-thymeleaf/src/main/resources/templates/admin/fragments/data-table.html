@@ -68,7 +68,7 @@
                            end=${(total <= 9) ? (total - 1) : (start + 8)}">
             <ul class="pagination">
                 <li class="page-item" th:classappend="${page.first} ? 'disabled'">
-                    <a class="page-link" th:if="${!page.first}" th:text="#{table.pagination.prev}">Prev</a>
+                    <a class="page-link" th:if="${!page.first}" th:text="#{table.pagination.prev}" data-page-action="prev">Prev</a>
                     <span class="page-link" th:if="${page.first}" th:text="#{table.pagination.prev}">Prev</span>
                 </li>
 
@@ -93,7 +93,7 @@
                 </li>
 
                 <li class="page-item" th:classappend="${page.last} ? 'disabled'">
-                    <a class="page-link" th:if="${!page.last}" th:text="#{table.pagination.next}">Next</a>
+                    <a class="page-link" th:if="${!page.last}" th:text="#{table.pagination.next}" data-page-action="next">Next</a>
                     <span class="page-link" th:if="${page.last}" th:text="#{table.pagination.next}">Next</span>
                 </li>
             </ul>
@@ -104,23 +104,29 @@
             var links = document.querySelectorAll('.pagination a.page-link');
             var url = new URL(window.location.href);
             links.forEach(function (link) {
-                var pageNum = link.textContent.trim();
+                var action = link.getAttribute('data-page-action');
                 var newUrl = new URL(url);
-                if (pageNum === 'Prev') {
-                    var currentPage = parseInt(newUrl.searchParams.get('page') || '0');
+                if (action === 'prev') {
+                    var currentPage = parseInt(newUrl.searchParams.get('page') || '0', 10);
+                    if (isNaN(currentPage)) currentPage = 0;
                     var prevPage = currentPage - 1;
                     if (prevPage >= 0) {
                         newUrl.searchParams.set('page', prevPage.toString());
                         link.href = newUrl.toString();
                     }
-                } else if (pageNum === 'Next') {
-                    var currentPage = parseInt(newUrl.searchParams.get('page') || '0');
+                } else if (action === 'next') {
+                    var currentPage = parseInt(newUrl.searchParams.get('page') || '0', 10);
+                    if (isNaN(currentPage)) currentPage = 0;
                     var nextPage = currentPage + 1;
                     newUrl.searchParams.set('page', nextPage.toString());
                     link.href = newUrl.toString();
                 } else {
-                    newUrl.searchParams.set('page', (parseInt(pageNum) - 1).toString());
-                    link.href = newUrl.toString();
+                    var pageNum = link.textContent.trim();
+                    var num = parseInt(pageNum, 10);
+                    if (!isNaN(num)) {
+                        newUrl.searchParams.set('page', (num - 1).toString());
+                        link.href = newUrl.toString();
+                    }
                 }
             });
         })();
