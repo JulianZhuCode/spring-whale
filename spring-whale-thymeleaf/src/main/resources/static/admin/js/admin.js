@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initConfirmDialogs();
     initModalSystem();
     initDeleteButtons();
+    initTableSearch();
 });
 
 /* ===== Sidebar ===== */
@@ -432,3 +433,140 @@ function apiCall(url, options = {}) {
 
     document.getElementById('username').focus();
 })();
+
+/* ===== Table Search (universal filter bar) ===== */
+
+/**
+ * Initializes all table search bars on the page.
+ *
+ * A search bar is a container marked with `data-table-search` that holds:
+ *   - a text input  (input[data-search-field="keyword"])
+ *   - a clear button (button[data-search-clear])
+ *   - a search button (button[data-search-submit])
+ *   - any number of filter selects (select[data-search-field])
+ *
+ * Attributes on the container:
+ *   data-table-search  : base URL for the search (e.g. "/admin/rbac/users")
+ *   data-debounce-ms   : debounce delay in ms for text input (default: 800)
+ *
+ * Attributes on fields:
+ *   data-search-field  : query param name (e.g. "keyword", "status", "type")
+ *   data-search-clear  : marks the clear button
+ *   data-search-submit : marks the search button
+ *
+ * Usage example:
+ *   <div class="row g-2" data-table-search="/admin/dict/words" data-debounce-ms="800">
+ *     <div class="col-md-5">
+ *       <div class="input-group">
+ *         <span class="input-group-text"><i class="bi bi-search"></i></span>
+ *         <input class="form-control" data-search-field="keyword" type="text"
+ *                placeholder="Search..." th:value="${keyword}">
+ *         <button class="btn btn-outline-secondary" data-search-clear type="button">
+ *           <i class="bi bi-x-lg"></i>
+ *         </button>
+ *         <button class="btn btn-primary" data-search-submit type="button">
+ *           <i class="bi bi-search me-1"></i>Search
+ *         </button>
+ *       </div>
+ *     </div>
+ *     <div class="col-md-3">
+ *       <select class="form-select" data-search-field="pos">
+ *         <option value="">All</option>
+ *         ...
+ *       </select>
+ *     </div>
+ *   </div>
+ */
+function initTableSearch() {
+    const containers = document.querySelectorAll('[data-table-search]');
+    containers.forEach(container => {
+        if (container._searchInited) return;
+        container._searchInited = true;
+
+        const baseUrl = container.getAttribute('data-table-search');
+        const debounceMs = parseInt(container.getAttribute('data-debounce-ms') || '800', 10);
+
+        const keywordInput = container.querySelector('input[data-search-field="keyword"]');
+        const clearBtn = container.querySelector('[data-search-clear]');
+        const submitBtn = container.querySelector('[data-search-submit]');
+        const filterFields = container.querySelectorAll('[data-search-field]');
+
+        let searchTimer = null;
+
+        function collectParams() {
+            const params = new URLSearchParams(window.location.search);
+            filterFields.forEach(field => {
+                const paramName = field.getAttribute('data-search-field');
+                const value = field.value.trim();
+                if (value) {
+                    params.set(paramName, value);
+                } else {
+                    params.delete(paramName);
+                }
+            });
+            params.delete('page');
+            return params;
+        }
+
+        function doSearch() {
+            const params = collectParams();
+            const sep = baseUrl.includes('?') ? '&' : '?';
+            const paramStr = params.toString();
+            window.location.href = baseUrl + (paramStr ? sep + paramStr : '');
+        }
+
+        function updateClearBtn() {
+            if (!clearBtn || !keywordInput) return;
+            clearBtn.style.display = keywordInput.value ? '' : 'none';
+        }
+
+        // Keyword input: debounced search
+        if (keywordInput) {
+            updateClearBtn();
+            keywordInput.addEventListener('input', () => {
+                updateClearBtn();
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(doSearch, debounceMs);
+            });
+            keywordInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    clearTimeout(searchTimer);
+                    doSearch();
+                }
+            });
+        }
+
+        // Clear button
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                if (keywordInput) {
+                    keywordInput.value = '';
+                    keywordInput.dispatchEvent(new Event('input'));
+                }
+                clearTimeout(searchTimer);
+                doSearch();
+            });
+        }
+
+        // Submit button
+        if (submitBtn) {
+            submitBtn.addEventListener('click', () => {
+                clearTimeout(searchTimer);
+                doSearch();
+            });
+        }
+
+        // Filter selects: immediate search on change
+        filterFields.forEach(field => {
+            if (field.tagName === 'SELECT') {
+                field.addEventListener('change', () => {
+                    clearTimeout(searchTimer);
+                    doSearch();
+                });
+            }
+        });
+    });
+}
+
+// Expose for manual re-init (e.g. after dynamic content load)
+window.initTableSearch = initTableSearch;
