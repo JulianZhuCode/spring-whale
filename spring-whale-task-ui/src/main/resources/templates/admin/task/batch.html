@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html layout:decorate="~{admin/layout}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title th:text="#{task.title}">Batch Tasks</title>
+</head>
+
+<body>
+
+<main layout:fragment="content">
+    <th:block th:replace="~{admin/fragments/data-table :: table(
+        title=#{task.title},
+        description=#{task.description},
+        createUrl='#',
+        createModal='task-create-modal',
+        createPermission='task:create',
+        items=${tasks},
+        emptyMessage=#{task.empty},
+        baseUrl='/admin/task/batch',
+        page=${page},
+        colspan=9,
+        headers=~{::#task-headers},
+        rows=~{::#task-row},
+        filter=~{::#task-filter}
+    )}">
+
+        <th:block id="task-filter">
+            <div class="row g-2" data-table-search="/admin/task/batch">
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input class="form-control" data-search-field="taskType"
+                               th:placeholder="#{task.search_placeholder}"
+                               th:value="${taskType}" type="text">
+                        <button class="btn btn-outline-secondary" data-search-clear style="display:none"
+                                type="button">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                        <button class="btn btn-primary" data-search-submit type="button">
+                            <i class="bi bi-search me-1"></i><span th:text="#{table.search}">Search</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" data-search-field="status">
+                        <option value="" th:text="#{task.all_status}">All Status</option>
+                        <option th:selected="${selectedStatus == 'PENDING'}" value="PENDING" th:text="#{task.progress_pending}">Pending</option>
+                        <option th:selected="${selectedStatus == 'RUNNING'}" value="RUNNING" th:text="#{task.progress_running}">Running</option>
+                        <option th:selected="${selectedStatus == 'PAUSED'}" value="PAUSED" th:text="#{task.progress_paused}">Paused</option>
+                        <option th:selected="${selectedStatus == 'COMPLETED'}" value="COMPLETED" th:text="#{task.progress_completed}">Completed</option>
+                        <option th:selected="${selectedStatus == 'FAILED'}" value="FAILED" th:text="#{task.progress_failed}">Failed</option>
+                        <option th:selected="${selectedStatus == 'CANCELLED'}" value="CANCELLED" th:text="#{task.progress_cancelled}">Cancelled</option>
+                    </select>
+                </div>
+            </div>
+        </th:block>
+
+        <th:block id="task-headers">
+            <th>ID</th>
+            <th th:text="#{task.type}">Type</th>
+            <th th:text="#{task.status}">Status</th>
+            <th th:text="#{task.progress}">Progress</th>
+            <th th:text="#{task.total}">Total</th>
+            <th th:text="#{task.success}">/ <span class="text-success">Success</span></th>
+            <th th:text="#{task.fail}">/ <span class="text-danger">Failed</span></th>
+            <th th:text="#{task.start_time}">Start / End</th>
+            <th th:text="#{task.actions}">Actions</th>
+        </th:block>
+
+        <th:block id="task-row">
+            <td th:text="${item.id}">1</td>
+            <td><code th:text="${item.taskType}">WORD_AUDIO</code></td>
+            <td>
+                <span class="badge" th:classappend="${item.status == 'RUNNING'} ? 'bg-primary' :
+                                                     (${item.status == 'COMPLETED'} ? 'bg-success' :
+                                                     (${item.status == 'FAILED'} ? 'bg-danger' :
+                                                     (${item.status == 'PAUSED'} ? 'bg-warning text-dark' :
+                                                     (${item.status == 'CANCELLED'} ? 'bg-secondary' : 'bg-light text-dark'))))"
+                      th:text="${item.statusLabel}">Running</span>
+            </td>
+            <td style="min-width: 200px;">
+                <div class="progress" style="height: 20px;" title="Progress">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated"
+                         th:classappend="${item.status == 'COMPLETED'} ? 'bg-success' :
+                                          (${item.status == 'FAILED'} ? 'bg-danger' :
+                                          (${item.status == 'PAUSED'} ? 'bg-warning text-dark' : 'bg-primary'))"
+                         th:style="'width:' + ${item.progress} + '%'"
+                         th:text="${item.progress} + '%'">0%</div>
+                </div>
+                <small class="text-muted" th:if="${item.estimatedRemainingSeconds != null}"
+                       th:text="#{task.eta_seconds(${item.estimatedRemainingSeconds})}">ETA: 30s</small>
+            </td>
+            <td th:text="${item.totalCount}">100</td>
+            <td class="text-success" th:text="${item.successCount}">95</td>
+            <td class="text-danger" th:text="${item.failCount}">2</td>
+            <td>
+                <small th:text="${item.startTime != null} ? ${#temporals.format(item.startTime.atZone(T(java.time.ZoneId).systemDefault()).toLocalDateTime(), 'MM-dd HH:mm:ss')} : '-'">07-29 10:00:00</small>
+                <br/>
+                <small class="text-muted" th:text="${item.endTime != null} ? ${#temporals.format(item.endTime.atZone(T(java.time.ZoneId).systemDefault()).toLocalDateTime(), 'MM-dd HH:mm:ss')} : '-'">-</small>
+            </td>
+            <td>
+                <div class="btn-group" role="group">
+                    <button class="btn btn-sm btn-success" th:if="${item.status == 'PENDING'}"
+                            data-api="/api/tasks/${item.id}/start"
+                            data-api-method="POST"
+                            th:text="#{task.start}">Start</button>
+                    <button class="btn btn-sm btn-warning" th:if="${item.status == 'RUNNING'}"
+                            data-api="/api/tasks/${item.id}/pause"
+                            data-api-method="POST"
+                            th:text="#{task.pause}">Pause</button>
+                    <button class="btn btn-sm btn-primary" th:if="${item.status == 'PAUSED'}"
+                            data-api="/api/tasks/${item.id}/resume"
+                            data-api-method="POST"
+                            th:text="#{task.resume}">Resume</button>
+                    <button class="btn btn-sm btn-outline-danger" th:if="${item.status == 'RUNNING' or item.status == 'PAUSED'}"
+                            data-api="/api/tasks/${item.id}/cancel"
+                            data-api-method="POST"
+                            th:data-confirm="#{task.confirm_cancel}"
+                            th:text="#{task.cancel}">Cancel</button>
+                    <button class="btn btn-sm btn-info"
+                            data-api-get="/api/tasks/${item.id}"
+                            th:text="#{task.view}">View</button>
+                </div>
+            </td>
+        </th:block>
+    </th:block>
+
+    <!-- Create Task Modal -->
+    <div class="modal fade" id="task-create-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" th:text="#{task.create_title}">Create Batch Task</h5>
+                    <button class="btn-close" data-bs-dismiss="modal" type="button"></button>
+                </div>
+                <form id="task-create-form" data-api-base="/api/tasks">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label" th:text="#{task.type}">Task Type</label>
+                            <input class="form-control" name="taskType" required type="text"
+                                   th:placeholder="#{task.type_select}">
+                            <div class="invalid-feedback" data-field="taskType"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" th:text="#{task.params_json}">Parameters (JSON)</label>
+                            <textarea class="form-control" name="params" rows="4"
+                                      th:placeholder='{"voice":"ja-JP-NanamiNeural"}'></textarea>
+                            <div class="form-text">Optional JSON object passed to the task handler</div>
+                            <div class="invalid-feedback" data-field="params"></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{action.cancel}"
+                                type="button">Cancel
+                        </button>
+                        <button class="btn btn-primary modal-submit" th:text="#{task.start}" type="button">
+                            Create & Start
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+</body>
+</html>

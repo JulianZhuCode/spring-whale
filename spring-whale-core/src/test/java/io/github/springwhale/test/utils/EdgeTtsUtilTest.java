@@ -1,8 +1,7 @@
 package io.github.springwhale.test.utils;
 
 import io.github.springwhale.framework.core.utils.EdgeTtsUtil;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
@@ -19,12 +18,26 @@ class EdgeTtsUtilTest {
     @TempDir
     Path tempDir;
 
+    private EdgeTtsUtil edgeTtsUtil;
+
+    @BeforeEach
+    void setUp() {
+        edgeTtsUtil = new EdgeTtsUtil("edge-tts", 30, 2);
+    }
+
+    @AfterEach
+    void tearDown() {
+        if (edgeTtsUtil != null) {
+            edgeTtsUtil.shutdown();
+        }
+    }
+
     @Test
     @DisplayName("Should generate MP3 file successfully with default voice")
     void testTtsToMp3Success() {
         String outputPath = tempDir.resolve("output.mp3").toString();
 
-        boolean result = EdgeTtsUtil.ttsToMp3(
+        boolean result = edgeTtsUtil.ttsToMp3(
                 "Hello world, this is a test",
                 "zh-CN-XiaoxiaoNeural",
                 outputPath
@@ -42,7 +55,7 @@ class EdgeTtsUtilTest {
         Path newDir = tempDir.resolve("nested").resolve("output");
         String outputPath = newDir.resolve("speech.mp3").toString();
 
-        boolean result = EdgeTtsUtil.ttsToMp3(
+        boolean result = edgeTtsUtil.ttsToMp3(
                 "Directory creation test",
                 "zh-CN-XiaoxiaoNeural",
                 outputPath
@@ -58,7 +71,7 @@ class EdgeTtsUtilTest {
     void testTtsToMp3WithInvalidVoice() {
         String outputPath = tempDir.resolve("invalid-voice.mp3").toString();
 
-        boolean result = EdgeTtsUtil.ttsToMp3(
+        boolean result = edgeTtsUtil.ttsToMp3(
                 "Test with invalid voice",
                 "zh-CN-NonExistentVoice",
                 outputPath
@@ -68,20 +81,17 @@ class EdgeTtsUtilTest {
     }
 
     @Test
-    @DisplayName("Should handle empty text gracefully by generating silent audio")
+    @DisplayName("Should return false when text is empty")
     void testTtsToMp3WithEmptyText() {
         String outputPath = tempDir.resolve("empty.mp3").toString();
 
-        boolean result = EdgeTtsUtil.ttsToMp3(
+        boolean result = edgeTtsUtil.ttsToMp3(
                 "",
                 "zh-CN-XiaoxiaoNeural",
                 outputPath
         );
 
-        // edge-tts handles empty text by generating a silent audio file
-        assertTrue(result, "ttsToMp3 should handle empty text gracefully");
-        File outputFile = new File(outputPath);
-        assertTrue(outputFile.exists(), "Output file should exist for empty text input");
+        assertFalse(result, "ttsToMp3 should return false for empty text");
     }
 
     @Test
@@ -89,7 +99,7 @@ class EdgeTtsUtilTest {
     void testTtsToMp3WithDifferentVoice() {
         String outputPath = tempDir.resolve("en-us-voice.mp3").toString();
 
-        boolean result = EdgeTtsUtil.ttsToMp3(
+        boolean result = edgeTtsUtil.ttsToMp3(
                 "This is a test with a different voice",
                 "en-US-AriaNeural",
                 outputPath
@@ -99,5 +109,50 @@ class EdgeTtsUtilTest {
         File outputFile = new File(outputPath);
         assertTrue(outputFile.exists(), "Output file should exist");
         assertTrue(outputFile.length() > 0, "Output file should not be empty");
+    }
+
+    @Test
+    @DisplayName("Should generate audio with configurable timeout")
+    void testTtsToMp3WithTimeout() {
+        String outputPath = tempDir.resolve("timeout.mp3").toString();
+
+        boolean result = edgeTtsUtil.ttsToMp3(
+                "Testing configurable timeout",
+                "zh-CN-XiaoxiaoNeural",
+                outputPath,
+                60
+        );
+
+        assertTrue(result, "ttsToMp3 with custom timeout should succeed");
+        File outputFile = new File(outputPath);
+        assertTrue(outputFile.exists(), "Output file should exist");
+    }
+
+    @Test
+    @DisplayName("Should track active task count")
+    void testActiveTaskCount() {
+        assertEquals(0, edgeTtsUtil.getActiveTaskCount(), "Initial active task count should be 0");
+
+        String outputPath = tempDir.resolve("active-count.mp3").toString();
+        edgeTtsUtil.ttsToMp3("Active count test", "zh-CN-XiaoxiaoNeural", outputPath);
+
+        assertTrue(edgeTtsUtil.getActiveTaskCount() >= 0, "Active task count should be non-negative after completion");
+    }
+
+    @Test
+    @DisplayName("Batch generation should produce results for all requests")
+    void testBatchGeneration() {
+        String baseDir = tempDir.resolve("batch").toString();
+
+        EdgeTtsUtil.TtsRequest req1 = new EdgeTtsUtil.TtsRequest("1", "First test", "zh-CN-XiaoxiaoNeural", baseDir + "/1.mp3");
+        EdgeTtsUtil.TtsRequest req2 = new EdgeTtsUtil.TtsRequest("2", "Second test", "zh-CN-XiaoxiaoNeural", baseDir + "/2.mp3");
+        EdgeTtsUtil.TtsRequest req3 = new EdgeTtsUtil.TtsRequest("3", "", "zh-CN-XiaoxiaoNeural", baseDir + "/3.mp3");
+
+        var results = edgeTtsUtil.ttsToMp3Batch(java.util.List.of(req1, req2, req3));
+
+        assertEquals(3, results.size(), "Should return result for each request");
+        assertTrue(results.get(0).success(), "First request should succeed");
+        assertTrue(results.get(1).success(), "Second request should succeed");
+        assertFalse(results.get(2).success(), "Third request with empty text should fail");
     }
 }
