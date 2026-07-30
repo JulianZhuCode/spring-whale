@@ -20,4 +20,6 @@ public interface TaskBatchRepository extends JpaRepository<TaskBatchEntity, Inte
     Page<TaskBatchEntity> findByStatus(TaskStatus status, Pageable pageable);
 
     boolean existsByIdAndStatus(Integer id, TaskStatus status);
+
+    List<TaskBatchEntity> findByTaskTypeAndStatusNotIn(String taskType, List<TaskStatus> statuses);
 }

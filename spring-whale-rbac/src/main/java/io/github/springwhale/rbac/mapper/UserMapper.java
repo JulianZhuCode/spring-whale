@@ -2,28 +2,51 @@ package io.github.springwhale.rbac.mapper;
 
 import io.github.springwhale.rbac.dto.vo.UserVO;
 import io.github.springwhale.rbac.entity.UserEntity;
-import org.mapstruct.Mapper;
+import org.springframework.beans.BeanUtils;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * MapStruct mapper for User entity/VO conversion
+ * User entity/VO converter
  */
-@Mapper(componentModel = "spring")
-public interface UserMapper {
+@Component
+public class UserMapper {
 
     /**
      * Entity to VO
      */
-    UserVO toVO(UserEntity entity);
+    public UserVO toVO(UserEntity entity) {
+        if (entity == null) {
+            return null;
+        }
+        UserVO vo = new UserVO();
+        BeanUtils.copyProperties(entity, vo);
+        return vo;
+    }
 
     /**
      * VO to Entity
      */
-    UserEntity toEntity(UserVO vo);
+    public UserEntity toEntity(UserVO vo) {
+        if (vo == null) {
+            return null;
+        }
+        UserEntity entity = new UserEntity();
+        BeanUtils.copyProperties(vo, entity);
+        return entity;
+    }
 
     /**
      * Entity list to VO list
      */
-    List<UserVO> toVOList(List<UserEntity> entities);
+    public List<UserVO> toVOList(List<UserEntity> entities) {
+        if (entities == null) {
+            return null;
+        }
+        return entities.stream()
+                .map(this::toVO)
+                .collect(Collectors.toList());
+    }
 }

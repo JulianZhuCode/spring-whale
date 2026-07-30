@@ -54,4 +54,9 @@ public class TaskVO {
      * Estimated seconds remaining (rough estimate, null if not running).
      */
     private Long estimatedRemainingSeconds;
+
+    /**
+     * Formatted remaining time string (e.g. "1小时2分3秒", "2分3秒", "45秒").
+     */
+    private String formattedRemainingTime;
 }

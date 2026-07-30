@@ -2,28 +2,51 @@ package io.github.springwhale.rbac.mapper;
 
 import io.github.springwhale.rbac.dto.vo.RoleVO;
 import io.github.springwhale.rbac.entity.RoleEntity;
-import org.mapstruct.Mapper;
+import org.springframework.beans.BeanUtils;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * MapStruct mapper for Role entity/VO conversion
+ * Role entity/VO converter
  */
-@Mapper(componentModel = "spring")
-public interface RoleMapper {
+@Component
+public class RoleMapper {
 
     /**
      * Entity to VO
      */
-    RoleVO toVO(RoleEntity entity);
+    public RoleVO toVO(RoleEntity entity) {
+        if (entity == null) {
+            return null;
+        }
+        RoleVO vo = new RoleVO();
+        BeanUtils.copyProperties(entity, vo);
+        return vo;
+    }
 
     /**
      * VO to Entity
      */
-    RoleEntity toEntity(RoleVO vo);
+    public RoleEntity toEntity(RoleVO vo) {
+        if (vo == null) {
+            return null;
+        }
+        RoleEntity entity = new RoleEntity();
+        BeanUtils.copyProperties(vo, entity);
+        return entity;
+    }
 
     /**
      * Entity list to VO list
      */
-    List<RoleVO> toVOList(List<RoleEntity> entities);
+    public List<RoleVO> toVOList(List<RoleEntity> entities) {
+        if (entities == null) {
+            return null;
+        }
+        return entities.stream()
+                .map(this::toVO)
+                .collect(Collectors.toList());
+    }
 }

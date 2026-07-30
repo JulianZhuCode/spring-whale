@@ -73,24 +73,24 @@
             <td th:text="${item.id}">1</td>
             <td><code th:text="${item.taskType}">WORD_AUDIO</code></td>
             <td>
-                <span class="badge" th:classappend="${item.status == 'RUNNING'} ? 'bg-primary' :
-                                                     (${item.status == 'COMPLETED'} ? 'bg-success' :
-                                                     (${item.status == 'FAILED'} ? 'bg-danger' :
-                                                     (${item.status == 'PAUSED'} ? 'bg-warning text-dark' :
-                                                     (${item.status == 'CANCELLED'} ? 'bg-secondary' : 'bg-light text-dark'))))"
+                <span class="badge" th:classappend="${item.status.name() == 'RUNNING'} ? 'bg-primary' :
+                                                     (${item.status.name() == 'COMPLETED'} ? 'bg-success' :
+                                                     (${item.status.name() == 'FAILED'} ? 'bg-danger' :
+                                                     (${item.status.name() == 'PAUSED'} ? 'bg-warning text-dark' :
+                                                     (${item.status.name() == 'CANCELLED'} ? 'bg-secondary' : 'bg-light text-dark'))))"
                       th:text="${item.statusLabel}">Running</span>
             </td>
             <td style="min-width: 200px;">
                 <div class="progress" style="height: 20px;" title="Progress">
                     <div class="progress-bar progress-bar-striped progress-bar-animated"
-                         th:classappend="${item.status == 'COMPLETED'} ? 'bg-success' :
-                                          (${item.status == 'FAILED'} ? 'bg-danger' :
-                                          (${item.status == 'PAUSED'} ? 'bg-warning text-dark' : 'bg-primary'))"
+                         th:classappend="${item.status.name() == 'COMPLETED'} ? 'bg-success' :
+                                          (${item.status.name() == 'FAILED'} ? 'bg-danger' :
+                                          (${item.status.name() == 'PAUSED'} ? 'bg-warning text-dark' : 'bg-primary'))"
                          th:style="'width:' + ${item.progress} + '%'"
                          th:text="${item.progress} + '%'">0%</div>
                 </div>
-                <small class="text-muted" th:if="${item.estimatedRemainingSeconds != null}"
-                       th:text="#{task.eta_seconds(${item.estimatedRemainingSeconds})}">ETA: 30s</small>
+                <small class="text-muted" th:if="${item.formattedRemainingTime != null and !item.formattedRemainingTime.isEmpty()}"
+                       th:text="'预计剩余: ' + ${item.formattedRemainingTime}">预计剩余: 5分30秒</small>
             </td>
             <td th:text="${item.totalCount}">100</td>
             <td class="text-success" th:text="${item.successCount}">95</td>
@@ -102,25 +102,30 @@
             </td>
             <td>
                 <div class="btn-group" role="group">
-                    <button class="btn btn-sm btn-success" th:if="${item.status == 'PENDING'}"
-                            data-api="/api/tasks/${item.id}/start"
-                            data-api-method="POST"
+                    <button class="btn btn-sm btn-success" th:if="${item.status.name() == 'PENDING'}"
+                            th:data-api="|/api/tasks/${item.id}/start|"
+                            th:data-api-method="POST"
                             th:text="#{task.start}">Start</button>
-                    <button class="btn btn-sm btn-warning" th:if="${item.status == 'RUNNING'}"
-                            data-api="/api/tasks/${item.id}/pause"
-                            data-api-method="POST"
+                    <button class="btn btn-sm btn-warning" th:if="${item.status.name() == 'RUNNING'}"
+                            th:data-api="|/api/tasks/${item.id}/pause|"
+                            th:data-api-method="POST"
                             th:text="#{task.pause}">Pause</button>
-                    <button class="btn btn-sm btn-primary" th:if="${item.status == 'PAUSED'}"
-                            data-api="/api/tasks/${item.id}/resume"
-                            data-api-method="POST"
+                    <button class="btn btn-sm btn-primary" th:if="${item.status.name() == 'PAUSED'}"
+                            th:data-api="|/api/tasks/${item.id}/resume|"
+                            th:data-api-method="POST"
                             th:text="#{task.resume}">Resume</button>
-                    <button class="btn btn-sm btn-outline-danger" th:if="${item.status == 'RUNNING' or item.status == 'PAUSED'}"
-                            data-api="/api/tasks/${item.id}/cancel"
-                            data-api-method="POST"
+                    <button class="btn btn-sm btn-outline-danger" th:if="${item.status.name() == 'RUNNING' or item.status.name() == 'PAUSED' or item.status.name() == 'PENDING'}"
+                            th:data-api="|/api/tasks/${item.id}/cancel|"
+                            th:data-api-method="POST"
                             th:data-confirm="#{task.confirm_cancel}"
                             th:text="#{task.cancel}">Cancel</button>
+                    <button class="btn btn-sm btn-outline-dark"
+                            th:if="${item.status.name() == 'COMPLETED' or item.status.name() == 'CANCELLED' or item.status.name() == 'FAILED'}"
+                            th:data-delete-api="|/api/tasks/${item.id}|"
+                            th:data-delete-confirm="#{task.confirm_delete}"
+                            th:text="#{task.delete}">Delete</button>
                     <button class="btn btn-sm btn-info"
-                            data-api-get="/api/tasks/${item.id}"
+                            th:data-api-get="|/api/tasks/${item.id}|"
                             th:text="#{task.view}">View</button>
                 </div>
             </td>
@@ -146,7 +151,7 @@
                         <div class="mb-3">
                             <label class="form-label" th:text="#{task.params_json}">Parameters (JSON)</label>
                             <textarea class="form-control" name="params" rows="4"
-                                      th:placeholder='{"voice":"ja-JP-NanamiNeural"}'></textarea>
+                                      placeholder='{"voice":"ja-JP-NanamiNeural"}'></textarea>
                             <div class="form-text">Optional JSON object passed to the task handler</div>
                             <div class="invalid-feedback" data-field="params"></div>
                         </div>
@@ -164,6 +169,219 @@
         </div>
     </div>
 
+    <script th:inline="javascript">
+        (function () {
+            // ========== Action buttons (Start / Pause / Resume / Cancel) ==========
+            document.addEventListener('click', function (e) {
+                var btn = e.target.closest('[data-api]');
+                if (!btn) return;
+                e.preventDefault();
+
+                var confirmMsg = btn.getAttribute('data-confirm');
+                if (confirmMsg && !confirm(confirmMsg)) return;
+
+                var url = btn.getAttribute('data-api');
+                var method = btn.getAttribute('data-api-method') || 'POST';
+
+                var origHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+                fetch(url, {method: method})
+                    .then(function (r) { return r.json(); })
+                    .then(function (d) {
+                        if (d && d.code && d.code !== '200') {
+                            throw new Error(d.message || 'Operation failed');
+                        }
+                        var task = (d && d.data) ? d.data : d;
+                        var statusText = task ? (task.statusLabel || task.status) : '';
+                        showToast('操作成功，当前状态: ' + statusText, 'success');
+                        setTimeout(function () { location.reload(); }, 800);
+                    })
+                    .catch(function (err) {
+                        btn.disabled = false;
+                        btn.innerHTML = origHtml;
+                        showPageError(err.message || '操作失败，请稍后重试', 'error');
+                    });
+            });
+
+            // ========== View button (task detail modal) ==========
+            document.addEventListener('click', function (e) {
+                var btn = e.target.closest('[data-api-get]');
+                if (!btn) return;
+                e.preventDefault();
+
+                var url = btn.getAttribute('data-api-get');
+                fetch(url)
+                    .then(function (r) { return r.json(); })
+                    .then(function (d) {
+                        var task = (d && d.data) ? d.data : d;
+                        if (!task) throw new Error('Task not found');
+                        showTaskDetailModal(task);
+                    })
+                    .catch(function (err) {
+                        showPageError(err.message || '获取任务详情失败', 'error');
+                    });
+            });
+
+            // ========== Delete button ==========
+            document.addEventListener('click', function (e) {
+                var btn = e.target.closest('[data-delete-api]');
+                if (!btn) return;
+                e.preventDefault();
+
+                var confirmMsg = btn.getAttribute('data-delete-confirm') || '确定要删除这个任务吗？';
+                if (!confirm(confirmMsg)) return;
+
+                var url = btn.getAttribute('data-delete-api');
+                var origHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+                fetch(url, {method: 'DELETE'})
+                    .then(function (r) {
+                        if (r.status === 200 || r.status === 204) {
+                            showToast('删除成功', 'success');
+                            setTimeout(function () { location.reload(); }, 600);
+                        } else {
+                            return r.json().then(function (d) {
+                                throw new Error((d && d.message) || '删除失败');
+                            });
+                        }
+                    })
+                    .catch(function (err) {
+                        btn.disabled = false;
+                        btn.innerHTML = origHtml;
+                        showPageError(err.message || '删除失败，请稍后重试', 'error');
+                    });
+            });
+
+            function showTaskDetailModal(task) {
+                var html =
+                    '<div class="modal fade" id="task-detail-modal" tabindex="-1">' +
+                    '  <div class="modal-dialog modal-lg">' +
+                    '    <div class="modal-content">' +
+                    '      <div class="modal-header">' +
+                    '        <h5 class="modal-title">Task #' + escapeHtml(String(task.id)) + ' - ' + escapeHtml(task.taskType || '') + '</h5>' +
+                    '        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>' +
+                    '      </div>' +
+                    '      <div class="modal-body">' +
+                    '        <table class="table table-sm table-borderless">' +
+                    '          <tr><th style="width:160px">状态</th><td><span class="badge">' + escapeHtml(task.statusLabel || task.status || '') + '</span></td></tr>' +
+                    '          <tr><th>进度</th><td>' +
+                                 (task.progress != null ? task.progress : 0) + '%' +
+                                 ' <div class="progress mt-1"><div class="progress-bar" style="width:' + (task.progress || 0) + '%"></div></div>' +
+                                 (task.estimatedRemainingSeconds != null && task.estimatedRemainingSeconds > 0
+                                     ? '<small class="text-muted mt-1 d-block">预计剩余: ' + escapeHtml(String(task.estimatedRemainingSeconds)) + ' 秒</small>' : '') +
+                                 '</td></tr>' +
+                    '          <tr><th>总数 / 成功 / 失败 / 跳过</th><td>' +
+                                 (task.totalCount != null ? task.totalCount : 0) + ' / ' +
+                                 '<span class="text-success">' + (task.successCount != null ? task.successCount : 0) + '</span> / ' +
+                                 '<span class="text-danger">' + (task.failCount != null ? task.failCount : 0) + '</span> / ' +
+                                 (task.skippedCount != null ? task.skippedCount : 0) +
+                                 '</td></tr>' +
+                    '          <tr><th>开始时间</th><td>' + escapeHtml(task.startTime ? String(task.startTime) : '-') + '</td></tr>' +
+                    '          <tr><th>结束时间</th><td>' + escapeHtml(task.endTime ? String(task.endTime) : '-') + '</td></tr>' +
+                    '          <tr><th>创建时间</th><td>' + escapeHtml(task.createTime ? String(task.createTime) : '-') + '</td></tr>' +
+                    (task.errorMessage ? ('<tr><th>错误信息</th><td class="text-danger"><pre class="mb-0 small">' + escapeHtml(String(task.errorMessage)) + '</pre></td></tr>') : '') +
+                    (task.params ? ('<tr><th>参数 (params)</th><td><pre class="mb-0 small bg-light p-2 rounded">' + escapeHtml(String(task.params)) + '</pre></td></tr>') : '') +
+                    '        </table>' +
+                    '      </div>' +
+                    '      <div class="modal-footer">' +
+                    '        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>' +
+                    '      </div>' +
+                    '    </div>' +
+                    '  </div>' +
+                    '</div>';
+                var old = document.getElementById('task-detail-modal');
+                if (old) old.remove();
+                document.body.insertAdjacentHTML('beforeend', html);
+                var modalEl = document.getElementById('task-detail-modal');
+                var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.show();
+            }
+
+            function escapeHtml(s) {
+                if (s == null) return '';
+                return String(s)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
+
+            // ========== Create Task Modal submit ==========
+            var createBtn = document.querySelector('#task-create-modal .modal-submit');
+            if (createBtn) {
+                createBtn.addEventListener('click', function () {
+                    var form = document.getElementById('task-create-form');
+                    if (!form) return;
+                    var taskTypeInput = form.querySelector('input[name="taskType"]');
+                    var paramsInput = form.querySelector('textarea[name="params"]');
+
+                    var taskType = taskTypeInput ? taskTypeInput.value.trim() : '';
+                    if (!taskType) {
+                        form.querySelectorAll('.invalid-feedback[data-field="taskType"]').forEach(function (el) {
+                            el.textContent = 'Task Type is required';
+                        });
+                        return;
+                    }
+
+                    var params = {};
+                    if (paramsInput && paramsInput.value.trim()) {
+                        try {
+                            params = JSON.parse(paramsInput.value.trim());
+                        } catch (e) {
+                            form.querySelectorAll('.invalid-feedback[data-field="params"]').forEach(function (el) {
+                                el.textContent = 'Parameters must be valid JSON: ' + e.message;
+                            });
+                            return;
+                        }
+                    }
+                    form.querySelectorAll('.invalid-feedback').forEach(function (el) { el.textContent = ''; });
+
+                    var origHtml = createBtn.innerHTML;
+                    createBtn.disabled = true;
+                    createBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+                    fetch('/api/tasks', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({taskType: taskType, params: params})
+                    })
+                        .then(function (r) { return r.json(); })
+                        .then(function (d) {
+                            if (d && d.code && d.code !== '200') {
+                                throw new Error(d.message || 'Create task failed');
+                            }
+                            var task = (d && d.data) ? d.data : d;
+                            // Auto-start if PENDING
+                            if (task && task.status && (task.status === 'PENDING' || (task.status.name && task.status.name() === 'PENDING'))) {
+                                return fetch('/api/tasks/' + task.id + '/start', {method: 'POST'})
+                                    .then(function (r2) { return r2.json(); })
+                                    .then(function (d2) {
+                                        if (d2 && d2.code && d2.code !== '200') throw new Error(d2.message || 'Start failed');
+                                        return (d2 && d2.data) ? d2.data : d2;
+                                    });
+                            }
+                            return task;
+                        })
+                        .then(function (finalTask) {
+                            showToast('任务已创建并启动 (ID: ' + finalTask.id + ')', 'success');
+                            var modalEl = document.getElementById('task-create-modal');
+                            if (modalEl) bootstrap.Modal.getInstance(modalEl)?.hide();
+                            setTimeout(function () { location.reload(); }, 800);
+                        })
+                        .catch(function (err) {
+                            createBtn.disabled = false;
+                            createBtn.innerHTML = origHtml;
+                            showPageError(err.message || '创建任务失败', 'error');
+                        });
+                });
+            }
+        })();
+    </script>
 </main>
 
 </body>

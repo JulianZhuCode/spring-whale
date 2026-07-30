@@ -2,28 +2,51 @@ package io.github.springwhale.rbac.mapper;
 
 import io.github.springwhale.rbac.dto.vo.RoleMenuVO;
 import io.github.springwhale.rbac.entity.RoleMenuEntity;
-import org.mapstruct.Mapper;
+import org.springframework.beans.BeanUtils;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * MapStruct mapper for RoleMenu entity/VO conversion
+ * RoleMenu entity/VO converter
  */
-@Mapper(componentModel = "spring")
-public interface RoleMenuMapper {
+@Component
+public class RoleMenuMapper {
 
     /**
      * Entity to VO
      */
-    RoleMenuVO toVO(RoleMenuEntity entity);
+    public RoleMenuVO toVO(RoleMenuEntity entity) {
+        if (entity == null) {
+            return null;
+        }
+        RoleMenuVO vo = new RoleMenuVO();
+        BeanUtils.copyProperties(entity, vo);
+        return vo;
+    }
 
     /**
      * VO to Entity
      */
-    RoleMenuEntity toEntity(RoleMenuVO vo);
+    public RoleMenuEntity toEntity(RoleMenuVO vo) {
+        if (vo == null) {
+            return null;
+        }
+        RoleMenuEntity entity = new RoleMenuEntity();
+        BeanUtils.copyProperties(vo, entity);
+        return entity;
+    }
 
     /**
      * Entity list to VO list
      */
-    List<RoleMenuVO> toVOList(List<RoleMenuEntity> entities);
+    public List<RoleMenuVO> toVOList(List<RoleMenuEntity> entities) {
+        if (entities == null) {
+            return null;
+        }
+        return entities.stream()
+                .map(this::toVO)
+                .collect(Collectors.toList());
+    }
 }

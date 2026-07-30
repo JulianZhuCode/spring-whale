@@ -110,4 +110,13 @@ public class TaskController {
     public TaskVO cancel(@PathVariable Integer id) {
         return taskService.cancel(id);
     }
+
+    /**
+     * Delete a terminal task (COMPLETED / CANCELLED / FAILED).
+     * DELETE /api/tasks/{id}
+     */
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Integer id) {
+        taskService.delete(id);
+    }
 }

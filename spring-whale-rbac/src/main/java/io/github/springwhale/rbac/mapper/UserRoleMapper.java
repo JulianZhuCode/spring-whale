@@ -2,28 +2,51 @@ package io.github.springwhale.rbac.mapper;
 
 import io.github.springwhale.rbac.dto.vo.UserRoleVO;
 import io.github.springwhale.rbac.entity.UserRoleEntity;
-import org.mapstruct.Mapper;
+import org.springframework.beans.BeanUtils;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * MapStruct mapper for UserRole entity/VO conversion
+ * UserRole entity/VO converter
  */
-@Mapper(componentModel = "spring")
-public interface UserRoleMapper {
+@Component
+public class UserRoleMapper {
 
     /**
      * Entity to VO
      */
-    UserRoleVO toVO(UserRoleEntity entity);
+    public UserRoleVO toVO(UserRoleEntity entity) {
+        if (entity == null) {
+            return null;
+        }
+        UserRoleVO vo = new UserRoleVO();
+        BeanUtils.copyProperties(entity, vo);
+        return vo;
+    }
 
     /**
      * VO to Entity
      */
-    UserRoleEntity toEntity(UserRoleVO vo);
+    public UserRoleEntity toEntity(UserRoleVO vo) {
+        if (vo == null) {
+            return null;
+        }
+        UserRoleEntity entity = new UserRoleEntity();
+        BeanUtils.copyProperties(vo, entity);
+        return entity;
+    }
 
     /**
      * Entity list to VO list
      */
-    List<UserRoleVO> toVOList(List<UserRoleEntity> entities);
+    public List<UserRoleVO> toVOList(List<UserRoleEntity> entities) {
+        if (entities == null) {
+            return null;
+        }
+        return entities.stream()
+                .map(this::toVO)
+                .collect(Collectors.toList());
+    }
 }

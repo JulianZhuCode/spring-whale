@@ -40,7 +40,7 @@ public class TaskBatchEntity extends BaseEntity {
     @Column
     private Integer skippedCount = 0;
 
-    @Column(columnDefinition = "JSON")
+    @Column(columnDefinition = "text")
     private String params;
 
     @Column(length = 2000)

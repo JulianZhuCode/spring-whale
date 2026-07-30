@@ -17,6 +17,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 /**
  * Utility for generating speech audio via the edge-tts command-line tool.
@@ -147,6 +148,26 @@ public class EdgeTtsUtil {
      * Batch TTS generation with configurable timeout.
      */
     public List<TtsResult> ttsToMp3Batch(List<TtsRequest> requests, int timeoutSeconds) {
+        return ttsToMp3Batch(requests, timeoutSeconds, null);
+    }
+
+    /**
+     * Batch TTS generation with per-item callback for real-time progress reporting.
+     *
+     * @param requests       list of TTS requests with unique IDs
+     * @param itemCallback   callback invoked immediately after each request completes
+     * @return list of results in the same order as requests
+     */
+    public List<TtsResult> ttsToMp3Batch(List<TtsRequest> requests,
+                                         Consumer<TtsResult> itemCallback) {
+        return ttsToMp3Batch(requests, timeoutSeconds, itemCallback);
+    }
+
+    /**
+     * Batch TTS generation with configurable timeout and per-item callback.
+     */
+    public List<TtsResult> ttsToMp3Batch(List<TtsRequest> requests, int timeoutSeconds,
+                                         Consumer<TtsResult> itemCallback) {
         if (requests == null || requests.isEmpty()) {
             return List.of();
         }
@@ -164,9 +185,24 @@ public class EdgeTtsUtil {
                 try {
                     TtsResult result = ttsToMp3Internal(req, timeoutSeconds);
                     resultMap.put(req.id(), result);
+                    if (itemCallback != null) {
+                        try {
+                            itemCallback.accept(result);
+                        } catch (Exception cbEx) {
+                            log.warn("Per-item callback failed for id={}", req.id(), cbEx);
+                        }
+                    }
                 } catch (Exception e) {
                     log.error("Batch TTS failed for id={}", req.id(), e);
-                    resultMap.put(req.id(), new TtsResult(req.id(), false, req.outputPath(), e.getMessage()));
+                    TtsResult errResult = new TtsResult(req.id(), false, req.outputPath(), e.getMessage());
+                    resultMap.put(req.id(), errResult);
+                    if (itemCallback != null) {
+                        try {
+                            itemCallback.accept(errResult);
+                        } catch (Exception cbEx) {
+                            log.warn("Per-item callback failed for id={}", req.id(), cbEx);
+                        }
+                    }
                 } finally {
                     activeTasks.decrementAndGet();
                 }
