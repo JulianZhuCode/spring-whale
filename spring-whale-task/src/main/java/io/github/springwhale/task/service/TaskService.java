@@ -264,6 +264,8 @@ public class TaskService {
         task.setEndTime(LocalDateTime.now());
         taskRepository.save(task);
 
+        cleanupTerminalItems(taskId);
+
         log.info("Cancelled task [{}]", taskId);
         return toVO(task);
     }
@@ -292,6 +294,16 @@ public class TaskService {
 
     public Optional<TaskVO> findById(Integer id) {
         return taskRepository.findById(id).map(this::toVO);
+    }
+
+    /**
+     * 终态清理：删除已完成的 items（SUCCESS/SKIPPED），保留 FAILED 供重试。
+     * 应在任务进入终态（COMPLETED/CANCELLED/FAILED）的事务内调用。
+     */
+    private void cleanupTerminalItems(Integer taskId) {
+        itemRepository.deleteByTaskIdAndStatusIn(taskId,
+                List.of(TaskItemStatus.SUCCESS, TaskItemStatus.SKIPPED));
+        log.info("Cleaned up SUCCESS/SKIPPED items for task [{}]", taskId);
     }
 
     /**
@@ -438,6 +450,7 @@ public class TaskService {
                                     task.getId(), t.getStatus());
                         }
                     });
+                    cleanupTerminalItems(task.getId());
                     return null;
                 });
             } finally {
@@ -584,6 +597,8 @@ public class TaskService {
                             taskId, finalTask.getStatus(), successCount.get(), failCount.get());
                 }
             });
+            // 终态清理：删除已完成的 items（SUCCESS/SKIPPED），保留 FAILED 供重试
+            cleanupTerminalItems(taskId);
             return null;
         });
     }

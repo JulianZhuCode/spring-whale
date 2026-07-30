@@ -20,4 +20,8 @@ public interface TaskBatchItemRepository extends JpaRepository<TaskBatchItemEnti
     long countByTaskId(Integer taskId);
 
     void deleteByTaskId(Integer taskId);
+
+    void deleteByTaskIdAndStatus(Integer taskId, TaskItemStatus status);
+
+    void deleteByTaskIdAndStatusIn(Integer taskId, List<TaskItemStatus> statuses);
 }
