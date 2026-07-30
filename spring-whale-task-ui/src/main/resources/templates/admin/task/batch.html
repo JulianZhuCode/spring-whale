@@ -58,7 +58,6 @@
         </th:block>
 
         <th:block id="task-headers">
-            <th>ID</th>
             <th th:text="#{task.type}">Type</th>
             <th th:text="#{task.status}">Status</th>
             <th th:text="#{task.progress}">Progress</th>
@@ -70,7 +69,6 @@
         </th:block>
 
         <th:block id="task-row">
-            <td th:text="${item.id}">1</td>
             <td><code th:text="${item.taskType}">WORD_AUDIO</code></td>
             <td>
                 <span class="badge" th:classappend="${item.status.name() == 'RUNNING'} ? 'bg-primary' :
@@ -119,6 +117,11 @@
                             th:data-api-method="POST"
                             th:data-confirm="#{task.confirm_cancel}"
                             th:text="#{task.cancel}">Cancel</button>
+                    <button class="btn btn-sm btn-warning"
+                            th:if="${(item.status.name() == 'COMPLETED' or item.status.name() == 'CANCELLED' or item.status.name() == 'FAILED') and item.failCount != null and item.failCount > 0}"
+                            th:data-retry-api="|/api/tasks/${item.id}/retry-failed|"
+                            th:data-retry-confirm="'确定要重试 ' + ${item.failCount} + ' 个失败条目吗？'"
+                            th:text="#{task.retry_failed}">Retry Failed</button>
                     <button class="btn btn-sm btn-outline-dark"
                             th:if="${item.status.name() == 'COMPLETED' or item.status.name() == 'CANCELLED' or item.status.name() == 'FAILED'}"
                             th:data-delete-api="|/api/tasks/${item.id}|"
@@ -256,6 +259,34 @@
                     });
             });
 
+            // ========== Retry Failed button ==========
+            document.addEventListener('click', function (e) {
+                var btn = e.target.closest('[data-retry-api]');
+                if (!btn) return;
+                e.preventDefault();
+
+                var confirmMsg = btn.getAttribute('data-retry-confirm') || '确定要重试失败条目吗？';
+                if (!confirm(confirmMsg)) return;
+
+                var url = btn.getAttribute('data-retry-api');
+                var origHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+                fetch(url, {method: 'POST'})
+                    .then(function (r) { return r.json(); })
+                    .then(function (d) {
+                        if (d && d.code && d.code !== '200') throw new Error(d.message || '重试失败');
+                        showToast('已重置失败条目并开始执行', 'success');
+                        setTimeout(function () { location.reload(); }, 800);
+                    })
+                    .catch(function (err) {
+                        btn.disabled = false;
+                        btn.innerHTML = origHtml;
+                        showPageError(err.message || '重试失败，请稍后重试', 'error');
+                    });
+            });
+
             function showTaskDetailModal(task) {
                 var html =
                     '<div class="modal fade" id="task-detail-modal" tabindex="-1">' +
@@ -265,7 +296,7 @@
                     '        <h5 class="modal-title">Task #' + escapeHtml(String(task.id)) + ' - ' + escapeHtml(task.taskType || '') + '</h5>' +
                     '        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>' +
                     '      </div>' +
-                    '      <div class="modal-body">' +
+                    '      <div class="modal-body" id="task-detail-body">' +
                     '        <table class="table table-sm table-borderless">' +
                     '          <tr><th style="width:160px">状态</th><td><span class="badge">' + escapeHtml(task.statusLabel || task.status || '') + '</span></td></tr>' +
                     '          <tr><th>进度</th><td>' +
@@ -286,8 +317,11 @@
                     (task.errorMessage ? ('<tr><th>错误信息</th><td class="text-danger"><pre class="mb-0 small">' + escapeHtml(String(task.errorMessage)) + '</pre></td></tr>') : '') +
                     (task.params ? ('<tr><th>参数 (params)</th><td><pre class="mb-0 small bg-light p-2 rounded">' + escapeHtml(String(task.params)) + '</pre></td></tr>') : '') +
                     '        </table>' +
+                    '        <div id="task-failed-items-container"></div>' +
                     '      </div>' +
                     '      <div class="modal-footer">' +
+                    ((task.failCount != null && task.failCount > 0 && (task.status == 'COMPLETED' || task.status == 'CANCELLED' || task.status == 'FAILED'))
+                        ? '<button type="button" class="btn btn-warning" id="task-retry-failed-btn">重试失败</button>' : '') +
                     '        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>' +
                     '      </div>' +
                     '    </div>' +
@@ -299,6 +333,52 @@
                 var modalEl = document.getElementById('task-detail-modal');
                 var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
                 modal.show();
+
+                if (task.failCount != null && task.failCount > 0) {
+                    fetch('/api/tasks/' + task.id + '/failed-items')
+                        .then(function(r) { return r.json(); })
+                        .then(function(items) {
+                            var container = document.getElementById('task-failed-items-container');
+                            if (!container || !items || items.length === 0) return;
+                            var rows = items.map(function(item) {
+                                return '<tr>' +
+                                    '<td class="text-danger">' + escapeHtml(item.itemKey || '') + '</td>' +
+                                    '<td>' + escapeHtml(item.errorMessage || '-') + '</td>' +
+                                    '<td>' + (item.retryCount || 0) + '</td>' +
+                                '</tr>';
+                            }).join('');
+                            container.innerHTML =
+                                '<h6 class="mt-2">失败条目 (' + items.length + ')</h6>' +
+                                '<table class="table table-sm table-bordered">' +
+                                '<thead><tr><th>Item Key</th><th>错误信息</th><th>重试次数</th></tr></thead>' +
+                                '<tbody>' + rows + '</tbody>' +
+                                '</table>';
+                        })
+                        .catch(function(err) {
+                            console.error('Failed to load failed items:', err);
+                        });
+                }
+
+                var retryBtn = document.getElementById('task-retry-failed-btn');
+                if (retryBtn) {
+                    retryBtn.addEventListener('click', function() {
+                        if (!confirm('确定要重试 ' + (task.failCount || 0) + ' 个失败条目吗？任务将变为暂停状态，需手动恢复执行。')) return;
+                        retryBtn.disabled = true;
+                        retryBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+                        fetch('/api/tasks/' + task.id + '/retry-failed', {method: 'POST'})
+                            .then(function(r) { return r.json(); })
+                            .then(function(d) {
+                                if (d && d.code && d.code !== '200') throw new Error(d.message || '重试失败');
+                                showToast('已重置失败条目并开始执行', 'success');
+                                setTimeout(function() { location.reload(); }, 800);
+                            })
+                            .catch(function(err) {
+                                retryBtn.disabled = false;
+                                retryBtn.innerHTML = '重试失败';
+                                showPageError(err.message || '重试失败，请稍后重试', 'error');
+                            });
+                    });
+                }
             }
 
             function escapeHtml(s) {

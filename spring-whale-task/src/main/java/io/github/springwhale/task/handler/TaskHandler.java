@@ -116,6 +116,17 @@ public interface TaskHandler {
         void onItemResult(String itemKey, boolean success);
 
         /**
+         * Called when an item has been processed, with an error message for failures.
+         *
+         * @param itemKey the item key
+         * @param success true if the item was processed successfully
+         * @param errorMessage error details when failed
+         */
+        default void onItemResult(String itemKey, boolean success, String errorMessage) {
+            onItemResult(itemKey, success);
+        }
+
+        /**
          * Checks if the task has been cancelled/paused and processing should stop.
          * Handlers should check this between chunks to enable responsive cancellation.
          *

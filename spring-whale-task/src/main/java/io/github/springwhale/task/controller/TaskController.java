@@ -3,12 +3,15 @@ package io.github.springwhale.task.controller;
 import io.github.springwhale.framework.core.exception.BusinessException;
 import io.github.springwhale.task.dto.request.TaskCreateRequest;
 import io.github.springwhale.task.dto.vo.TaskVO;
+import io.github.springwhale.task.entity.TaskBatchItemEntity;
 import io.github.springwhale.task.enums.TaskStatus;
 import io.github.springwhale.task.service.TaskService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * REST controller for batch task management.
@@ -118,5 +121,23 @@ public class TaskController {
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Integer id) {
         taskService.delete(id);
+    }
+
+    /**
+     * Get failed items for a task.
+     * GET /api/tasks/{id}/failed-items
+     */
+    @GetMapping("/{id}/failed-items")
+    public List<TaskBatchItemEntity> findFailedItems(@PathVariable Integer id) {
+        return taskService.findFailedItems(id);
+    }
+
+    /**
+     * Retry failed items. Resets FAILED items to PENDING and task to PAUSED.
+     * POST /api/tasks/{id}/retry-failed
+     */
+    @PostMapping("/{id}/retry-failed")
+    public TaskVO retryFailed(@PathVariable Integer id) {
+        return taskService.retryFailed(id);
     }
 }

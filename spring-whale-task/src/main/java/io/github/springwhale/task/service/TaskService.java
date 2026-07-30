@@ -294,6 +294,63 @@ public class TaskService {
         return taskRepository.findById(id).map(this::toVO);
     }
 
+    /**
+     * Returns all failed items for a given task.
+     */
+    public List<TaskBatchItemEntity> findFailedItems(Integer taskId) {
+        return itemRepository.findByTaskIdAndStatusOrderByIdAsc(taskId, TaskItemStatus.FAILED);
+    }
+
+    /**
+     * Resets FAILED items back to PENDING and starts/resumes execution immediately.
+     */
+    @Transactional
+    public TaskVO retryFailed(Integer taskId) {
+        TaskBatchEntity task = taskRepository.findById(taskId)
+                .orElseThrow(() -> BusinessException.create("TASK_NOT_FOUND", "Task not found: " + taskId));
+
+        if (task.getStatus() != TaskStatus.COMPLETED && task.getStatus() != TaskStatus.CANCELLED
+                && task.getStatus() != TaskStatus.FAILED) {
+            throw BusinessException.create("TASK_ACTIVE",
+                    "Cannot retry items of an active task (status=" + task.getStatus() + ")");
+        }
+
+        List<TaskBatchItemEntity> failedItems = itemRepository
+                .findByTaskIdAndStatusOrderByIdAsc(taskId, TaskItemStatus.FAILED);
+
+        if (failedItems.isEmpty()) {
+            throw BusinessException.create("NO_FAILED_ITEMS", "No failed items to retry");
+        }
+
+        int resetCount = 0;
+        for (TaskBatchItemEntity item : failedItems) {
+            item.setStatus(TaskItemStatus.PENDING);
+            item.setErrorMessage(null);
+            item.setRetryCount(item.getRetryCount() != null ? item.getRetryCount() + 1 : 1);
+            resetCount++;
+        }
+        itemRepository.saveAll(failedItems);
+
+        task.setEndTime(null);
+        task.setFailCount(0);
+
+        TaskHandler handler = getHandler(task.getTaskType());
+        Map<String, Object> params = parseParams(task.getParams());
+
+        if (task.getStartTime() == null) {
+            handler.beforeStart(params);
+            task.setStartTime(LocalDateTime.now());
+        }
+        task.setStatus(TaskStatus.RUNNING);
+        taskRepository.save(task);
+
+        log.info("Retry: reset {} failed items to PENDING for task [{}], failCount cleared, status set to RUNNING",
+                resetCount, taskId);
+
+        submitAfterCommit(taskId, handler, params);
+        return toVO(task);
+    }
+
     public Page<TaskVO> findAll(int page, int size, String sort) {
         Sort sortObj = SortUtils.buildSort(sort);
         Pageable pageable = PageRequest.of(page, size, sortObj);
@@ -430,6 +487,15 @@ public class TaskService {
         TaskHandler.BatchProgressCallback callback = new TaskHandler.BatchProgressCallback() {
             @Override
             public void onItemResult(String itemKey, boolean success) {
+                applyResult(itemKey, success, null);
+            }
+
+            @Override
+            public void onItemResult(String itemKey, boolean success, String errorMessage) {
+                applyResult(itemKey, success, errorMessage);
+            }
+
+            private void applyResult(String itemKey, boolean success, String errorMessage) {
                 if (cancelled.get()) {
                     return;
                 }
@@ -444,7 +510,7 @@ public class TaskService {
                     successCount.incrementAndGet();
                 } else {
                     itemEntity.setStatus(TaskItemStatus.FAILED);
-                    itemEntity.setErrorMessage("Handler returned false");
+                    itemEntity.setErrorMessage(errorMessage != null ? errorMessage : "Handler returned false");
                     failCount.incrementAndGet();
                 }
 
