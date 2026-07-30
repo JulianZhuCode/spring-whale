@@ -124,8 +124,8 @@
                             th:text="#{task.retry_failed}">Retry Failed</button>
                     <button class="btn btn-sm btn-outline-dark"
                             th:if="${item.status.name() == 'COMPLETED' or item.status.name() == 'CANCELLED' or item.status.name() == 'FAILED'}"
-                            th:data-delete-api="|/api/tasks/${item.id}|"
-                            th:data-delete-confirm="#{task.confirm_delete}"
+                            th:data-task-delete="|/api/tasks/${item.id}|"
+                            th:data-task-delete-confirm="#{task.confirm_delete}"
                             th:text="#{task.delete}">Delete</button>
                     <button class="btn btn-sm btn-info"
                             th:data-api-get="|/api/tasks/${item.id}|"
@@ -229,14 +229,14 @@
 
             // ========== Delete button ==========
             document.addEventListener('click', function (e) {
-                var btn = e.target.closest('[data-delete-api]');
+                var btn = e.target.closest('[data-task-delete]');
                 if (!btn) return;
                 e.preventDefault();
 
-                var confirmMsg = btn.getAttribute('data-delete-confirm') || '确定要删除这个任务吗？';
+                var confirmMsg = btn.getAttribute('data-task-delete-confirm') || '确定要删除这个任务吗？';
                 if (!confirm(confirmMsg)) return;
 
-                var url = btn.getAttribute('data-delete-api');
+                var url = btn.getAttribute('data-task-delete');
                 var origHtml = btn.innerHTML;
                 btn.disabled = true;
                 btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
