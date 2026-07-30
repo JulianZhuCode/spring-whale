@@ -72,7 +72,10 @@ function showConfirm(opts) {
     } = opts || {};
 
     const modalEl = document.getElementById('global-confirm-modal');
-    if (!modalEl) return Promise.resolve(confirm(message || '确定要执行此操作吗？'));
+    if (!modalEl) {
+        console.warn('showConfirm: global-confirm-modal not found, skipping confirmation');
+        return Promise.resolve(true);
+    }
 
     const titleEl = modalEl.querySelector('#gc-title');
     const msgEl = modalEl.querySelector('#gc-message');
@@ -233,9 +236,25 @@ function initModalSystem() {
                 form.action = form.getAttribute('data-api-base');
                 form.method = 'post';
                 form.reset();
+                // 清空 Tag Selector 组件的选中数据
+                form.querySelectorAll('.tag-selector').forEach(ts => {
+                    if (typeof ts.clearTags === 'function') ts.clearTags();
+                });
             }
 
             modal.show();
+        });
+    });
+
+    // 关闭模态框时也清理 Tag Selector，防止残留
+    document.querySelectorAll('.modal').forEach(modalEl => {
+        modalEl.addEventListener('hidden.bs.modal', () => {
+            const form = modalEl.querySelector('.dict-modal-form');
+            if (form) {
+                form.querySelectorAll('.tag-selector').forEach(ts => {
+                    if (typeof ts.clearTags === 'function') ts.clearTags();
+                });
+            }
         });
     });
 
