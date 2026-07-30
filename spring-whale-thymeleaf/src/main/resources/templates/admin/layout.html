@@ -34,5 +34,33 @@
 
 <script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
 <script th:src="@{/admin/js/admin.js}"></script>
+
+<!-- ========== Global Confirm Dialog ========== -->
+<div class="modal fade" id="global-confirm-modal" data-bs-backdrop="static" data-bs-keyboard="false"
+     tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm" style="max-width: 420px;">
+        <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+            <div class="modal-body p-0">
+                <div class="p-4 pb-0 d-flex align-items-start gap-3">
+                    <div class="gc-icon flex-shrink-0 rounded-circle d-flex align-items-center justify-center"
+                         id="gc-icon">
+                        <i class="bi bi-question-lg fs-4"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="fw-bold mb-2" id="gc-title">确认操作</h6>
+                        <p class="mb-0 text-muted fs-sm" id="gc-message">确定要执行此操作吗？</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 p-3 px-4 d-flex gap-2 justify-content-end">
+                <button type="button" class="btn btn-outline-secondary px-4 rounded-3"
+                        id="gc-btn-cancel">取消</button>
+                <button type="button" class="btn rounded-3 px-4"
+                        id="gc-btn-ok">确定</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>

@@ -175,13 +175,16 @@
     <script th:inline="javascript">
         (function () {
             // ========== Action buttons (Start / Pause / Resume / Cancel) ==========
-            document.addEventListener('click', function (e) {
+            document.addEventListener('click', async function (e) {
                 var btn = e.target.closest('[data-api]');
                 if (!btn) return;
                 e.preventDefault();
 
                 var confirmMsg = btn.getAttribute('data-confirm');
-                if (confirmMsg && !confirm(confirmMsg)) return;
+                if (confirmMsg) {
+                    var ok = await showConfirm({message: confirmMsg, type: 'warning'});
+                    if (!ok) return;
+                }
 
                 var url = btn.getAttribute('data-api');
                 var method = btn.getAttribute('data-api-method') || 'POST';
@@ -228,13 +231,19 @@
             });
 
             // ========== Delete button ==========
-            document.addEventListener('click', function (e) {
+            document.addEventListener('click', async function (e) {
                 var btn = e.target.closest('[data-task-delete]');
                 if (!btn) return;
                 e.preventDefault();
 
                 var confirmMsg = btn.getAttribute('data-task-delete-confirm') || '确定要删除这个任务吗？';
-                if (!confirm(confirmMsg)) return;
+                var ok = await showConfirm({
+                    message: confirmMsg,
+                    type: 'danger',
+                    title: '删除确认',
+                    okText: '确认删除'
+                });
+                if (!ok) return;
 
                 var url = btn.getAttribute('data-task-delete');
                 var origHtml = btn.innerHTML;
@@ -260,13 +269,19 @@
             });
 
             // ========== Retry Failed button ==========
-            document.addEventListener('click', function (e) {
+            document.addEventListener('click', async function (e) {
                 var btn = e.target.closest('[data-retry-api]');
                 if (!btn) return;
                 e.preventDefault();
 
                 var confirmMsg = btn.getAttribute('data-retry-confirm') || '确定要重试失败条目吗？';
-                if (!confirm(confirmMsg)) return;
+                var ok = await showConfirm({
+                    message: confirmMsg,
+                    type: 'warning',
+                    title: '重试失败条目',
+                    okText: '开始重试'
+                });
+                if (!ok) return;
 
                 var url = btn.getAttribute('data-retry-api');
                 var origHtml = btn.innerHTML;
@@ -361,8 +376,14 @@
 
                 var retryBtn = document.getElementById('task-retry-failed-btn');
                 if (retryBtn) {
-                    retryBtn.addEventListener('click', function() {
-                        if (!confirm('确定要重试 ' + (task.failCount || 0) + ' 个失败条目吗？任务将变为暂停状态，需手动恢复执行。')) return;
+                    retryBtn.addEventListener('click', async function() {
+                        var ok = await showConfirm({
+                            message: '确定要重试 ' + (task.failCount || 0) + ' 个失败条目吗？将立即开始重新执行。',
+                            type: 'warning',
+                            title: '重试失败条目',
+                            okText: '开始重试'
+                        });
+                        if (!ok) return;
                         retryBtn.disabled = true;
                         retryBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
                         fetch('/api/tasks/' + task.id + '/retry-failed', {method: 'POST'})

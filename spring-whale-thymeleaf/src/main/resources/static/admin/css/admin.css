@@ -610,6 +610,46 @@
     color: #0f5132;
 }
 
+/* ===== Global Confirm Dialog ===== */
+#global-confirm-modal .modal-dialog {
+    animation: gc-pop-in .2s ease-out;
+}
+
+@keyframes gc-pop-in {
+    from { transform: scale(.95); opacity: 0; }
+    to   { transform: scale(1);    opacity: 1; }
+}
+
+#global-confirm-modal .gc-icon {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+}
+
+#global-confirm-modal .modal-footer button {
+    min-width: 90px;
+    font-weight: 550;
+    transition: transform .15s ease, box-shadow .2s ease;
+}
+
+#global-confirm-modal .modal-footer button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, .12);
+}
+
+#global-confirm-modal .modal-footer button:active {
+    transform: translateY(0);
+}
+
+#global-confirm-modal .fs-sm {
+    font-size: .92rem;
+    line-height: 1.5;
+}
+
+#global-confirm-modal .modal-backdrop.show {
+    opacity: .4;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
     .admin-sidebar {
