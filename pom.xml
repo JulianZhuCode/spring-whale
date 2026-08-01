@@ -49,10 +49,10 @@
         <spring-boot-dependencies.version>4.0.7</spring-boot-dependencies.version>
         <druid-spring-boot-starter.version>1.2.28</druid-spring-boot-starter.version>
         <postgresql.version>42.7.11</postgresql.version>
-        <mapstruct.version>1.6.3</mapstruct.version>
         <jjwt-api.version>0.13.0</jjwt-api.version>
         <thymeleaf-layout-dialect.version>4.0.1</thymeleaf-layout-dialect.version>
         <spring-ai-bom.version>2.0.0</spring-ai-bom.version>
+        <flyway.version>12.10.0</flyway.version>
     </properties>
 
     <dependencyManagement>
@@ -151,16 +151,6 @@
                 <version>${postgresql.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.mapstruct</groupId>
-                <artifactId>mapstruct</artifactId>
-                <version>${mapstruct.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.mapstruct</groupId>
-                <artifactId>mapstruct-processor</artifactId>
-                <version>${mapstruct.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>io.jsonwebtoken</groupId>
                 <artifactId>jjwt-api</artifactId>
                 <version>${jjwt-api.version}</version>
@@ -174,6 +164,16 @@
                 <groupId>io.jsonwebtoken</groupId>
                 <artifactId>jjwt-jackson</artifactId>
                 <version>${jjwt-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-core</artifactId>
+                <version>${flyway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-database-postgresql</artifactId>
+                <version>${flyway.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -191,10 +191,6 @@
                             <path>
                                 <groupId>org.projectlombok</groupId>
                                 <artifactId>lombok</artifactId>
-                            </path>
-                            <path>
-                                <groupId>org.mapstruct</groupId>
-                                <artifactId>mapstruct-processor</artifactId>
                             </path>
                         </annotationProcessorPaths>
                     </configuration>
