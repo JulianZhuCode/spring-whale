@@ -7,13 +7,16 @@ import org.springframework.context.ApplicationListener;
 
 @Slf4j
 @RequiredArgsConstructor
-public class FlywayMigrationRunListener implements ApplicationListener<FlywayMigrationRunEvent> {
+public class FlywayMigrationRetryListener implements ApplicationListener<FlywayMigrationEvent> {
 
     private final ResilientFlywayMigrationStrategy resilientFlywayMigrationStrategy;
 
     @Override
-    public void onApplicationEvent(@NonNull FlywayMigrationRunEvent event) {
-        log.info("Flyway migration run event received");
+    public void onApplicationEvent(@NonNull FlywayMigrationEvent event) {
+        if (event.getType() != FlywayEventType.RETRY_REQUESTED) {
+            return;
+        }
+        log.info("Flyway migration retry event received");
         resilientFlywayMigrationStrategy.retry();
     }
 }

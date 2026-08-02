@@ -7,6 +7,7 @@ import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.FlywayException;
 import org.jspecify.annotations.NonNull;
 import org.springframework.boot.flyway.autoconfigure.FlywayMigrationStrategy;
+import org.springframework.context.ApplicationEventPublisher;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -15,9 +16,10 @@ import java.sql.PreparedStatement;
 @Slf4j
 @RequiredArgsConstructor
 public class ResilientFlywayMigrationStrategy implements FlywayMigrationStrategy {
-    private static final String ERROR_INSERT_SQL = "INSERT INTO flyway_error_log (server_name, create_time, message) VALUES (?, now(), ?);";
+    private static final String ERROR_INSERT_SQL = "INSERT INTO flyway_error_log (server_name, create_time, message) VALUES (?, now(), ?)";
     private final DataSource dataSource;
     private final String serverName;
+    private final ApplicationEventPublisher eventPublisher;
     private Flyway flyway;
 
     @SneakyThrows
@@ -41,13 +43,15 @@ public class ResilientFlywayMigrationStrategy implements FlywayMigrationStrategy
             flyway.migrate();
         } catch (FlywayException e) {
             log.error("Database migration script execution failed!", e);
-            try (Connection connection = dataSource.getConnection()) {
-                try (PreparedStatement ps = connection.prepareStatement(ERROR_INSERT_SQL)) {
-                    ps.setString(1, serverName);
-                    ps.setString(2, e.getMessage());
-                    ps.execute();
-                }
+            try (Connection connection = dataSource.getConnection();
+                 PreparedStatement ps = connection.prepareStatement(ERROR_INSERT_SQL)) {
+                ps.setString(1, serverName);
+                ps.setString(2, e.getMessage());
+                ps.execute();
+            } catch (Exception ex) {
+                log.error("Failed to persist flyway error log", ex);
             }
+            eventPublisher.publishEvent(new FlywayMigrationEvent(this, FlywayEventType.MIGRATION_FAILED));
         }
     }
 }

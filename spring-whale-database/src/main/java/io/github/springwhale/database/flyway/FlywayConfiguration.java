@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.flyway.autoconfigure.FlywayAutoConfiguration;
 import org.springframework.boot.flyway.autoconfigure.FlywayMigrationStrategy;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -19,13 +20,15 @@ import javax.sql.DataSource;
 public class FlywayConfiguration {
 
     @Bean
-    public FlywayMigrationStrategy flywayMigrationStrategy(DataSource dataSource, @Value("${spring.application.name}") String serverName) {
-        return new ResilientFlywayMigrationStrategy(dataSource, serverName);
+    public FlywayMigrationStrategy flywayMigrationStrategy(DataSource dataSource,
+                                                           @Value("${spring.application.name}") String serverName,
+                                                           ApplicationEventPublisher eventPublisher) {
+        return new ResilientFlywayMigrationStrategy(dataSource, serverName, eventPublisher);
     }
 
     @Bean
-    public FlywayMigrationRunListener flywayMigrationRunListener(ResilientFlywayMigrationStrategy resilientFlywayMigrationStrategy) {
-        return new FlywayMigrationRunListener(resilientFlywayMigrationStrategy);
+    public FlywayMigrationRetryListener flywayMigrationRetryListener(ResilientFlywayMigrationStrategy resilientFlywayMigrationStrategy) {
+        return new FlywayMigrationRetryListener(resilientFlywayMigrationStrategy);
     }
 
 }
