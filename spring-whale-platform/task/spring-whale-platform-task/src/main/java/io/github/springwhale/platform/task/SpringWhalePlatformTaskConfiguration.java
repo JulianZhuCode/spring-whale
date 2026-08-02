@@ -5,18 +5,20 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @AutoConfiguration
-@EntityScan(basePackages = "io.github.springwhale.task.entity")
-@EnableJpaRepositories(basePackages = "io.github.springwhale.task.repository")
+@EnableCaching
+@EnableJpaRepositories
+@EntityScan
 @Slf4j
-public class SpringWhaleTaskConfiguration {
+public class SpringWhalePlatformTaskConfiguration {
 
     private final TaskService taskService;
 
-    public SpringWhaleTaskConfiguration(TaskService taskService) {
+    public SpringWhalePlatformTaskConfiguration(TaskService taskService) {
         this.taskService = taskService;
     }
 

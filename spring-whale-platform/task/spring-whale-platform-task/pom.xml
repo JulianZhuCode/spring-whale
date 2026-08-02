@@ -7,6 +7,7 @@
         <groupId>io.github.julianzhucode</groupId>
         <artifactId>spring-whale-platform</artifactId>
         <version>0.0.2</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
     <artifactId>spring-whale-platform-task</artifactId>
     <name>spring-whale-task</name>
@@ -22,7 +23,8 @@
     <dependencies>
         <dependency>
             <groupId>io.github.julianzhucode</groupId>
-            <artifactId>spring-whale-task-ui</artifactId>
+            <artifactId>spring-whale-platform-task-ui</artifactId>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>io.github.julianzhucode</groupId>

@@ -7,6 +7,7 @@
         <groupId>io.github.julianzhucode</groupId>
         <artifactId>spring-whale-platform</artifactId>
         <version>0.0.2</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <artifactId>spring-whale-platform-rbac</artifactId>
@@ -20,7 +21,8 @@
     <dependencies>
         <dependency>
             <groupId>io.github.julianzhucode</groupId>
-            <artifactId>spring-whale-rbac-ui</artifactId>
+            <artifactId>spring-whale-platform-rbac-ui</artifactId>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>io.github.julianzhucode</groupId>

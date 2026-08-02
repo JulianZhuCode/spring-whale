@@ -11,7 +11,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EnableJpaRepositories
 @EntityScan
 @Slf4j
-public class SpringWhaleRBACConfiguration {
+public class SpringWhalePlatformRBACConfiguration {
     static {
         log.info("SpringWhaleRBACConfiguration loaded");
     }
