@@ -13,10 +13,7 @@
         <module>spring-whale-webmvc</module>
         <module>spring-whale-database</module>
         <module>spring-whale-thymeleaf</module>
-        <module>spring-whale-rbac-ui</module>
-        <module>spring-whale-rbac</module>
-        <module>spring-whale-task</module>
-        <module>spring-whale-task-ui</module>
+        <module>spring-whale-platform</module>
     </modules>
     <packaging>pom</packaging>
     <url>https://github.com/JulianZhuCode/spring-whale</url>
@@ -79,22 +76,22 @@
             </dependency>
             <dependency>
                 <groupId>io.github.julianzhucode</groupId>
-                <artifactId>spring-whale-rbac</artifactId>
+                <artifactId>spring-whale-platform-rbac</artifactId>
                 <version>${my.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.julianzhucode</groupId>
-                <artifactId>spring-whale-rbac-ui</artifactId>
+                <artifactId>spring-whale-platform-rbac-ui</artifactId>
                 <version>${my.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.julianzhucode</groupId>
-                <artifactId>spring-whale-task</artifactId>
+                <artifactId>spring-whale-platform-task</artifactId>
                 <version>${my.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.julianzhucode</groupId>
-                <artifactId>spring-whale-task-ui</artifactId>
+                <artifactId>spring-whale-platform-task-ui</artifactId>
                 <version>${my.version}</version>
             </dependency>
             <dependency>
