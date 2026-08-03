@@ -15,7 +15,7 @@ import java.math.RoundingMode;
 public class SpringWhaleJsonProperties {
 
     /**
-     * Whether to use internationalization for enum descriptions
+     * Whether to use internationalization for all descriptions
      */
     private boolean useI18n = false;
 
