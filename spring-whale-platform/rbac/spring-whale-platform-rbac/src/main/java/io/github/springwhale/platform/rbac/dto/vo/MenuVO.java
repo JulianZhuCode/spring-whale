@@ -11,6 +11,7 @@ public class MenuVO {
     private Integer parentId;
     private String code;
     private String name;
+    private String nameI18nKey;
     private Integer type;
     private String path;
     private String component;

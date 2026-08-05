@@ -15,8 +15,8 @@ public class TaskMenuProvider implements AdminMenuProvider {
     @Override
     public List<MenuItem> getMenus() {
         return List.of(
-                MenuItem.group("task", "Tasks", "⚙️", 20),
-                MenuItem.leaf("task-batch", "task", "Batch Tasks", "/admin/task/batch", null, "task:create", 1)
+                MenuItem.group("task", "Tasks", "menu.task", "⚙️", 20),
+                MenuItem.leaf("task-batch", "task", "Batch Tasks", "menu.task.batch", "/admin/task/batch", null, "task:create", 1)
         );
     }
 

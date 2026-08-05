@@ -32,10 +32,18 @@ public class MenuEntity extends BaseEntity {
     private String code;
 
     /**
-     * Menu name
+     * Menu name (fallback when i18n key is not resolved)
      */
     @Column(nullable = false, length = 100)
     private String name;
+
+    /**
+     * I18n message key for menu name (e.g. "menu.rbac.user_management").
+     * When set, the UI resolves the display name from i18n messages;
+     * {@link #name} serves as fallback.
+     */
+    @Column(length = 200)
+    private String nameI18nKey;
 
     /**
      * Menu type: 1=directory, 2=menu, 3=button

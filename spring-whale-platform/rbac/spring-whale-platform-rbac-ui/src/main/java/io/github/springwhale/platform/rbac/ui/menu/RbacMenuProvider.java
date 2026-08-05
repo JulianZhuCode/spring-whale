@@ -20,11 +20,11 @@ public class RbacMenuProvider implements AdminMenuProvider {
     @Override
     public List<MenuItem> getMenus() {
         return List.of(
-                MenuItem.group("rbac", "RBAC", "\uD83D\uDD10", 10),
-                MenuItem.leaf("rbac-users", "rbac", "Users", "/admin/rbac/users", null, "rbac:user", 1),
-                MenuItem.leaf("rbac-roles", "rbac", "Roles", "/admin/rbac/roles", null, "rbac:role", 2),
-                MenuItem.leaf("rbac-menus", "rbac", "Menus", "/admin/rbac/menus", null, "rbac:menu", 3),
-                MenuItem.leaf("rbac-groups", "rbac", "Groups", "/admin/rbac/groups", null, "rbac:group", 4)
+                MenuItem.group("rbac", "RBAC", "menu.rbac", "\uD83D\uDD10", 10),
+                MenuItem.leaf("rbac-users", "rbac", "Users", "menu.rbac.user_management", "/admin/rbac/users", null, "rbac:user", 1),
+                MenuItem.leaf("rbac-roles", "rbac", "Roles", "menu.rbac.role_management", "/admin/rbac/roles", null, "rbac:role", 2),
+                MenuItem.leaf("rbac-menus", "rbac", "Menus", "menu.rbac.menu_management", "/admin/rbac/menus", null, "rbac:menu", 3),
+                MenuItem.leaf("rbac-groups", "rbac", "Groups", "menu.rbac.group_management", "/admin/rbac/groups", null, "rbac:group", 4)
         );
     }
 

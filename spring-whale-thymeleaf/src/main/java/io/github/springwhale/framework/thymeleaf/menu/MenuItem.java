@@ -13,15 +13,17 @@ public class MenuItem {
     private final String key;
     private final String parentKey;
     private final String label;
+    private final String labelI18nKey;
     private final String url;
     private final String icon;
     private final String permission;
     private final int sort;
 
-    private MenuItem(String key, String parentKey, String label, String url, String icon, String permission, int sort) {
+    private MenuItem(String key, String parentKey, String label, String labelI18nKey, String url, String icon, String permission, int sort) {
         this.key = key;
         this.parentKey = parentKey;
         this.label = label;
+        this.labelI18nKey = labelI18nKey;
         this.url = url;
         this.icon = icon;
         this.permission = permission;
@@ -32,21 +34,28 @@ public class MenuItem {
      * Creates a top-level group menu item (has children, no URL).
      */
     public static MenuItem group(String key, String label, String icon, int sort) {
-        return new MenuItem(key, null, label, null, icon, null, sort);
+        return new MenuItem(key, null, label, null, null, icon, null, sort);
+    }
+
+    /**
+     * Creates a top-level group menu item with i18n key.
+     */
+    public static MenuItem group(String key, String label, String labelI18nKey, String icon, int sort) {
+        return new MenuItem(key, null, label, labelI18nKey, null, icon, null, sort);
     }
 
     /**
      * Creates a leaf menu item (child of a group, has URL).
      */
     public static MenuItem leaf(String key, String parentKey, String label, String url, int sort) {
-        return new MenuItem(key, parentKey, label, url, null, null, sort);
+        return new MenuItem(key, parentKey, label, null, url, null, null, sort);
     }
 
     /**
      * Creates a leaf menu item with icon.
      */
     public static MenuItem leaf(String key, String parentKey, String label, String url, String icon, int sort) {
-        return new MenuItem(key, parentKey, label, url, icon, null, sort);
+        return new MenuItem(key, parentKey, label, null, url, icon, null, sort);
     }
 
     /**
@@ -55,7 +64,14 @@ public class MenuItem {
      * or the {@code *} wildcard authority.
      */
     public static MenuItem leaf(String key, String parentKey, String label, String url, String icon, String permission, int sort) {
-        return new MenuItem(key, parentKey, label, url, icon, permission, sort);
+        return new MenuItem(key, parentKey, label, null, url, icon, permission, sort);
+    }
+
+    /**
+     * Creates a leaf menu item with i18n key, icon and required permission.
+     */
+    public static MenuItem leaf(String key, String parentKey, String label, String labelI18nKey, String url, String icon, String permission, int sort) {
+        return new MenuItem(key, parentKey, label, labelI18nKey, url, icon, permission, sort);
     }
 
     // ---- Getters ----
@@ -72,7 +88,7 @@ public class MenuItem {
         List<MenuGroup> groups = new ArrayList<>();
         for (MenuItem item : sorted) {
             if (item.isGroup()) {
-                MenuGroup group = new MenuGroup(item.getKey(), item.getLabel(), item.getIcon(), item.getSort());
+                MenuGroup group = new MenuGroup(item.getKey(), item.getLabel(), item.getLabelI18nKey(), item.getIcon(), item.getSort());
                 groups.add(group);
             }
         }
@@ -100,6 +116,10 @@ public class MenuItem {
 
     public String getLabel() {
         return label;
+    }
+
+    public String getLabelI18nKey() {
+        return labelI18nKey;
     }
 
     public String getUrl() {
@@ -146,13 +166,15 @@ public class MenuItem {
     public static class MenuGroup {
         private final String key;
         private final String label;
+        private final String labelI18nKey;
         private final String icon;
         private final int sort;
         private final List<MenuItem> children = new ArrayList<>();
 
-        MenuGroup(String key, String label, String icon, int sort) {
+        MenuGroup(String key, String label, String labelI18nKey, String icon, int sort) {
             this.key = key;
             this.label = label;
+            this.labelI18nKey = labelI18nKey;
             this.icon = icon;
             this.sort = sort;
         }
@@ -168,6 +190,10 @@ public class MenuItem {
 
         public String getLabel() {
             return label;
+        }
+
+        public String getLabelI18nKey() {
+            return labelI18nKey;
         }
 
         public String getIcon() {

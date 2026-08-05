@@ -18,6 +18,8 @@ public class MenuRequest {
     @NotBlank(message = "Menu name must not be empty")
     private String name;
 
+    private String nameI18nKey;
+
     @NotNull(message = "Menu type must not be empty")
     private Integer type;
 

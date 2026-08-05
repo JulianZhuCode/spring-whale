@@ -53,10 +53,12 @@
                         <div class="card-body">
                             <div class="dashboard-card-icon" th:if="${group.icon}" th:text="${group.icon}">&#x1F4E6;
                             </div>
-                            <h3 class="h6" th:text="${group.label}">Group</h3>
+                            <h3 class="h6"
+                                th:text="${group.labelI18nKey} ? #{__${group.labelI18nKey}__} : ${group.label}">Group</h3>
                             <ul class="list-unstyled mb-0">
                                 <th:block th:each="child : ${group.children}">
-                                    <li class="mb-1"><a th:href="@{${child.url}}" th:text="${child.label}">Item</a></li>
+                                    <li class="mb-1"><a th:href="@{${child.url}}"
+                                       th:text="${child.labelI18nKey} ? #{__${child.labelI18nKey}__} : ${child.label}">Item</a></li>
                                 </th:block>
                             </ul>
                         </div>

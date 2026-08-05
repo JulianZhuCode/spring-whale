@@ -20,7 +20,7 @@
         emptyMessage=#{rbac.menus.empty},
         baseUrl='/admin/rbac/menus',
         page=${page},
-        colspan=8,
+        colspan=9,
         headers=~{::#menu-headers},
         rows=~{::#menu-row},
         filter=~{::#menu-filter}
@@ -62,6 +62,7 @@
         <th:block id="menu-headers">
             <th th:text="#{rbac.menus.code}">Code</th>
             <th th:text="#{rbac.menus.name}">Name</th>
+            <th th:text="#{rbac.menus.i18n_key}">I18n Key</th>
             <th th:text="#{rbac.menus.type}">Type</th>
             <th th:text="#{rbac.menus.path}">Path</th>
             <th th:text="#{rbac.menus.permission}">Permission</th>
@@ -72,6 +73,7 @@
         <th:block id="menu-row">
             <td><code th:text="${item.code}">user:list</code></td>
             <td th:text="${item.name}">Users</td>
+            <td><code th:text="${item.nameI18nKey}">menu.rbac.user_management</code></td>
             <td>
                 <span class="badge bg-info text-dark" th:if="${item.type == 1}"
                       th:text="#{rbac.menus.badge.menu}">Menu</span>
@@ -120,6 +122,12 @@
                             <label class="form-label" for="menu-name" th:text="#{rbac.menus.name}">Name</label>
                             <input class="form-control" id="menu-name" name="name" required type="text">
                             <div class="invalid-feedback" data-field="name"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="menu-nameI18nKey" th:text="#{rbac.menus.i18n_key}">I18n Key</label>
+                            <input class="form-control" id="menu-nameI18nKey" name="nameI18nKey" type="text"
+                                   th:placeholder="#{rbac.menus.i18n_key_placeholder}">
+                            <div class="invalid-feedback" data-field="nameI18nKey"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="menu-type" th:text="#{rbac.menus.type}">Type</label>

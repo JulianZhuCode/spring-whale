@@ -118,6 +118,7 @@ public class MenuService {
         entity.setParentId(request.getParentId());
         entity.setCode(request.getCode());
         entity.setName(request.getName());
+        entity.setNameI18nKey(request.getNameI18nKey());
         entity.setType(request.getType());
         entity.setPath(request.getPath());
         entity.setComponent(request.getComponent());
@@ -140,6 +141,7 @@ public class MenuService {
         menu.setParentId(request.getParentId());
         menu.setCode(request.getCode());
         menu.setName(request.getName());
+        menu.setNameI18nKey(request.getNameI18nKey());
         menu.setType(request.getType());
         menu.setPath(request.getPath());
         menu.setComponent(request.getComponent());

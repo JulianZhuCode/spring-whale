@@ -30,7 +30,8 @@
                     <div class="sidebar-menu-group-header" th:attr="data-group=${group.key}">
                         <span class="menu-icon" th:if="${group.icon}" th:text="${group.icon}"></span>
                         <span class="menu-icon" th:unless="${group.icon}"><i class="bi bi-folder"></i></span>
-                        <span class="menu-label" th:text="${group.label}">Group</span>
+                        <span class="menu-label"
+                              th:text="${group.labelI18nKey} ? #{__${group.labelI18nKey}__} : ${group.label}">Group</span>
                         <i class="bi bi-chevron-down menu-arrow ms-auto"></i>
                     </div>
                     <ul class="sidebar-menu-children">
@@ -38,7 +39,7 @@
                             <li class="sidebar-menu-item">
                                 <a th:classappend="${currentPath == child.url} ? 'active' : ''"
                                    th:href="@{${child.url}}"
-                                   th:text="${child.label}">Item</a>
+                                   th:text="${child.labelI18nKey} ? #{__${child.labelI18nKey}__} : ${child.label}">Item</a>
                             </li>
                         </th:block>
                     </ul>

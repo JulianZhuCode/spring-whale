@@ -150,33 +150,34 @@ public class AdminInitializer implements CommandLineRunner {
         log.info("Initializing RBAC menus...");
 
         // Level 0: System root directory
-        MenuEntity systemDir = createMenu(null, "system", "System", RbacConstants.MENU_TYPE_DIRECTORY,
+        MenuEntity systemDir = createMenu(null, "system", "System", "menu.system", RbacConstants.MENU_TYPE_DIRECTORY,
                 null, null, null, "menu", 0);
 
         // Level 1: RBAC directory
-        MenuEntity rbacDir = createMenu(systemDir.getId(), "rbac", "RBAC", RbacConstants.MENU_TYPE_DIRECTORY,
+        MenuEntity rbacDir = createMenu(systemDir.getId(), "rbac", "RBAC", "menu.rbac", RbacConstants.MENU_TYPE_DIRECTORY,
                 null, null, null, "shield", 1);
 
         // Level 2: Four management menus with their button permissions
-        createMenuWithButtons(rbacDir, "rbac:user", "User Management",
+        createMenuWithButtons(rbacDir, "rbac:user", "User Management", "menu.rbac.user_management",
                 "/admin/rbac/users", 2);
-        createMenuWithButtons(rbacDir, "rbac:role", "Role Management",
+        createMenuWithButtons(rbacDir, "rbac:role", "Role Management", "menu.rbac.role_management",
                 "/admin/rbac/roles", 3);
-        createMenuWithButtons(rbacDir, "rbac:menu", "Menu Management",
+        createMenuWithButtons(rbacDir, "rbac:menu", "Menu Management", "menu.rbac.menu_management",
                 "/admin/rbac/menus", 4);
-        createMenuWithButtons(rbacDir, "rbac:group", "Group Management",
+        createMenuWithButtons(rbacDir, "rbac:group", "Group Management", "menu.rbac.group_management",
                 "/admin/rbac/groups", 5);
 
         log.info("RBAC menus initialized successfully (SUPER_ADMIN has all permissions via wildcard)");
     }
 
-    private MenuEntity createMenu(Integer parentId, String code, String name, int type,
+    private MenuEntity createMenu(Integer parentId, String code, String name, String nameI18nKey, int type,
                                   String path, String component, String permission,
                                   String icon, int sort) {
         MenuEntity menu = new MenuEntity();
         menu.setParentId(parentId);
         menu.setCode(code);
         menu.setName(name);
+        menu.setNameI18nKey(nameI18nKey);
         menu.setType(type);
         menu.setPath(path);
         menu.setComponent(component);
@@ -191,18 +192,18 @@ public class AdminInitializer implements CommandLineRunner {
     /**
      * Creates a menu item and its standard CRUD button permissions.
      */
-    private void createMenuWithButtons(MenuEntity parent, String baseCode, String name,
+    private void createMenuWithButtons(MenuEntity parent, String baseCode, String name, String nameI18nKey,
                                        String path, int sort) {
         // Main menu
-        MenuEntity menu = createMenu(parent.getId(), baseCode, name, RbacConstants.MENU_TYPE_MENU,
+        MenuEntity menu = createMenu(parent.getId(), baseCode, name, nameI18nKey, RbacConstants.MENU_TYPE_MENU,
                 path, null, null, "file-text", sort);
 
         // Standard CRUD button permissions
-        createMenu(menu.getId(), baseCode + ":create", name + " Create", RbacConstants.MENU_TYPE_BUTTON,
+        createMenu(menu.getId(), baseCode + ":create", name + " Create", null, RbacConstants.MENU_TYPE_BUTTON,
                 null, null, baseCode + ":create", null, 1);
-        createMenu(menu.getId(), baseCode + ":update", name + " Update", RbacConstants.MENU_TYPE_BUTTON,
+        createMenu(menu.getId(), baseCode + ":update", name + " Update", null, RbacConstants.MENU_TYPE_BUTTON,
                 null, null, baseCode + ":update", null, 2);
-        createMenu(menu.getId(), baseCode + ":delete", name + " Delete", RbacConstants.MENU_TYPE_BUTTON,
+        createMenu(menu.getId(), baseCode + ":delete", name + " Delete", null, RbacConstants.MENU_TYPE_BUTTON,
                 null, null, baseCode + ":delete", null, 3);
     }
 
