@@ -15,6 +15,8 @@ public class SpringContextUtils implements ApplicationContextAware {
 
     @Getter
     private static ApplicationContext applicationContext;
+    @Getter
+    private static String applicationName;
 
     /**
      * Get bean instance by name
@@ -52,6 +54,7 @@ public class SpringContextUtils implements ApplicationContextAware {
     @Override
     public void setApplicationContext(@NonNull ApplicationContext context) throws BeansException {
         SpringContextUtils.applicationContext = context;
+        SpringContextUtils.applicationName = context.getApplicationName();
     }
 
 }

@@ -5,32 +5,21 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>io.github.julianzhucode</groupId>
-        <artifactId>spring-whale</artifactId>
+        <artifactId>spring-whale-event</artifactId>
         <version>0.0.2</version>
     </parent>
 
-    <modules>
-        <module>spring-whale-event-base</module>
-        <module>spring-whale-event-kafka</module>
-    </modules>
-
-    <packaging>pom</packaging>
-    <artifactId>spring-whale-event</artifactId>
+    <artifactId>spring-whale-event-base</artifactId>
 
     <properties>
         <maven.compiler.source>25</maven.compiler.source>
         <maven.compiler.target>25</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
     <dependencies>
         <dependency>
-            <groupId>io.github.julianzhucode</groupId>
-            <artifactId>spring-whale-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
         </dependency>
     </dependencies>
 
