@@ -14,6 +14,7 @@
         <module>spring-whale-database</module>
         <module>spring-whale-thymeleaf</module>
         <module>spring-whale-platform</module>
+        <module>spring-whale-event</module>
     </modules>
     <packaging>pom</packaging>
     <url>https://github.com/JulianZhuCode/spring-whale</url>
