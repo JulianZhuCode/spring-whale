@@ -1,14 +1,8 @@
 package io.github.springwhale.framework.event;
 
 import jakarta.validation.Valid;
-import lombok.Getter;
-import org.springframework.beans.factory.annotation.Value;
 
 public abstract class EventPublisher {
-
-    @Getter
-    @Value("${spring.whale.event.default-topic:DEFAULT_TOPIC}")
-    private String defaultTopic;
 
     abstract void publish(@Valid Object event);
 
