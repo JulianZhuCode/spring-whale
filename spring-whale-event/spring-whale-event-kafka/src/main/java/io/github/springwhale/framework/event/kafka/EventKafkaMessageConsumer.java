@@ -37,7 +37,7 @@ public class EventKafkaMessageConsumer extends EventMessageConsumer {
     @KafkaListener(topics = "#{'${spring.whale.event.listener}'.split(',')}", concurrency = "${spring.whale.event.concurrency:1}", groupId = "${spring.application.name}", properties = {"auto.offset.reset:latest"})
     public void listener(ConsumerRecord<String, String> record, Acknowledgment ack) {
         try {
-            log.debug("消费事件消息: {}", record.value());
+            log.debug("Consuming event message: {}", record.value());
             if (listenerIsEmpty()) {
                 return;
             }
@@ -61,7 +61,7 @@ public class EventKafkaMessageConsumer extends EventMessageConsumer {
             }
             doListener(record, listeners, message);
         } catch (Exception e) {
-            log.error("消费事件消息异常", e);
+            log.error("Exception occurred while consuming event message", e);
         } finally {
             ack.acknowledge();
         }
@@ -77,7 +77,7 @@ public class EventKafkaMessageConsumer extends EventMessageConsumer {
                     var event = jsonMapper.readValue(message.getData(), listener.getEventClass());
                     listener.onEvent(event, getBuildEventContext(record, message));
                 } catch (Exception e) {
-                    log.error(String.format("监听器[%s]，消费消息[%s]失败。", listener.getBusinessName(), message.getData()), e);
+                    log.error("Listener [{}] failed to consume message [{}].", listener.getBusinessName(), message.getData(), e);
                     message.setErrorMessage(ExceptionUtil.getStackTrace(e));
                     message.setRetryEnabled(listener.retryEnabled());
                     message.setFailListener(getListenerInstanceToNameMap().get(listener));
