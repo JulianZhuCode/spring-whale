@@ -11,7 +11,11 @@ public class EventProperties {
 
     private String defaultTopic = "DEFAULT_EVENT_TOPIC";
 
-    private String errorTopic = "EVENT_ERROR_TOPIC";
+    private String failedTopic = "EVENT_FAILED_TOPIC";
 
     private String concurrency = "1";
+
+    private int maxRetries = 3;
+
+    private int retryInterval = 5;
 }
