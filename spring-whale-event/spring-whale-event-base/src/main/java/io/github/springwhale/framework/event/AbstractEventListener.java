@@ -39,9 +39,17 @@ public abstract class AbstractEventListener<T> {
         throw new IllegalArgumentException(errorMsg);
     }
 
-    public abstract void onEvent(T event);
+    public void onEvent(Object event, EventContext eventContext) {
+        if (event == null) {
+            log.info("No event received for {}", eventClass.getSimpleName());
+            return;
+        }
+        doEvent((T) event, eventContext);
+    }
 
-    public boolean isRetry() {
+    public abstract void doEvent(T event, EventContext eventContext);
+
+    public boolean retryEnabled() {
         return false;
     }
 }

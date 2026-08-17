@@ -9,9 +9,9 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "spring.whale.event")
 public class EventProperties {
 
-    private String defaultTopic = "EVENT_TOPIC";
-
-    private String retryTopic = "EVENT_RETRY_TOPIC";
+    private String defaultTopic = "DEFAULT_EVENT_TOPIC";
 
     private String errorTopic = "EVENT_ERROR_TOPIC";
+
+    private String concurrency = "1";
 }
