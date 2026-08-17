@@ -2,7 +2,10 @@ package io.github.springwhale.framework.event.kafka;
 
 import io.github.springwhale.framework.core.context.AuthenticationContextHolder;
 import io.github.springwhale.framework.core.utils.ExceptionUtil;
-import io.github.springwhale.framework.event.*;
+import io.github.springwhale.framework.event.AbstractEventListener;
+import io.github.springwhale.framework.event.EventContext;
+import io.github.springwhale.framework.event.EventMessage;
+import io.github.springwhale.framework.event.EventMessageConsumer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -10,7 +13,6 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.ObjectMapper;
 
 import java.util.Collections;
 import java.util.List;
@@ -22,8 +24,6 @@ import java.util.concurrent.TimeoutException;
 @Component
 @RequiredArgsConstructor
 public class EventKafkaMessageConsumer extends EventMessageConsumer {
-    private final ObjectMapper jsonMapper;
-    private final EventProperties eventProperties;
     private final KafkaTemplate<String, String> kafkaTemplate;
 
     private static EventContext getBuildEventContext(ConsumerRecord<String, String> record, EventMessage message) {
@@ -39,9 +39,11 @@ public class EventKafkaMessageConsumer extends EventMessageConsumer {
         try {
             log.debug("Consuming event message: {}", record.value());
             if (listenerIsEmpty()) {
+                ack.acknowledge();
                 return;
             }
             if (record.value() == null) {
+                ack.acknowledge();
                 return;
             }
             EventMessage message = jsonMapper.readValue(record.value(), EventMessage.class);
@@ -54,16 +56,17 @@ public class EventKafkaMessageConsumer extends EventMessageConsumer {
                     listeners = Collections.singletonList(getListenerNameToInstanceMap().get(message.getFailListener()));
                     break;
                 default:
+                    ack.acknowledge();
                     return;
             }
             if (listeners == null) {
+                ack.acknowledge();
                 return;
             }
             doListener(record, listeners, message);
+            ack.acknowledge();
         } catch (Exception e) {
             log.error("Exception occurred while consuming event message", e);
-        } finally {
-            ack.acknowledge();
         }
     }
 
@@ -78,7 +81,7 @@ public class EventKafkaMessageConsumer extends EventMessageConsumer {
                     listener.onEvent(event, getBuildEventContext(record, message));
                 } catch (Exception e) {
                     log.error("Listener [{}] failed to consume message [{}].", listener.getBusinessName(), message.getData(), e);
-                    message.setErrorMessage(ExceptionUtil.getStackTrace(e));
+                    message.setErrorStack(ExceptionUtil.getStackTrace(e));
                     message.setRetryEnabled(listener.retryEnabled());
                     message.setFailListener(getListenerInstanceToNameMap().get(listener));
                     kafkaTemplate.send(eventProperties.getFailedTopic(), message.getId(), jsonMapper.writeValueAsString(message)).get(3, TimeUnit.SECONDS);

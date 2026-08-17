@@ -20,9 +20,10 @@ public class EventMessage {
     private String topic;
     private AuthenticationContext authenticationContext;
     private MessageType messageType = MessageType.EVENT;
-    private Integer retryTime;
+    private Integer retryCount;
     private Boolean retryEnabled;
-    private String errorMessage;
+    private Boolean retrySuccess;
+    private String errorStack;
     private String failListener;
 
 }

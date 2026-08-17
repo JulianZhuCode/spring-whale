@@ -15,7 +15,6 @@
         <module>spring-whale-thymeleaf</module>
         <module>spring-whale-platform</module>
         <module>spring-whale-event</module>
-        <module>spring-whale-event/spring-whale-event-server-base</module>
     </modules>
     <packaging>pom</packaging>
     <url>https://github.com/JulianZhuCode/spring-whale</url>
@@ -108,7 +107,17 @@
             </dependency>
             <dependency>
                 <groupId>io.github.julianzhucode</groupId>
+                <artifactId>spring-whale-event-server-base</artifactId>
+                <version>${my.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.julianzhucode</groupId>
                 <artifactId>spring-whale-event-kafka</artifactId>
+                <version>${my.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.julianzhucode</groupId>
+                <artifactId>spring-whale-event-server-kafka</artifactId>
                 <version>${my.version}</version>
             </dependency>
             <dependency>

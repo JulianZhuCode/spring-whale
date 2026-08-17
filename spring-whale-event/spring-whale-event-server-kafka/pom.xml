@@ -5,19 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>io.github.julianzhucode</groupId>
-        <artifactId>spring-whale</artifactId>
+        <artifactId>spring-whale-event</artifactId>
         <version>0.0.2</version>
     </parent>
 
-    <modules>
-        <module>spring-whale-event-base</module>
-        <module>spring-whale-event-server-base</module>
-        <module>spring-whale-event-kafka</module>
-        <module>spring-whale-event-server-kafka</module>
-    </modules>
-
-    <packaging>pom</packaging>
-    <artifactId>spring-whale-event</artifactId>
+    <artifactId>spring-whale-event-server-kafka</artifactId>
 
     <properties>
         <maven.compiler.source>25</maven.compiler.source>
@@ -27,13 +19,12 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.github.julianzhucode</groupId>
-            <artifactId>spring-whale-core</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-kafka</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
+            <groupId>io.github.julianzhucode</groupId>
+            <artifactId>spring-whale-event-server-base</artifactId>
         </dependency>
     </dependencies>
 

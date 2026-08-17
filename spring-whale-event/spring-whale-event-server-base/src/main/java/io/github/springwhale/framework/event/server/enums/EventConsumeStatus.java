@@ -9,6 +9,7 @@ import lombok.Getter;
 public enum EventConsumeStatus implements BaseEnum {
 
     PENDING_RETRY("PENDING_RETRY", "Pending Retry"),
+    RETRYING("RETRYING", "Retrying"),
     FINAL_FAILED("FINAL_FAILED", "Final Failed"),
     REPLAY_SUCCESS("REPLAY_SUCCESS", "Replay Success"),
     DISCARDED("DISCARDED", "Discarded");

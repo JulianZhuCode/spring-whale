@@ -5,9 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>io.github.julianzhucode</groupId>
-        <artifactId>spring-whale</artifactId>
+        <artifactId>spring-whale-event</artifactId>
         <version>0.0.2</version>
-        <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <artifactId>spring-whale-event-server-base</artifactId>
@@ -24,9 +23,8 @@
             <artifactId>spring-whale-database</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
+            <groupId>io.github.julianzhucode</groupId>
+            <artifactId>spring-whale-event-base</artifactId>
         </dependency>
     </dependencies>
 

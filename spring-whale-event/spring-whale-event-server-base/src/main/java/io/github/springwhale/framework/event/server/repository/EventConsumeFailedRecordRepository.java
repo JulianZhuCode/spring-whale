@@ -6,6 +6,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -27,4 +30,12 @@ public interface EventConsumeFailedRecordRepository extends JpaRepository<EventC
     List<EventConsumeFailedRecordEntity> findByBusinessName(String businessName);
 
     List<EventConsumeFailedRecordEntity> findByListenerName(String listenerName);
+
+    @Modifying
+    @Query("UPDATE EventConsumeFailedRecordEntity e SET e.status = :status, e.nextRetryTime = :nextRetryTime, e.errorStack = :errorStack, e.updateTime = now() WHERE e.messageId = :messageId")
+    int updateRetryResult(@Param("messageId") String messageId,
+                          @Param("status") EventConsumeStatus status,
+                          @Param("nextRetryTime") LocalDateTime nextRetryTime,
+                          @Param("errorStack") String errorStack);
+
 }

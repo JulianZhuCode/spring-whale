@@ -4,6 +4,7 @@ import lombok.Getter;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,7 +21,10 @@ public abstract class EventMessageConsumer implements InitializingBean {
      * Manually registered listeners, support runtime concurrent put/remove.
      */
     private final Map<String, AbstractEventListener<?>> customRegisterMap = new ConcurrentHashMap<>();
-
+    @Autowired
+    protected ObjectMapper jsonMapper;
+    @Autowired
+    protected EventProperties eventProperties;
     /**
      * Listener instance -> registered name. Unmodifiable view.
      * <p>Key is object reference, do NOT serialize this map.</p>

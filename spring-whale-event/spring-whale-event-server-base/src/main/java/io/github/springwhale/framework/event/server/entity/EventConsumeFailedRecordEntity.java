@@ -40,13 +40,9 @@ public class EventConsumeFailedRecordEntity {
     @Column(nullable = false, length = 32)
     private EventConsumeStatus status = EventConsumeStatus.PENDING_RETRY;
 
-    @Column
     private Integer retryCount = 0;
 
     private LocalDateTime nextRetryTime;
-
-    @Column(columnDefinition = "text")
-    private String errorMessage;
 
     @Column(columnDefinition = "text")
     private String errorStack;
