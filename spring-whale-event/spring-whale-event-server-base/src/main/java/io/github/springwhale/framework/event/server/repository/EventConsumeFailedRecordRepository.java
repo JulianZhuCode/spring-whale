@@ -44,4 +44,6 @@ public interface EventConsumeFailedRecordRepository extends JpaRepository<EventC
                             @Param("expectedStatus") EventConsumeStatus expectedStatus,
                             @Param("newStatus") EventConsumeStatus newStatus);
 
+    List<EventConsumeFailedRecordEntity> findByStatusInAndCreateTimeBefore(List<EventConsumeStatus> statuses, LocalDateTime createTime, Pageable pageable);
+
 }

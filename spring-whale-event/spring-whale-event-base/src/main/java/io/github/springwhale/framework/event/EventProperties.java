@@ -23,6 +23,10 @@ public class EventProperties {
     public static final int DEFAULT_RETRY_BATCH_SIZE = 1000;
     public static final int DEFAULT_RETRY_SCHEDULE_INTERVAL = 60000;
     public static final int DEFAULT_SEND_TIMEOUT_SECONDS = 3;
+    public static final int DEFAULT_RETRY_THREAD_POOL_SIZE = 4;
+    public static final int DEFAULT_RETRY_CLEANUP_RETENTION_DAYS = 30;
+    public static final int DEFAULT_RETRY_CLEANUP_BATCH_SIZE = 500;
+    public static final int DEFAULT_RETRY_CLEANUP_SCHEDULE_INTERVAL = 86_400_000;
 
     private String eventTopic = DEFAULT_EVENT_TOPIC;
 
@@ -39,5 +43,13 @@ public class EventProperties {
     private int retryScheduleInterval = DEFAULT_RETRY_SCHEDULE_INTERVAL;
 
     private int sendTimeoutSeconds = DEFAULT_SEND_TIMEOUT_SECONDS;
+
+    private int retryThreadPoolSize = DEFAULT_RETRY_THREAD_POOL_SIZE;
+
+    private int retryCleanupRetentionDays = DEFAULT_RETRY_CLEANUP_RETENTION_DAYS;
+
+    private int retryCleanupBatchSize = DEFAULT_RETRY_CLEANUP_BATCH_SIZE;
+
+    private int retryCleanupScheduleInterval = DEFAULT_RETRY_CLEANUP_SCHEDULE_INTERVAL;
 
 }
