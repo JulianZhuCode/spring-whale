@@ -10,12 +10,13 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.StringUtils;
 import tools.jackson.databind.ObjectMapper;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class EventPublisher {
-    protected final Map<Class<?>, Event> eventAnnotations = new HashMap<>();
+    protected final Map<Class<?>, Event> eventAnnotations = new ConcurrentHashMap<>();
+    private final Set<Class<?>> noAnnotationClasses = ConcurrentHashMap.newKeySet();
     @Autowired
     protected EventProperties properties;
     @Autowired
@@ -40,9 +41,10 @@ public abstract class EventPublisher {
      * <p>The {@code @Event} annotation is optional. If not present, this method returns {@code null}
      * and the caller should fall back to default values (class simple name as business name,
      * default topic from properties).</p>
-     * <p>Results are cached in a {@link ConcurrentHashMap}. Null results are NOT cached
-     * because ConcurrentHashMap does not allow null values, so unannotated classes will
-     * re-compute on each call (acceptable given Spring's internal annotation cache).</p>
+     * <p>Both positive (annotation found) and negative (no annotation) results are cached.
+     * Positive results are stored in {@link #eventAnnotations}, negative results are tracked
+     * via {@code noAnnotationClasses} (a {@link ConcurrentHashMap}-backed {@link Set}),
+     * so that unannotated classes also avoid repeated annotation lookups.</p>
      *
      * @param event the event object
      * @return the {@link Event} annotation, or {@code null} if not annotated
@@ -53,9 +55,14 @@ public abstract class EventPublisher {
         if (eventAnnotations.containsKey(clazz)) {
             return eventAnnotations.get(clazz);
         }
+        if (noAnnotationClasses.contains(clazz)) {
+            return null;
+        }
         Event eventAnnotation = AnnotationUtils.findAnnotation(clazz, Event.class);
         if (eventAnnotation != null) {
             eventAnnotations.put(clazz, eventAnnotation);
+        } else {
+            noAnnotationClasses.add(clazz);
         }
         return eventAnnotation;
     }
