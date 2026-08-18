@@ -2,6 +2,7 @@ package io.github.springwhale.framework.event.server;
 
 import io.github.springwhale.framework.core.context.AuthenticationContext;
 import io.github.springwhale.framework.event.EventMessage;
+import io.github.springwhale.framework.event.EventMetricsCollector;
 import io.github.springwhale.framework.event.EventProperties;
 import io.github.springwhale.framework.event.EventPublisher;
 import io.github.springwhale.framework.event.MessageType;
@@ -11,6 +12,7 @@ import io.github.springwhale.framework.event.server.repository.EventConsumeFaile
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -30,6 +33,8 @@ public class EventRetryTask {
     private final EventPublisher eventPublisher;
     private final ObjectMapper jsonMapper;
     private final ExecutorService retryExecutor;
+    @Autowired(required = false)
+    private List<EventMetricsCollector> metricsCollectors = Collections.emptyList();
 
     public EventRetryTask(EventConsumeFailedRecordRepository recordRepository,
                           EventProperties eventProperties,
@@ -83,12 +88,12 @@ public class EventRetryTask {
 
     /**
      * Scheduled retry task for failed event messages.
-     * <p>Uses "publish-first, then update status" strategy: the message is sent to Kafka
-     * synchronously first, then the database status is updated via CAS. If the Kafka send
-     * succeeds but the DB update fails, the message will be picked up again on the next
-     * retry cycle (duplicate delivery is acceptable — at-least-once semantics).
-     * Message loss is NOT acceptable, so if the Kafka send fails, the status is not
-     * updated and the message will be retried on the next schedule.</p>
+     * <p>Uses "publish-first, then update status" strategy: the message is published
+     * to the MQ broker synchronously via {@link EventPublisher}, then the database status
+     * is updated via CAS. If the publish succeeds but the DB update fails, the message
+     * will be picked up again on the next retry cycle (duplicate delivery is acceptable
+     * — at-least-once semantics). Message loss is NOT acceptable, so if the publish
+     * fails, the status is not updated and the message will be retried on the next schedule.</p>
      * <p>Retry records are processed in parallel via a thread pool to reduce
      * total batch processing time. Each record is still handled independently in its own
      * try-catch block so that one record's failure does not interrupt others.</p>
@@ -128,6 +133,7 @@ public class EventRetryTask {
             EventMessage eventMessage = buildEventMessage(entity);
             eventPublisher.publish(eventMessage);
             recordRepository.casTransitionStatus(entity.getId(), EventConsumeStatus.PENDING_RETRY, EventConsumeStatus.RETRYING);
+            metricsCollectors.forEach(c -> c.onRetryScheduled(entity.getMessageId(), entity.getListenerName(), eventMessage.getRetryCount()));
         } catch (Exception e) {
             log.error("Retry publish or update status failed for messageId={}", entity.getMessageId(), e);
         }

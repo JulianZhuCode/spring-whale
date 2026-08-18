@@ -1,33 +1,22 @@
 package io.github.springwhale.framework.event;
 
 /**
- * Retry backoff strategy for failed event messages.
- * <p>Each strategy encapsulates its own delay calculation algorithm.
- * New strategies can be added without changing any caller code.</p>
+ * SPI interface for retry backoff strategy.
+ * <p>Built-in strategies ({@code fixed}, {@code exponential}) are registered
+ * internally by {@link RetryStrategyRegistry}. Custom strategies are registered
+ * as Spring beans with a unique name:</p>
+ * <pre>{@code
+ * @Component("jitter")
+ * public class JitterRetryStrategy implements RetryStrategy {
+ *     public long calculateDelay(int baseInterval, int maxInterval, int retryCount) {
+ *         // custom logic
+ *     }
+ * }
+ * }</pre>
+ * <p>The strategy name configured via {@code spring.whale.event.retry-strategy}
+ * is used to look up from {@link RetryStrategyRegistry}.</p>
  */
-public enum RetryStrategy {
-
-    /**
-     * Fixed interval: every retry waits the same amount of time.
-     */
-    FIXED {
-        @Override
-        public long calculateDelay(int baseInterval, int maxInterval, int retryCount) {
-            return baseInterval;
-        }
-    },
-
-    /**
-     * Exponential backoff: delay doubles after each retry attempt.
-     * <p>Formula: {@code min(baseInterval * 2^(retryCount-1), maxInterval)}.</p>
-     */
-    EXPONENTIAL {
-        @Override
-        public long calculateDelay(int baseInterval, int maxInterval, int retryCount) {
-            long delay = (long) baseInterval * (1L << (retryCount - 1));
-            return Math.min(delay, maxInterval);
-        }
-    };
+public interface RetryStrategy {
 
     /**
      * Calculate the delay in seconds before the next retry.
@@ -37,6 +26,6 @@ public enum RetryStrategy {
      * @param retryCount   current retry count (1-based: 1 = first retry)
      * @return delay in seconds
      */
-    public abstract long calculateDelay(int baseInterval, int maxInterval, int retryCount);
+    long calculateDelay(int baseInterval, int maxInterval, int retryCount);
 
 }

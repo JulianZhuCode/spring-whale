@@ -1,6 +1,9 @@
 package io.github.springwhale.framework.event;
 
+import io.github.springwhale.framework.core.context.AuthenticationContextHolder;
+import io.github.springwhale.framework.core.utils.ExceptionUtil;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
@@ -17,6 +20,7 @@ import java.util.stream.Collectors;
  * <p>All routing maps are replaced atomically via volatile field assignment, ensuring that
  * consumer threads always see a consistent view (either the old or the new complete map).</p>
  */
+@Slf4j
 public abstract class EventMessageConsumer implements InitializingBean {
 
     /**
@@ -27,6 +31,8 @@ public abstract class EventMessageConsumer implements InitializingBean {
     protected ObjectMapper jsonMapper;
     @Autowired
     protected EventProperties eventProperties;
+    @Autowired(required = false)
+    private List<EventMetricsCollector> metricsCollectors = Collections.emptyList();
     /**
      * Listener instance -> registered name. Unmodifiable view.
      * <p>Key is object reference, do NOT serialize this map.</p>
@@ -140,5 +146,96 @@ public abstract class EventMessageConsumer implements InitializingBean {
         this.listenerGroup = Collections.unmodifiableMap(groupMap);
         this.listenerNameToInstanceMap = Collections.unmodifiableMap(tempNameToInstance);
         this.listenerInstanceToNameMap = Collections.unmodifiableMap(tempInstanceToName);
+    }
+
+    /**
+     * Route the message to matching listeners and dispatch.
+     * <p>MQ-specific subclasses call this after deserializing the raw message.</p>
+     *
+     * @param message the deserialized event message
+     * @param context the event context (built from MQ-specific metadata)
+     * @return true if the message was dispatched, false if it should be ignored
+     */
+    protected boolean handleMessage(EventMessage message, EventContext context) {
+        List<AbstractEventListener<?>> listeners;
+        switch (message.getMessageType()) {
+            case EVENT:
+                listeners = getListenerGroup().get(message.getBusinessName());
+                break;
+            case RETRY:
+                listeners = Collections.singletonList(getListenerNameToInstanceMap().get(message.getFailListener()));
+                break;
+            default:
+                return false;
+        }
+        if (listeners == null) {
+            return false;
+        }
+        dispatchToListeners(context, listeners, message);
+        return true;
+    }
+
+    /**
+     * Dispatch the message to each matching listener.
+     * <p>Each listener failure is handled independently: the exception is caught per-listener,
+     * the error info is recorded on the message, and the message is sent to the failed topic
+     * via {@link #sendToFailedTopic(EventMessage)} for retry processing.</p>
+     * <p>Authentication context is set on the current thread before dispatching (if present
+     * on the message) and cleared in the finally block, ensuring no cross-message context leakage.</p>
+     */
+    private void dispatchToListeners(EventContext context, List<AbstractEventListener<?>> listeners, EventMessage message) {
+        try {
+            if (message.getAuthenticationContext() != null) {
+                AuthenticationContextHolder.setContext(message.getAuthenticationContext());
+            }
+            for (AbstractEventListener<?> listener : listeners) {
+                try {
+                    var event = jsonMapper.readValue(message.getData(), listener.getEventClass());
+                    listener.onEvent(event, context);
+                    onConsumeSuccess(message.getBusinessName(), getListenerInstanceToNameMap().get(listener));
+                } catch (Exception e) {
+                    log.error("Listener [{}] failed to consume message [{}].", listener.getBusinessName(), message.getData(), e);
+                    onConsumeFailure(message.getBusinessName(), getListenerInstanceToNameMap().get(listener), e);
+                    message.setErrorStack(ExceptionUtil.getStackTrace(e));
+                    message.setRetryEnabled(listener.retryEnabled());
+                    message.setFailListener(getListenerInstanceToNameMap().get(listener));
+                    message.setMessageType(MessageType.FAIL);
+                    sendToFailedTopic(message);
+                }
+                if (MessageType.RETRY == message.getMessageType()) {
+                    message.setRetrySuccess(true);
+                    sendToFailedTopic(message);
+                }
+            }
+        } finally {
+            AuthenticationContextHolder.clearContext();
+        }
+    }
+
+    /**
+     * Send the message to the failed topic for retry processing.
+     * <p>Implemented by MQ-specific subclasses. The implementation must be synchronous
+     * (blocking with bounded timeout) to guarantee the message is persisted before
+     * the consumer acknowledges the original message.</p>
+     *
+     * @param message the event message to send to the failed topic
+     * @throws RuntimeException if the send fails
+     */
+    protected abstract void sendToFailedTopic(EventMessage message);
+
+    /**
+     * Notify all registered {@link EventMetricsCollector}s of a successful consume.
+     * <p>Called after a listener processes the event without error.</p>
+     */
+    protected void onConsumeSuccess(String businessName, String listenerName) {
+        metricsCollectors.forEach(c -> c.onConsumeSuccess(businessName, listenerName));
+    }
+
+    /**
+     * Notify all registered {@link EventMetricsCollector}s of a failed consume.
+     * <p>Called when a listener throws an exception.</p>
+     */
+    protected void onConsumeFailure(String businessName, String listenerName, Throwable error) {
+        metricsCollectors.forEach(c -> c.onConsumeFailure(businessName, listenerName, error));
     }
 }
