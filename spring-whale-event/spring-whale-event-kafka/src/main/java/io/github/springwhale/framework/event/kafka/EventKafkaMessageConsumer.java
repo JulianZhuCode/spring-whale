@@ -40,10 +40,10 @@ public class EventKafkaMessageConsumer extends EventMessageConsumer {
      * The only truly unrecoverable scenario (deserialization failure) is handled
      * in the inner catch block where the message is acknowledged and discarded.</p>
      */
-    @KafkaListener(topics = "#{'${spring.whale.event.listener:" + EventProperties.DEFAULT_EVENT_TOPIC + "}'.split(',')}",
-            concurrency = "${spring.whale.event.kafka.concurrency:1}",
+    @KafkaListener(topics = "#{@eventProperties.listener.split(',')}",
+            concurrency = "#{@kafkaEventProperties.concurrency}",
             groupId = "${spring.application.name}",
-            properties = {"auto.offset.reset:${spring.whale.event.kafka.auto-offset-reset:latest}"})
+            properties = {"#{'auto.offset.reset:' + @kafkaEventProperties.autoOffsetReset}"})
     public void listener(ConsumerRecord<String, String> record, Acknowledgment ack) {
         try {
             log.debug("Consuming event message: {}", record.value());

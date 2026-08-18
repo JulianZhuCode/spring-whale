@@ -15,8 +15,6 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-import static io.github.springwhale.framework.event.EventProperties.DEFAULT_FAILED_TOPIC;
-
 @Slf4j
 @Component
 public class KafkaEventConsumeFailedListener extends EventConsumeFailedListener {
@@ -29,9 +27,9 @@ public class KafkaEventConsumeFailedListener extends EventConsumeFailedListener 
      * block intentionally does NOT acknowledge the message — Kafka will re-deliver
      * it once the system recovers. This provides at-least-once semantics.</p>
      */
-    @KafkaListener(topics = "${spring.whale.event.failedTopic:" + DEFAULT_FAILED_TOPIC + "}",
-            concurrency = "${spring.whale.event.kafka.failed-concurrency:1}",
-            groupId = "spring-whale-event-server")
+    @KafkaListener(topics = "#{@eventProperties.failedTopic}",
+            concurrency = "#{@kafkaEventProperties.failedConcurrency}",
+            groupId = "#{@kafkaEventProperties.failedGroupId}")
     public void listenerFailed(ConsumerRecord<String, String> record, Acknowledgment ack) {
         try {
             EventMessage message = jsonMapper.readValue(record.value(), EventMessage.class);

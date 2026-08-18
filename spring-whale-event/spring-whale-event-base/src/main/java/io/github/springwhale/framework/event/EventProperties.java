@@ -28,6 +28,8 @@ public class EventProperties {
 
     private String failedTopic = DEFAULT_FAILED_TOPIC;
 
+    private String listener = DEFAULT_EVENT_TOPIC;
+
     private int maxRetries = DEFAULT_MAX_RETRIES;
 
     private int retryInterval = DEFAULT_RETRY_INTERVAL;
