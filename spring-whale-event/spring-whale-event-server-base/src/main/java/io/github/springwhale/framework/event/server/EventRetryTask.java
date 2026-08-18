@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
@@ -28,6 +29,7 @@ public class EventRetryTask {
     private final EventProperties eventProperties;
     private final EventPublisher eventPublisher;
     private final ObjectMapper jsonMapper;
+    private final TransactionTemplate transactionTemplate;
 
     private @NonNull EventMessage buildEventMessage(EventConsumeFailedRecordEntity entity) {
         EventMessage eventMessage = new EventMessage();
@@ -57,21 +59,19 @@ public class EventRetryTask {
         List<EventConsumeFailedRecordEntity> entities = page.getContent();
         log.info("Found [{}] failed messages to retry", entities.size());
         for (EventConsumeFailedRecordEntity entity : entities) {
-            int updated = recordRepository.updateRetryStatus(entity.getMessageId(), EventConsumeStatus.PENDING_RETRY, EventConsumeStatus.RETRYING);
-            if (updated == 0) {
-                continue;
-            }
-            try {
-                EventMessage eventMessage = buildEventMessage(entity);
-                eventPublisher.publish(eventMessage);
-            } catch (Exception e) {
-                log.error("Retry publish failed for messageId={}", entity.getMessageId(), e);
-                recordRepository.updateRetryStatus(
-                        entity.getMessageId(),
-                        EventConsumeStatus.RETRYING,
-                        EventConsumeStatus.PENDING_RETRY
-                );
-            }
+            transactionTemplate.executeWithoutResult(status -> {
+                int updated = recordRepository.casTransitionStatus(entity.getMessageId(), EventConsumeStatus.PENDING_RETRY, EventConsumeStatus.RETRYING);
+                if (updated == 0) {
+                    return;
+                }
+                try {
+                    EventMessage eventMessage = buildEventMessage(entity);
+                    eventPublisher.publish(eventMessage);
+                } catch (Exception e) {
+                    log.error("Retry publish failed for messageId={}", entity.getMessageId(), e);
+                    throw e;
+                }
+            });
         }
     }
 

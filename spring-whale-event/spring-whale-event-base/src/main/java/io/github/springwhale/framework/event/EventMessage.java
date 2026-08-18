@@ -3,12 +3,10 @@ package io.github.springwhale.framework.event;
 import io.github.springwhale.framework.core.context.AuthenticationContext;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
-import lombok.ToString;
 
 import java.util.UUID;
 
 @Data
-@ToString
 public class EventMessage {
 
     private String id = UUID.randomUUID().toString();

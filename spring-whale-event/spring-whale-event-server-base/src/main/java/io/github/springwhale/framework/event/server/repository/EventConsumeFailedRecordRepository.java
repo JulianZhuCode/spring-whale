@@ -40,8 +40,8 @@ public interface EventConsumeFailedRecordRepository extends JpaRepository<EventC
 
     @Modifying
     @Query("UPDATE EventConsumeFailedRecordEntity e SET e.retryCount = e.retryCount+1, e.status = :newStatus, e.updateTime = now() WHERE e.messageId = :messageId and e.status = :expectedStatus")
-    int updateRetryStatus(@Param("messageId") String messageId,
-                          @Param("expectedStatus") EventConsumeStatus expectedStatus,
-                          @Param("newStatus") EventConsumeStatus newStatus);
+    int casTransitionStatus(@Param("messageId") String messageId,
+                            @Param("expectedStatus") EventConsumeStatus expectedStatus,
+                            @Param("newStatus") EventConsumeStatus newStatus);
 
 }

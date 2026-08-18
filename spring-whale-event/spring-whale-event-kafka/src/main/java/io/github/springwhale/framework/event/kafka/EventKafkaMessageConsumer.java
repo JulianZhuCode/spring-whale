@@ -10,6 +10,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
 
 import java.util.Collections;
 import java.util.List;
@@ -45,7 +46,14 @@ public class EventKafkaMessageConsumer extends EventMessageConsumer {
                 ack.acknowledge();
                 return;
             }
-            EventMessage message = jsonMapper.readValue(record.value(), EventMessage.class);
+            EventMessage message = null;
+            try {
+                message = jsonMapper.readValue(record.value(), EventMessage.class);
+            } catch (JacksonException e) {
+                log.error("Failed to deserialize event message: {}", record.value(), e);
+                ack.acknowledge();
+                return;
+            }
             List<AbstractEventListener<?>> listeners;
             switch (message.getMessageType()) {
                 case EVENT:
@@ -84,6 +92,10 @@ public class EventKafkaMessageConsumer extends EventMessageConsumer {
                     message.setRetryEnabled(listener.retryEnabled());
                     message.setFailListener(getListenerInstanceToNameMap().get(listener));
                     message.setMessageType(MessageType.FAIL);
+                    kafkaTemplate.send(eventProperties.getFailedTopic(), message.getId(), jsonMapper.writeValueAsString(message)).get(eventProperties.getSendTimeoutSeconds(), TimeUnit.SECONDS);
+                }
+                if (MessageType.RETRY == message.getMessageType()) {
+                    message.setRetrySuccess(true);
                     kafkaTemplate.send(eventProperties.getFailedTopic(), message.getId(), jsonMapper.writeValueAsString(message)).get(eventProperties.getSendTimeoutSeconds(), TimeUnit.SECONDS);
                 }
             }
