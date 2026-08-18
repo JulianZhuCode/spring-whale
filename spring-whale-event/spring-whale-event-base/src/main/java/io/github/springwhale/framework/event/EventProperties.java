@@ -12,6 +12,10 @@ public class EventProperties {
     public static final String DEFAULT_EVENT_TOPIC = "EVENT_TOPIC";
     public static final String DEFAULT_FAILED_TOPIC = "EVENT_FAILED_TOPIC";
     public static final String DEFAULT_CONCURRENCY = "1";
+    public static final int DEFAULT_MAX_RETRIES = 3;
+    public static final int DEFAULT_RETRY_INTERVAL = 5;
+    public static final int DEFAULT_RETRY_BATCH_SIZE = 1000;
+    public static final int DEFAULT_RETRY_SCHEDULE_INTERVAL = 60000;
 
     private String eventTopic = DEFAULT_EVENT_TOPIC;
 
@@ -19,7 +23,12 @@ public class EventProperties {
 
     private String concurrency = DEFAULT_CONCURRENCY;
 
-    private int maxRetries = 3;
+    private int maxRetries = DEFAULT_MAX_RETRIES;
 
-    private int retryInterval = 5;
+    private int retryInterval = DEFAULT_RETRY_INTERVAL;
+
+    private int retryBatchSize = DEFAULT_RETRY_BATCH_SIZE;
+
+    private int retryScheduleInterval = DEFAULT_RETRY_SCHEDULE_INTERVAL;
+
 }
