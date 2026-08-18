@@ -14,11 +14,13 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
+import static io.github.springwhale.framework.event.EventProperties.DEFAULT_FAILED_TOPIC;
+
 @Slf4j
 @Component
 public class KafkaEventConsumeFailedListener extends EventConsumeFailedListener {
 
-    @KafkaListener(topics = "${spring.whale.event.failedTopic}", groupId = "spring-whale-event-server")
+    @KafkaListener(topics = "${spring.whale.event.failedTopic:" + DEFAULT_FAILED_TOPIC + "}", groupId = "spring-whale-event-server")
     public void listenerFailed(ConsumerRecord<String, String> record, Acknowledgment ack) {
         try {
             EventMessage message = jsonMapper.readValue(record.value(), EventMessage.class);

@@ -20,6 +20,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import static io.github.springwhale.framework.event.EventProperties.DEFAULT_CONCURRENCY;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -34,7 +36,7 @@ public class EventKafkaMessageConsumer extends EventMessageConsumer {
                 .build();
     }
 
-    @KafkaListener(topics = "#{'${spring.whale.event.listener}'.split(',')}", concurrency = "${spring.whale.event.concurrency:1}", groupId = "${spring.application.name}", properties = {"auto.offset.reset:latest"})
+    @KafkaListener(topics = "#{'${spring.whale.event.listener}'.split(',')}", concurrency = "${spring.whale.event.concurrency:" + DEFAULT_CONCURRENCY + "}", groupId = "${spring.application.name}", properties = {"auto.offset.reset:latest"})
     public void listener(ConsumerRecord<String, String> record, Acknowledgment ack) {
         try {
             log.debug("Consuming event message: {}", record.value());

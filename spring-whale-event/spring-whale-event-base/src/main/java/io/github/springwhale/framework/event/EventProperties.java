@@ -9,11 +9,15 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "spring.whale.event")
 public class EventProperties {
 
-    private String defaultTopic = "DEFAULT_EVENT_TOPIC";
+    public static final String DEFAULT_EVENT_TOPIC = "EVENT_TOPIC";
+    public static final String DEFAULT_FAILED_TOPIC = "EVENT_FAILED_TOPIC";
+    public static final String DEFAULT_CONCURRENCY = "1";
 
-    private String failedTopic = "EVENT_FAILED_TOPIC";
+    private String eventTopic = DEFAULT_EVENT_TOPIC;
 
-    private String concurrency = "1";
+    private String failedTopic = DEFAULT_FAILED_TOPIC;
+
+    private String concurrency = DEFAULT_CONCURRENCY;
 
     private int maxRetries = 3;
 

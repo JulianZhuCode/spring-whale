@@ -30,7 +30,7 @@ public abstract class EventPublisher {
     }
 
     protected String buildTopic(Event eventAnnotation) {
-        return (eventAnnotation != null && StringUtils.hasText(eventAnnotation.topic())) ? eventAnnotation.topic() : properties.getDefaultTopic();
+        return (eventAnnotation != null && StringUtils.hasText(eventAnnotation.topic())) ? eventAnnotation.topic() : properties.getEventTopic();
     }
 
     protected Event findEventAnnotation(Object event) {
