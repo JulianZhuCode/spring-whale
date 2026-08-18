@@ -1,1 +1,2 @@
 io.github.springwhale.framework.event.kafka.KafkaEventConfiguration
+io.github.springwhale.framework.event.metrics.MicrometerEventConfiguration
