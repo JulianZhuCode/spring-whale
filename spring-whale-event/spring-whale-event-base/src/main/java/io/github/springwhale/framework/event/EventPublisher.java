@@ -4,6 +4,7 @@ import io.github.springwhale.framework.core.context.AuthenticationContextHolder;
 import io.github.springwhale.framework.core.utils.SpringContextUtils;
 import jakarta.validation.Valid;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.StringUtils;
@@ -33,13 +34,27 @@ public abstract class EventPublisher {
         return (eventAnnotation != null && StringUtils.hasText(eventAnnotation.topic())) ? eventAnnotation.topic() : properties.getEventTopic();
     }
 
+    /**
+     * Find the {@link Event} annotation on the given event class.
+     * <p>The {@code @Event} annotation is optional. If not present, this method returns {@code null}
+     * and the caller should fall back to default values (class simple name as business name,
+     * default topic from properties).</p>
+     * <p>Results are cached in a {@link ConcurrentHashMap}. Null results are NOT cached
+     * because ConcurrentHashMap does not allow null values, so unannotated classes will
+     * re-compute on each call (acceptable given Spring's internal annotation cache).</p>
+     *
+     * @param event the event object
+     * @return the {@link Event} annotation, or {@code null} if not annotated
+     */
+    @Nullable
     protected Event findEventAnnotation(Object event) {
-        Event eventAnnotation;
-        if (eventAnnotations.containsKey(event.getClass())) {
-            eventAnnotation = eventAnnotations.get(event.getClass());
-        } else {
-            eventAnnotation = AnnotationUtils.findAnnotation(event.getClass(), Event.class);
-            eventAnnotations.put(event.getClass(), eventAnnotation);
+        Class<?> clazz = event.getClass();
+        if (eventAnnotations.containsKey(clazz)) {
+            return eventAnnotations.get(clazz);
+        }
+        Event eventAnnotation = AnnotationUtils.findAnnotation(clazz, Event.class);
+        if (eventAnnotation != null) {
+            eventAnnotations.put(clazz, eventAnnotation);
         }
         return eventAnnotation;
     }

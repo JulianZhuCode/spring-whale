@@ -14,6 +14,8 @@ import java.util.stream.Collectors;
  * Abstract MQ event message consumer.
  * <p>Merge listeners from spring container and manual registration, build runtime routing tables.
  * addListener / removeListener supports runtime modification, each call triggers full routing‑table rebuild.</p>
+ * <p>All routing maps are replaced atomically via volatile field assignment, ensuring that
+ * consumer threads always see a consistent view (either the old or the new complete map).</p>
  */
 public abstract class EventMessageConsumer implements InitializingBean {
 
@@ -39,8 +41,7 @@ public abstract class EventMessageConsumer implements InitializingBean {
     private volatile Map<String, AbstractEventListener<?>> listenerNameToInstanceMap = Collections.emptyMap();
 
     /**
-     * Listeners auto‑injected by spring container, key is spring bean name.
-     * <p>Will be null if no matching beans found, do not use directly.</p>
+     * Listeners auto‑injected by Spring container, keyed by bean name.
      */
     @Autowired(required = false)
     private Map<String, AbstractEventListener<?>> springListenerBeanMap;

@@ -13,6 +13,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @Slf4j
 public class SpringWhaleEventServerConfiguration {
     static {
-        log.info("SpringWhaleEventServerConfiguration loaded");
+        log.debug("SpringWhaleEventServerConfiguration loaded");
     }
 }

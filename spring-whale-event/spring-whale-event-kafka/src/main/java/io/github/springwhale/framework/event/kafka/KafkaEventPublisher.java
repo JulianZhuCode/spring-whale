@@ -63,6 +63,16 @@ public class KafkaEventPublisher extends EventPublisher {
         send(message);
     }
 
+    /**
+     * Send the event message to Kafka synchronously with a configurable timeout.
+     * <p>Synchronous send is used intentionally: the caller needs to know whether the
+     * message was accepted by Kafka before proceeding. The timeout is bounded by
+     * {@code sendTimeoutSeconds} (default 3s) to prevent indefinite blocking.
+     * For fire-and-forget scenarios, consider using KafkaTemplate's async send.</p>
+     *
+     * @param message the event message to send
+     * @throws RuntimeException if the send fails or times out
+     */
     private void send(EventMessage message) {
         try {
             kafkaTemplate.send(message.getTopic(), message.getId(), jsonMapper.writeValueAsString(message)).get(properties.getSendTimeoutSeconds(), TimeUnit.SECONDS);

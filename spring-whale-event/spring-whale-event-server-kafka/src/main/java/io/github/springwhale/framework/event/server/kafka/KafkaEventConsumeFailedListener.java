@@ -5,6 +5,7 @@ import io.github.springwhale.framework.event.MessageType;
 import io.github.springwhale.framework.event.server.EventConsumeFailedListener;
 import io.github.springwhale.framework.event.server.entity.EventConsumeFailedRecordEntity;
 import io.github.springwhale.framework.event.server.enums.EventConsumeStatus;
+import io.github.springwhale.framework.event.server.util.EventFailedRecordIdGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -20,7 +21,17 @@ import static io.github.springwhale.framework.event.EventProperties.DEFAULT_FAIL
 @Component
 public class KafkaEventConsumeFailedListener extends EventConsumeFailedListener {
 
-    @KafkaListener(topics = "${spring.whale.event.failedTopic:" + DEFAULT_FAILED_TOPIC + "}", groupId = "spring-whale-event-server")
+    /**
+     * Listener for the failed-event topic. Single consumer group is intentional:
+     * horizontal scaling is not needed for processing failed-event records,
+     * which are low-volume by nature (only produced on listener exceptions).
+     * <p>If processing fails for any reason (e.g. database unavailable), the catch
+     * block intentionally does NOT acknowledge the message — Kafka will re-deliver
+     * it once the system recovers. This provides at-least-once semantics.</p>
+     */
+    @KafkaListener(topics = "${spring.whale.event.failedTopic:" + DEFAULT_FAILED_TOPIC + "}",
+            concurrency = "${spring.whale.event.kafka.failed-concurrency:1}",
+            groupId = "spring-whale-event-server")
     public void listenerFailed(ConsumerRecord<String, String> record, Acknowledgment ack) {
         try {
             EventMessage message = jsonMapper.readValue(record.value(), EventMessage.class);
@@ -32,6 +43,9 @@ public class KafkaEventConsumeFailedListener extends EventConsumeFailedListener 
             handleMessage(message);
             ack.acknowledge();
         } catch (Exception e) {
+            // Intentionally do NOT acknowledge: at-least-once semantics.
+            // If processing fails (e.g. database unavailable), Kafka will
+            // re-deliver the message once the system recovers. No data loss.
             log.error("Failed to process event message: {}", record.value(), e);
         }
     }
@@ -64,7 +78,8 @@ public class KafkaEventConsumeFailedListener extends EventConsumeFailedListener 
         }
 
         failedRecordRepository.updateRetryResult(
-                message.getId(), status, nextRetryTime, message.getErrorStack());
+                EventFailedRecordIdGenerator.generate(message.getId(), message.getFailListener()),
+                status, nextRetryTime, message.getErrorStack());
     }
 
     private void createRetryRecord(EventMessage message) {

@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS event_consume_failed_record
 (
-    message_id             VARCHAR(64) NOT NULL,
+    id                     VARCHAR(64) NOT NULL,
+    message_id             VARCHAR(64),
     source                 VARCHAR(128),
     business_name          VARCHAR(128),
     listener_name          VARCHAR(128),
@@ -13,7 +14,7 @@ CREATE TABLE IF NOT EXISTS event_consume_failed_record
     error_stack            TEXT,
     create_time            TIMESTAMP,
     update_time            TIMESTAMP,
-    PRIMARY KEY (message_id)
+    PRIMARY KEY (id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_event_consume_failed_record_next_retry_time

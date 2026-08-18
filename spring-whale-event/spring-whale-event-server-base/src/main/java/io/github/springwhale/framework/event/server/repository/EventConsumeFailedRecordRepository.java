@@ -32,15 +32,15 @@ public interface EventConsumeFailedRecordRepository extends JpaRepository<EventC
     List<EventConsumeFailedRecordEntity> findByListenerName(String listenerName);
 
     @Modifying
-    @Query("UPDATE EventConsumeFailedRecordEntity e SET e.status = :status, e.nextRetryTime = :nextRetryTime, e.errorStack = :errorStack, e.updateTime = now() WHERE e.messageId = :messageId")
-    int updateRetryResult(@Param("messageId") String messageId,
+    @Query("UPDATE EventConsumeFailedRecordEntity e SET e.status = :status, e.nextRetryTime = :nextRetryTime, e.errorStack = :errorStack, e.updateTime = now() WHERE e.id = :id")
+    int updateRetryResult(@Param("id") String id,
                           @Param("status") EventConsumeStatus status,
                           @Param("nextRetryTime") LocalDateTime nextRetryTime,
                           @Param("errorStack") String errorStack);
 
     @Modifying
-    @Query("UPDATE EventConsumeFailedRecordEntity e SET e.retryCount = e.retryCount+1, e.status = :newStatus, e.updateTime = now() WHERE e.messageId = :messageId and e.status = :expectedStatus")
-    int casTransitionStatus(@Param("messageId") String messageId,
+    @Query("UPDATE EventConsumeFailedRecordEntity e SET e.retryCount = e.retryCount+1, e.status = :newStatus, e.updateTime = now() WHERE e.id = :id and e.status = :expectedStatus")
+    int casTransitionStatus(@Param("id") String id,
                             @Param("expectedStatus") EventConsumeStatus expectedStatus,
                             @Param("newStatus") EventConsumeStatus newStatus);
 

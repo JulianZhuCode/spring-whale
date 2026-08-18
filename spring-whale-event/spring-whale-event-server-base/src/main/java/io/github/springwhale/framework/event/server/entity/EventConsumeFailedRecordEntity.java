@@ -15,6 +15,9 @@ public class EventConsumeFailedRecordEntity {
 
     @Id
     @Column(nullable = false, length = 64)
+    private String id;
+
+    @Column(length = 64)
     private String messageId;
 
     @Column(length = 128)

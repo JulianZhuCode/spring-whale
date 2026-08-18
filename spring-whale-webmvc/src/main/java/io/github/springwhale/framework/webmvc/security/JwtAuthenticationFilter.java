@@ -1,5 +1,6 @@
 package io.github.springwhale.framework.webmvc.security;
 
+import io.github.springwhale.framework.core.context.AuthenticationContext;
 import io.github.springwhale.framework.core.context.AuthenticationContextHolder;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -64,7 +65,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                AuthenticationContextHolder.setContext(new SimpleAuthenticationContext(userId, username));
+                AuthenticationContextHolder.setContext(new AuthenticationContext(userId, username, true));
 
                 log.info("Set authentication for user: {} on request: {}", username, requestURI);
             } else {

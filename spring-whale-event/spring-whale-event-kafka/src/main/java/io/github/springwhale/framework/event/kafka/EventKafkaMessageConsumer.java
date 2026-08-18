@@ -18,8 +18,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static io.github.springwhale.framework.event.EventProperties.DEFAULT_CONCURRENCY;
-
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -34,7 +32,18 @@ public class EventKafkaMessageConsumer extends EventMessageConsumer {
                 .build();
     }
 
-    @KafkaListener(topics = "#{'${spring.whale.event.listener}'.split(',')}", concurrency = "${spring.whale.event.concurrency:" + DEFAULT_CONCURRENCY + "}", groupId = "${spring.application.name}", properties = {"auto.offset.reset:latest"})
+    /**
+     * Main Kafka event listener.
+     * <p>Consumes messages from the configured topic(s) with manual acknowledgment.
+     * The outer catch block intentionally does NOT acknowledge the message, so that
+     * Kafka will re-deliver it — this is by design for at-least-once semantics.
+     * The only truly unrecoverable scenario (deserialization failure) is handled
+     * in the inner catch block where the message is acknowledged and discarded.</p>
+     */
+    @KafkaListener(topics = "#{'${spring.whale.event.listener:" + EventProperties.DEFAULT_EVENT_TOPIC + "}'.split(',')}",
+            concurrency = "${spring.whale.event.kafka.concurrency:1}",
+            groupId = "${spring.application.name}",
+            properties = {"auto.offset.reset:${spring.whale.event.kafka.auto-offset-reset:latest}"})
     public void listener(ConsumerRecord<String, String> record, Acknowledgment ack) {
         try {
             log.debug("Consuming event message: {}", record.value());
@@ -73,10 +82,25 @@ public class EventKafkaMessageConsumer extends EventMessageConsumer {
             doListener(record, listeners, message);
             ack.acknowledge();
         } catch (Exception e) {
+            // Intentionally do NOT acknowledge here: at-least-once semantics.
+            // If processing fails (e.g. database or downstream unavailable),
+            // Kafka will re-deliver the message once the system recovers.
             log.error("Exception occurred while consuming event message", e);
         }
     }
 
+    /**
+     * Dispatch the message to each matching listener.
+     * <p>Each listener failure is handled independently: the exception is caught per-listener,
+     * the error info is recorded on the message, and the message is immediately sent to the
+     * failed topic for retry processing. If multiple listeners fail, each failure
+     * sends its own copy to the failed topic.</p>
+     * <p>The Kafka send to the failed topic is synchronous (blocking with timeout). This is
+     * acceptable because listener failures are low-probability events and the blocking
+     * duration is bounded by {@code sendTimeoutSeconds}.</p>
+     * <p>Authentication context is set on the current thread before dispatching (if present
+     * on the message) and cleared in the finally block, ensuring no cross-message context leakage.</p>
+     */
     private void doListener(ConsumerRecord<String, String> record, List<AbstractEventListener<?>> listeners, EventMessage message) throws InterruptedException, ExecutionException, TimeoutException {
         try {
             if (message.getAuthenticationContext() != null) {

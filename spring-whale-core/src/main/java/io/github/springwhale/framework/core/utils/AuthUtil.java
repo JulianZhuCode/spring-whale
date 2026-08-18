@@ -6,12 +6,12 @@ public class AuthUtil {
 
     public static Integer getUserId() {
         var context = AuthenticationContextHolder.getContext();
-        return context != null ? context.userId() : null;
+        return context != null ? context.getUserId() : null;
     }
 
     public static String getUsername() {
         var context = AuthenticationContextHolder.getContext();
-        return context != null ? context.username() : null;
+        return context != null ? context.getUsername() : null;
     }
 
     public static boolean isAuthenticated() {

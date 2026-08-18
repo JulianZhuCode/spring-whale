@@ -1,10 +1,19 @@
 package io.github.springwhale.framework.core.context;
 
-public interface AuthenticationContext {
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-    Integer userId();
-
-    String username();
-
-    boolean isAuthenticated();
+/**
+ * Authentication context holding the current user's identity information.
+ * <p>Plain POJO (not a record) for easier field extension in the future.</p>
+ * <p>Jackson serializes/deserializes this natively via getter/setter conventions.</p>
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class AuthenticationContext {
+    private Integer userId;
+    private String username;
+    private boolean isAuthenticated;
 }

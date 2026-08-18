@@ -11,6 +11,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @Slf4j
 public class SpringWhaleDatabaseConfiguration {
     static {
-        log.info("SpringWhaleDatabaseConfiguration loaded");
+        log.debug("SpringWhaleDatabaseConfiguration loaded");
     }
 }

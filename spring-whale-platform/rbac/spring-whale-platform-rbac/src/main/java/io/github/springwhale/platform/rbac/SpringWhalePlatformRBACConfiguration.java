@@ -13,6 +13,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @Slf4j
 public class SpringWhalePlatformRBACConfiguration {
     static {
-        log.info("SpringWhaleRBACConfiguration loaded");
+        log.debug("SpringWhaleRBACConfiguration loaded");
     }
 }
