@@ -5,6 +5,7 @@ import io.github.springwhale.framework.core.utils.SpringContextUtils;
 import jakarta.validation.Valid;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+import org.slf4j.MDC;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -122,6 +123,7 @@ public abstract class EventPublisher {
         message.setTopic(topic);
         message.setData(jsonMapper.writeValueAsString(event));
         message.setAuthenticationContext(AuthenticationContextHolder.getContext());
+        message.setTraceId(MDC.get("traceId"));
         return message;
     }
 

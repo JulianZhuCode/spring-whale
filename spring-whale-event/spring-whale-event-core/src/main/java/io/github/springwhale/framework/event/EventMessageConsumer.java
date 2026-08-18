@@ -4,6 +4,7 @@ import io.github.springwhale.framework.core.context.AuthenticationContextHolder;
 import io.github.springwhale.framework.core.utils.ExceptionUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.util.CollectionUtils;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
@@ -22,9 +23,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public abstract class EventMessageConsumer {
 
-    private final Map<String, AbstractEventListener<?>> customRegisterMap = new ConcurrentHashMap<>();
     protected final ObjectMapper jsonMapper;
     protected final EventProperties eventProperties;
+    private final Map<String, AbstractEventListener<?>> customRegisterMap = new ConcurrentHashMap<>();
     private final List<EventMetricsCollector> metricsCollectors;
     private final Map<String, AbstractEventListener<?>> springListenerBeanMap;
 
@@ -175,11 +176,15 @@ public abstract class EventMessageConsumer {
      * <p>Each listener failure is handled independently: the exception is caught per-listener,
      * the error info is recorded on the message, and the message is sent to the failed topic
      * via {@link #sendToFailedTopic(EventMessage)} for retry processing.</p>
-     * <p>Authentication context is set on the current thread before dispatching (if present
-     * on the message) and cleared in the finally block, ensuring no cross-message context leakage.</p>
+     * <p>Trace ID and authentication context are restored on the current thread before
+     * dispatching (if present on the message) and cleared in the finally block,
+     * ensuring no cross-message context leakage.</p>
      */
     private void dispatchToListeners(EventContext context, List<AbstractEventListener<?>> listeners, EventMessage message) {
         try {
+            if (message.getTraceId() != null) {
+                MDC.put("traceId", message.getTraceId());
+            }
             if (message.getAuthenticationContext() != null) {
                 AuthenticationContextHolder.setContext(message.getAuthenticationContext());
             }
@@ -212,6 +217,7 @@ public abstract class EventMessageConsumer {
             }
         } finally {
             AuthenticationContextHolder.clearContext();
+            MDC.remove("traceId");
         }
     }
 
