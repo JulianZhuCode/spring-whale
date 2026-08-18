@@ -6,19 +6,19 @@ spring-whale 事件驱动框架，提供业务事件的发布、消费、失败�
 
 ## 模块说明
 
-| 模块                            | 场景                 | Maven 依赖 |
-|-------------------------------|--------------------|----------|
-| **spring-whale-event-core**   | 引入事件发布/消费能力（必须）    | 见下方      |
-| **spring-whale-event-server** | 引入失败事件重试与持久化能力（可选） | 见下方      |
+| 模块                              | 场景                 | Maven 依赖 |
+|---------------------------------|--------------------|----------|
+| **spring-whale-event-core**     | 引入事件发布/消费能力（必须）    | 见下方      |
+| **spring-whale-event-recovery** | 引入失败事件恢复与持久化能力（可选） | 见下方      |
 
 ```
 spring-whale-event
 ├── spring-whale-event-core    事件发布/消费核心（Kafka / RabbitMQ 双通道）
-└── spring-whale-event-server  失败重试服务（JDBC 持久化 + 定时重试 + 清理）
+└── spring-whale-event-recovery  失败事件恢复（JDBC 持久化 + 定时重试 + 清理）
 ```
 
 - 仅需发布事件 → 只引入 `spring-whale-event-core`
-- 需要失败重试 → 额外引入 `spring-whale-event-server`
+- 需要失败重试 → 额外引入 `spring-whale-event-recovery`
 
 ---
 
@@ -45,7 +45,7 @@ flowchart LR
     EP -->|JSON 序列化| ET
     ET -->|反序列化 + 路由| EL
     EL -->|消费异常| FT
-    FT -->|spring-whale-event-server<br/>失败监听 + 定时重试| ET
+    FT -->|spring-whale-event-recovery<br/>失败监听 + 定时重试| ET
     EL -->|重试耗尽| TH
     EP -.->|指标采集| MC
     EL -.->|指标采集| MC
@@ -80,7 +80,7 @@ flowchart LR
         <!-- 可选：失败重试与持久化 -->
 <dependency>
 <groupId>io.github.julianzhucode</groupId>
-<artifactId>spring-whale-event-server</artifactId>
+<artifactId>spring-whale-event-recovery</artifactId>
 </dependency>
 
         <!-- 按需引入 MQ 通道 -->
@@ -143,13 +143,13 @@ publish(new OrderPaidEvent(...));
         eventPublisher.
 
 publish(event, PublishOption.builder()
-        .
+.
 
 topic("urgent_topic")
-        .
+.
 
 businessName("orderPaid")
-        .
+.
 
 build());
 ```
@@ -209,7 +209,7 @@ public class MyTerminalHandler implements EventConsumeTerminalHandler {
 }
 ```
 
-### 8. 引入 spring-whale-event-server 所需建表
+### 8. 引入 spring-whale-event-recovery 所需建表
 
 ```sql
 CREATE TABLE event_consume_failed_record

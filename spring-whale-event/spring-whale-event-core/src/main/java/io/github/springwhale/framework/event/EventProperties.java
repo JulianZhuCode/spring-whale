@@ -31,7 +31,7 @@ public class EventProperties {
     public static final String DEFAULT_RETRY_STRATEGY = "fixed";
     public static final int DEFAULT_CONCURRENCY = 1;
     public static final int DEFAULT_FAILED_CONCURRENCY = 1;
-    public static final String DEFAULT_FAILED_GROUP_ID = "spring-whale-event-server";
+    public static final String DEFAULT_FAILED_GROUP_ID = "spring-whale-event-recovery";
 
     private String eventTopic = DEFAULT_EVENT_TOPIC;
 

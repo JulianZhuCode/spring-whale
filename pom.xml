@@ -107,7 +107,7 @@
             </dependency>
             <dependency>
                 <groupId>io.github.julianzhucode</groupId>
-                <artifactId>spring-whale-event-server</artifactId>
+                <artifactId>spring-whale-event-recovery</artifactId>
                 <version>${my.version}</version>
             </dependency>
             <dependency>
