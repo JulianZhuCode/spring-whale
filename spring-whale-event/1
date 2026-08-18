@@ -1,0 +1,739 @@
+好的，这是一个多模块框架的完整技术评审，我需要先全面了解代码库。让我从各个模块逐步深入分析。
+
+---
+
+## 第一步：全局结构探索
+
+
+The user wants a comprehensive technical review of the `spring-whale-event` Maven multi-module open-source framework. Let me start by exploring the codebase structure thoroughly to understand the architecture, modules, and code. I'll need to read key files across all modules.
+
+Let me start by exploring the project structure.
+
+现在让我读取所有核心源文件以及 pom.xml 文件：
+
+
+Good, I have the structure. Now let me read all the key source files. Let me also check for any auto-configuration classes, Spring factories, etc.
+
+现在读取所有核心 Java 源文件：
+
+
+
+
+Now let me read all the Java source files. Let me batch read them.
+
+Let me continue reading the remaining files.
+
+现在读取服务端模块文件：
+
+
+Now let me read the server-base module files and server-kafka files.
+
+现在让我搜索自动配置、Spring Factories 以及测试文件：
+
+
+Now let me search for any auto-configuration classes, Spring factories, and check for any other important files in the project.
+
+让我检查父 POM 和 core 模块，以及查看是否有其他配置：
+
+
+
+
+Important findings so far:
+1. No `spring.factories` file - this means auto-configuration is not using the standard Spring Boot auto-configuration mechanism
+2. No AutoConfiguration classes
+3. No unit tests
+4. No SQL migration files (Flyway)
+
+Let me also check the parent POM and the core module to understand dependencies better.
+
+Let me read the parent POM and the core module to understand the dependency management.
+
+让我再查看 core 模块中的关键依赖类，以及 database 模块：
+
+
+Now let me also check the core module to understand what `AuthenticationContext`, `AuthenticationContextHolder`, `SpringContextUtils`, `ExceptionUtil`, and `BaseEnum` look like.
+
+The codebase index is not ready. Let me use Grep to find these files.
+
+Let me also check the AuthenticationContext class (which is used in EventContext and EventMessage). Let me also check if there's a separate AuthenticationContext class.
+
+Now let me also find the AuthenticationContext class (not the Holder).
+
+Good, so AuthenticationContext is an interface. Let me read it.
+
+Now I have a comprehensive view of the codebase. Let me also check if there's any `@ConditionalOn` annotations or any auto-configuration related configuration.
+
+让我再检查一些关键细节：
+
+
+
+
+Now I have a comprehensive view of the entire codebase. Let me compile the full technical review.
+
+Key observations:
+
+## Architecture
+1. **Module split**: Good separation - base, kafka client, server-base, server-kafka
+2. **No auto-configuration**: No spring.factories, no @ConditionalOnClass, no @EnableConfigurationProperties - everything relies on @Component scanning
+3. **No unit tests** at all
+
+## Issues I've identified:
+
+### 1. Architecture & Module Boundaries
+- **EventProperties** in base module annotated with `@Component` and `@ConfigurationProperties` - this is a Spring component, but the base module is supposed to be pure abstractions. However, since the base module is a Spring Boot module anyway (it depends on spring-whale-core which depends on Spring), this is acceptable.
+- **server-base depends on spring-whale-database** - this couples the server abstraction to JPA. Should be a separate module or optional.
+- **No SPI mechanism**: The SPI is just abstract classes, not service loader interfaces.
+
+### 2. Kafka Event Mechanism
+- **EventKafkaMessageConsumer.listener()**: The `ack.acknowledge()` is called BEFORE the message is actually consumed successfully (line 75-76 in the try block). If the message is processed but the listener fails to handle it, the ack has already been sent. This is a **HIGH RISK** bug.
+- **No dead letter topic**: Failed messages go to `failedTopic` but there's no proper Kafka DLT integration.
+- **No manual offset commit**: The ack mode appears to be manual, but the ack is done before processing.
+- **Synchronous failed message send**: `kafkaTemplate.send(...).get(3, TimeUnit.SECONDS)` blocks the consumer thread for up to 3 seconds - this is problematic.
+- **Default concurrency is "1"** - this is a string, not a number, but it's used in `@KafkaListener(concurrency = "${spring.whale.event.concurrency:" + DEFAULT_CONCURRENCY + "}")` - this is okay since Spring EL handles it.
+
+### 3. API Usability
+- **EventPublisher.buildEventMessage()**: Uses `jsonMapper.writeValueAsString(event)` but doesn't handle serialization exceptions.
+- **EventMessageConsumer**: Uses `@Autowired(required = false)` for springListenerBeanMap - this is a Map injection, Spring will inject all beans of type `AbstractEventListener<?>`.
+
+### 4. Risk Points
+- **Thread safety**: `EventPublisher.eventAnnotations` is a `HashMap` used without synchronization. Multiple threads could call `findEventAnnotation` concurrently.
+- **EventRetryTask**: The retry task publishes messages but doesn't update the status to RETRYING atomically - there's a race condition between `updateRetryStatus` and `publish`. If the publish fails or the app crashes between publish and update, the record is stuck.
+- **No @Transactional**: The retry task doesn't use transactions, so partial failures leave inconsistent state.
+- **KafkaEventPublisher.send()**: `jsonMapper.writeValueAsString(message)` is called twice in the flow - once in `buildEventMessage` and once in `send`. Actually wait, let me re-read. In `send(Object event, String businessName, String topic)`, it calls `buildEventMessage` which serializes the event, then `send(EventMessage)` serializes the whole message. That's correct - different serialization targets.
+- **No resource cleanup**: No `@PreDestroy` for KafkaTemplate cleanup.
+- **EventMessage**: Uses `UUID.randomUUID().toString()` as default for `id` field - this is fine for new messages but could cause issues with deserialization since the field is initialized eagerly.
+
+### 5. Code Quality
+- **No tests** at all
+- **No Flyway migration files** for the event_consume_failed_record table
+- **Hardcoded groupId**: `groupId = "spring-whale-event-server"` in KafkaEventConsumeFailedListener
+- **EventRetryTask**: `nextRetryTime` is set in the consumer (KafkaEventConsumeFailedListener) but the retry task queries by `nextRetryTime < now`. The first retry's nextRetryTime is set to `now + retryInterval`, so the first retry won't happen until `retryInterval` seconds later.
+- **Missing error handling**: The `EventKafkaMessageConsumer.listener()` method catches all exceptions but doesn't ack/nack the message properly - the message is lost.
+- **EventMessage.retryCount**: It's an Integer, not int, which could be null. The code uses `Objects.requireNonNullElse(message.getRetryCount(), 0)` in some places but not everywhere.
+
+Let me also note:
+- The `KafkaEventPublisher` sends messages synchronously (no callback handling for async sends).
+- The `EventMessageConsumer` has listener routing but no mechanism to handle the case where a listener is removed during message processing.
+
+Wait, let me re-read the EventKafkaMessageConsumer more carefully:
+
+```java
+@KafkaListener(topics = "#{'${spring.whale.event.listener}'.split(',')}", concurrency = "${spring.whale.event.concurrency:" + DEFAULT_CONCURRENCY + "}", groupId = "${spring.application.name}", properties = {"auto.offset.reset:latest"})
+public void listener(ConsumerRecord<String, String> record, Acknowledgment ack) {
+    try {
+        log.debug("Consuming event message: {}", record.value());
+        if (listenerIsEmpty()) {
+            ack.acknowledge();
+            return;
+        }
+        if (record.value() == null) {
+            ack.acknowledge();
+            return;
+        }
+        EventMessage message = jsonMapper.readValue(record.value(), EventMessage.class);
+        List<AbstractEventListener<?>> listeners;
+        switch (message.getMessageType()) {
+            case EVENT:
+                listeners = getListenerGroup().get(message.getBusinessName());
+                break;
+            case RETRY:
+                listeners = Collections.singletonList(getListenerNameToInstanceMap().get(message.getFailListener()));
+                break;
+            default:
+                ack.acknowledge();
+                return;
+        }
+        if (listeners == null) {
+            ack.acknowledge();
+            return;
+        }
+        doListener(record, listeners, message);
+        ack.acknowledge();
+    } catch (Exception e) {
+        log.error("Exception occurred while consuming event message", e);
+    }
+}
+```
+
+CRITICAL BUG: The `ack.acknowledge()` is called at line after `doListener`, but the `doListener` method can throw exceptions (InterruptedException, ExecutionException, TimeoutException). If `doListener` throws, the catch block in `listener()` catches it, but the `ack.acknowledge()` was NOT called. However, the message was already consumed from Kafka. This is actually the correct behavior - if processing fails, we don't ack, so Kafka will redeliver.
+
+BUT WAIT - there's another issue. Inside `doListener`, if a listener throws an exception, the exception is caught internally and the failed message is sent to the failed topic. The `doListener` method itself won't throw unless the Kafka send to the failed topic fails. So the outer catch in `listener()` only catches failures in sending to the failed topic.
+
+Actually, let me re-check: `doListener` declares `throws InterruptedException, ExecutionException, TimeoutException`. These come from `kafkaTemplate.send(...).get(3, TimeUnit.SECONDS)`. If the send to the failed topic fails, the exception propagates to `listener()`, which catches it and logs, but doesn't ack. This means the original message will be redelivered, and the failed listener will be retried. This is actually acceptable behavior.
+
+BUT there's another subtle issue: `doListener` iterates over listeners. If listener A succeeds and listener B fails, the message is sent to the failed topic for listener B. But the ack happens after ALL listeners are done. If the failed topic send fails, the whole batch is retried. This means listener A might process the same message twice. This is a **MEDIUM risk** idempotency issue.
+
+Wait, actually no. The `ack.acknowledge()` happens AFTER `doListener` returns successfully. If `doListener` throws (because the failed topic send failed), the ack is NOT called. Kafka will redeliver. But listener A already processed successfully. So listener A will process again. This is a problem.
+
+Actually, I need to re-examine the flow more carefully:
+
+```java
+ack.acknowledge();  // This is BEFORE the try block? No wait...
+```
+
+Let me re-read:
+```java
+try {
+    log.debug("Consuming event message: {}", record.value());
+    if (listenerIsEmpty()) {
+        ack.acknowledge();
+        return;
+    }
+    ...
+    doListener(record, listeners, message);
+    ack.acknowledge();  // This is only called if doListener doesn't throw
+} catch (Exception e) {
+    log.error("Exception occurred while consuming event message", e);
+    // No ack here!
+}
+```
+
+So if doListener throws, ack is not called. The message will be redelivered. But listeners that succeeded in the previous attempt will process again. This is a real idempotency concern.
+
+But wait, the `doListener` method catches exceptions from individual listeners:
+```java
+for (AbstractEventListener<?> listener : listeners) {
+    try {
+        var event = jsonMapper.readValue(message.getData(), listener.getEventClass());
+        listener.onEvent(event, getBuildEventContext(record, message));
+    } catch (Exception e) {
+        log.error(...);
+        message.setErrorStack(ExceptionUtil.getStackTrace(e));
+        message.setRetryEnabled(listener.retryEnabled());
+        message.setFailListener(getListenerInstanceToNameMap().get(listener));
+        kafkaTemplate.send(eventProperties.getFailedTopic(), ...).get(3, TimeUnit.SECONDS);
+    }
+}
+```
+
+So if a listener throws, the exception is caught and the message is sent to the failed topic. The `kafkaTemplate.send(...).get(3, TimeUnit.SECONDS)` can throw. If it does, `doListener` throws, and the outer catch doesn't ack. But listeners that succeeded before the failing one have already processed.
+
+This is the classic "dual-write" problem: we can't atomically both process the message and send to the failed topic. The correct approach would be an outbox pattern or using Kafka transactions.
+
+Let me now compile the full review.
+
+Actually, I also notice that `EventProperties` is in the base module and has `@Component` and `@ConfigurationProperties`. This means the base module is effectively a Spring Boot module. The base module also depends on `spring-whale-core` which is a Spring module. So the base module is not a pure abstraction layer - it's already a Spring-dependent module.
+
+The server-base module adds `spring-whale-database` dependency which brings in JPA. This is a significant dependency for a "base" module.
+
+Let me also check: does `JsonMapper` use `tools.jackson.databind.ObjectMapper`? This is a non-standard Jackson package. Let me check if it's `com.fasterxml.jackson.databind.ObjectMapper` or something else.
+
+Looking at the imports: `tools.jackson.databind.ObjectMapper` - this is a custom or relocated Jackson package. This is a potential issue - if this is a shaded/relocated Jackson, it might cause classpath conflicts.
+
+Actually, looking at the Spring Boot 4.x ecosystem, `tools.jackson` might be the new package for Jackson in newer Spring Boot versions. Let me check.
+
+Actually, in Spring Boot 4.x (which uses Spring Framework 7), the Jackson package might have been relocated. But I'm not sure about this. Let me note it as a potential issue.
+
+Now let me also check: the `KafkaEventConsumeFailedListener` has `groupId = "spring-whale-event-server"` hardcoded. This means all instances of the service will compete for the same messages in the failed topic. This is actually correct for a competing consumer pattern, but the groupId should be configurable.
+
+Also, the `EventRetryTask` uses `@Scheduled(fixedRateString = ...)` which means it runs on a single thread by default. If there are multiple instances, they'll all try to retry the same records, which could lead to duplicate retries. The `updateRetryStatus` to `RETRYING` is supposed to prevent this, but there's a race condition: between the `findByStatusAndNextRetryTimeBefore` query and the `updateRetryStatus` call, another instance could pick up the same records.
+
+This is a **HIGH risk** concurrency issue in a multi-instance deployment.
+
+Also, the `EventRetryTask` publishes the event message to Kafka BEFORE updating the status to RETRYING. If the publish succeeds but the status update fails, the message will be retried again even though it was already sent. This is another **HIGH risk** issue.
+
+Wait, let me re-read:
+```java
+for (EventConsumeFailedRecordEntity entity : entities) {
+    EventMessage eventMessage = buildEventMessage(entity);
+    eventPublisher.publish(eventMessage);
+    recordRepository.updateRetryStatus(entity.getMessageId(), EventConsumeStatus.RETRYING);
+}
+```
+
+The publish happens first, then the status update. If the publish succeeds but the update fails (e.g., DB connection issue), the record stays in PENDING_RETRY and will be retried again. This leads to duplicate messages.
+
+The correct order should be: update status to RETRYING first, then publish. If the publish fails, the status can be rolled back.
+
+But even then, there's the multi-instance race condition: two instances can both read the same PENDING_RETRY records before either updates the status.
+
+Let me now compile the full review document.
+
+One more thing: I should check if there's a `@EnableConfigurationProperties` or `@ConfigurationPropertiesScan` somewhere.
+
+现在我已经读取了所有关键代码。让我整理完整的技术评审报告。
+
+---
+
+# 🔍 spring-whale-event 完整技术评审报告
+
+---
+
+## 📐 1. 架构总览评价
+
+### 1.1 模块分层
+
+```
+spring-whale-event (父 POM)
+├── spring-whale-event-base          ← 核心抽象 + 配置属性
+├── spring-whale-event-kafka         ← Kafka 客户端发送实现
+├── spring-whale-event-server-base   ← 服务端消费抽象 + 失败重试 + JPA Entity
+└── spring-whale-event-server-kafka  ← Kafka 消费实现 + 失败监听
+```
+
+**总体评价：分层思路正确，但存在职责泄露和耦合问题。**
+
+| 维度 | 评分 | 说明 |
+|------|------|------|
+| 模块边界 | ⭐⭐⭐ | 基本清晰，但 `server-base` 混入了 JPA 持久层 |
+| 循环依赖 | ✅ | 无循环依赖 |
+| SPI 设计 | ⭐⭐ | 仅有抽象类继承，无真正的 SPI 扩展机制 |
+| 客户端/服务端解耦 | ⭐⭐ | 耦合在 `EventMessage` 共享模型上，字段过多 |
+
+### 1.2 关键架构问题
+
+1. **`server-base` 模块职责泄露**：直接依赖 `spring-whale-database`（JPA），导致服务端"基础"模块与持久层强耦合。如果未来需要支持非 JPA 存储（如 Redis、MongoDB），必须重构。
+
+2. **无真正的 SPI 机制**：`EventPublisher`、`EventMessageConsumer`、`EventConsumeFailedListener` 都是抽象类继承，而非接口 + ServiceLoader。扩展性受限。
+
+3. **无 Spring Boot Auto-Configuration**：没有 `spring.factories`、没有 `@ConditionalOnClass`、没有 `@EnableConfigurationProperties`。所有 Bean 靠 `@Component` 扫描，业务方必须手动保证包扫描路径正确。
+
+---
+
+## 🚨 2. 模块问题清单
+
+### 2.1 spring-whale-event-base
+
+| # | 问题描述 | 风险等级 |
+|---|---------|---------|
+| 1 | `EventPublisher.eventAnnotations` 使用普通 `HashMap` 无同步保护，多线程并发调用 `findEventAnnotation()` 有并发风险 | **中** |
+| 2 | `EventPublisher.buildEventMessage()` 中 `jsonMapper.writeValueAsString(event)` 无异常处理，序列化失败直接抛异常 | **中** |
+| 3 | `EventMessage` 字段过多（14个字段），混合了"业务事件"和"基础设施元数据"两种职责，没有做模型分离 | **中** |
+| 4 | `EventMessage.id` 初始化 `UUID.randomUUID().toString()` — 在反序列化场景下会被覆盖，但初始化语句造成误导 | **低** |
+| 5 | `AbstractEventListener` 构造函数中调用 `computeBusinessName()` 可能抛 `IllegalArgumentException`，导致 Spring 容器启动失败 | **中** |
+| 6 | `EventProperties` 使用 `@Component` + `@ConfigurationProperties`，缺少 `@EnableConfigurationProperties` 显式声明 | **低** |
+
+### 2.2 spring-whale-event-kafka
+
+| # | 问题描述 | 风险等级 |
+|---|---------|---------|
+| 🔴 7 | **`EventKafkaMessageConsumer.listener()` 中 ack 在 `doListener()` 之后调用，但 `doListener()` 内部循环处理多个 listener 时，前面的 listener 成功但后面的失败，导致前一个 listener 重复消费，无幂等保证** | **高** |
+| 🔴 8 | **`kafkaTemplate.send(...).get(3, TimeUnit.SECONDS)` 同步阻塞消费者线程长达 3 秒，降低吞吐量，且可能导致 consumer 心跳超时被踢出 group** | **高** |
+| 9 | `KafkaEventPublisher.send()` 方法无发送回调，发送失败静默丢失 | **高** |
+| 10 | 无 `@EnableKafka` 显式声明，依赖 Spring Boot 自动配置 | **低** |
+
+### 2.3 spring-whale-event-server-base
+
+| # | 问题描述 | 风险等级 |
+|---|---------|---------|
+| 🔴 11 | **`EventRetryTask.retry()` 先 publish 再 updateRetryStatus，顺序错误。若 publish 成功但 DB 更新失败，记录仍为 PENDING_RETRY，下次调度会重复发送，导致消息重复** | **高** |
+| 🔴 12 | **多实例部署时，`EventRetryTask` 无分布式锁，多个实例同时查询 `PENDING_RETRY` 记录，重复发送同一条重试消息** | **高** |
+| 🔴 13 | **`@Scheduled` 注解生效需要 `@EnableScheduling`，但项目中没有该注解，定时任务可能不执行** | **高** |
+| 14 | `EventConsumeFailedRecordEntity` 没有对应的 Flyway 迁移 SQL 脚本，表结构需要业务方手动创建 | **高** |
+| 15 | `EventConsumeFailedRecordEntity` 所在的 `entity` 包可能不在业务方 `@EntityScan` 扫描范围内，导致 JPA 无法识别 | **高** |
+| 16 | `EventConsumeFailedListener.buildRecordEntity()` 中 `jsonMapper.writeValueAsString(message.getAuthenticationContext())` 可能 NPE（`authenticationContext` 可为 null） | **中** |
+| 17 | `EventRetryTask.buildEventMessage()` 中 `jsonMapper.readValue(entity.getAuthenticationContext(), AuthenticationContext.class)` — `AuthenticationContext` 是接口，反序列化到接口会失败 | **高** |
+
+### 2.4 spring-whale-event-server-kafka
+
+| # | 问题描述 | 风险等级 |
+|---|---------|---------|
+| 🔴 18 | **`KafkaEventConsumeFailedListener.listenerFailed()` 中检查 `message.getMessageType() != MessageType.FAIL` 就直接 ack 返回。但从 `EventKafkaMessageConsumer` 发来的失败消息 messageType 仍是 `EVENT`（从未被设为 `FAIL`），导致所有失败消息被静默丢弃，失败记录永远不会入库，重试机制完全失效** | **🔴 致命** |
+| 19 | `groupId = "spring-whale-event-server"` 硬编码，多业务线共享同一消费组，应改为可配置 | **中** |
+| 20 | `listenerFailed()` 的 catch 块只记日志不 ack，但也不 nack，消息会无限重试 | **中** |
+
+---
+
+## 🔧 3. 可落地优化建议
+
+### 3.1 🔴 致命 Bug 修复（最高优先级）
+
+#### Bug #18：失败消息被静默丢弃
+
+**问题根因**：`KafkaEventConsumeFailedListener` 只处理 `MessageType.FAIL`，但 producer 端从未设置过此类型。
+
+**修复方案**
+So `tools.jackson.databind.ObjectMapper` is used throughout. This is not the standard `com.fasterxml.jackson.databind.ObjectMapper`. This could be a relocated/shaded version used in Spring Boot 4.x. Let me check the database module to understand the full dependency chain.
+
+Also, I notice there's no `@EnableScheduling` anywhere - the `@Scheduled` annotation on `EventRetryTask` won't work without it. This is a **HIGH risk** issue.
+
+Also, there's no `@EnableConfigurationProperties` or `@ConfigurationPropertiesScan` - without this, the `@ConfigurationProperties` on `EventProperties` won't be bound. But wait, in Spring Boot, `@ConfigurationProperties` works with `@Component` without needing `@EnableConfigurationProperties` explicitly. So that's actually fine.
+
+Actually, there's no `@EnableJpaRepositories` and no `@EntityScan` either. But Spring Boot auto-configuration handles this if `spring-whale-database` sets it up. Let me check.
+
+Actually, looking at the `EventConsumeFailedRecordRepository` - it extends `JpaRepository` and has `@Repository` annotation. Spring Data JPA auto-configuration will pick this up. But there's no `@EntityScan` for `EventConsumeFailedRecordEntity`. Spring Boot auto-configuration should scan the package of the `@SpringBootApplication` class, but if the entity is in a different package, it won't be found.
+
+Wait, let me check the package structure. The entity is in `io.github.springwhale.framework.event.server.entity`. The `@SpringBootApplication` is likely in the user's application, not in this library. So the entity won't be scanned unless the user explicitly adds `@EntityScan`.
+
+This is another **HIGH risk** issue.
+
+Let me also check the `spring-whale-database` module to see if it has any auto-configuration.
+
+Actually, let me also check: the `KafkaEventConsumeFailedListener` has `@Component` and `@KafkaListener` but the `event-server-kafka` module depends on `spring-boot-starter-kafka`. The `@KafkaListener` annotation is from Spring Kafka. But there's no `@EnableKafka` anywhere. Spring Boot auto-configuration handles this.
+
+Now let me also consider: `KafkaEventPublisher` has `@Component` and `@RequiredArgsConstructor`. It extends `EventPublisher`. The `EventPublisher` has `@Autowired` fields. Since `KafkaEventPublisher` is a Spring bean, the `@Autowired` fields in the parent class will be injected. This is correct.
+
+But wait, `KafkaEventPublisher` uses `@RequiredArgsConstructor` which generates a constructor with `final` fields. `kafkaTemplate` is final, so it's constructor-injected. But `EventPublisher` uses field injection (`@Autowired`). This is a mix of injection styles. The `@Autowired` fields in `EventPublisher` will be injected after construction, which is fine.
+
+OK, let me also check: the `EventKafkaMessageConsumer` extends `EventMessageConsumer` and uses `@RequiredArgsConstructor`. But `EventMessageConsumer` has `@Autowired` fields. The `@Autowired` on `jsonMapper` and `eventProperties` in `EventMessageConsumer` will be injected. But `EventKafkaMessageConsumer` also uses `eventProperties` (inherited) and `jsonMapper` (inherited). This is fine.
+
+Now let me compile the full review.
+
+Actually, one more important thing: the `KafkaEventConsumeFailedListener.listenerFailed()` method:
+
+```java
+@KafkaListener(topics = "${spring.whale.event.failedTopic:" + DEFAULT_FAILED_TOPIC + "}", groupId = "spring-whale-event-server")
+public void listenerFailed(ConsumerRecord<String, String> record, Acknowledgment ack) {
+    try {
+        EventMessage message = jsonMapper.readValue(record.value(), EventMessage.class);
+        if (message.getMessageType() != MessageType.FAIL) {
+            ack.acknowledge();
+            return;
+        }
+        handleMessage(message);
+        ack.acknowledge();
+    } catch (Exception e) {
+        log.error("Failed to process event message: {}", record.value(), e);
+    }
+}
+```
+
+Wait, this listener is listening on the `failedTopic`. But the `EventKafkaMessageConsumer` sends failed messages to the `failedTopic` with `MessageType.RETRY` (not `FAIL`!). Look at the `doListener` method:
+
+```java
+message.setRetryEnabled(listener.retryEnabled());
+message.setFailListener(getListenerInstanceToNameMap().get(listener));
+kafkaTemplate.send(eventProperties.getFailedTopic(), message.getId(), jsonMapper.writeValueAsString(message)).get(3, TimeUnit.SECONDS);
+```
+
+It doesn't set `messageType` to `FAIL`. The `messageType` remains whatever it was (EVENT or RETRY). So the `KafkaEventConsumeFailedListener` checks `message.getMessageType() != MessageType.FAIL` and returns early (acknowledges without processing). This means **failed messages are never actually handled by the failed listener!**
+
+Wait, but the message type is `EVENT` when it's first consumed. When the listener fails, the message is sent to the failed topic with `messageType` still as `EVENT` (or `RETRY` if it was already a retry). The `KafkaEventConsumeFailedListener` checks for `MessageType.FAIL` and skips all other types. So the failed listener is basically a no-op!
+
+This is a **CRITICAL BUG**! The failed message handling chain is completely broken.
+
+Wait, let me re-read the flow more carefully:
+
+1. A message is published with `MessageType.EVENT`
+2. `EventKafkaMessageConsumer.listener()` consumes it
+3. If a listener fails, the message is sent to `failedTopic` with the same `MessageType` (EVENT), plus `retryEnabled`, `failListener`, `errorStack` set
+4. `KafkaEventConsumeFailedListener.listenerFailed()` consumes from `failedTopic`
+5. It checks `message.getMessageType() != MessageType.FAIL` → true, so it acknowledges and returns
+6. The message is never handled!
+
+So the only way messages get to the failed listener is if someone explicitly sets `MessageType.FAIL`. But looking at the code, no one sets `MessageType.FAIL`. The `EventRetryTask` sets `MessageType.RETRY` when retrying, and the `KafkaEventPublisher` sets `MessageType.EVENT` (via the default).
+
+This means the `KafkaEventConsumeFailedListener` is dead code - it never processes any messages because none have `MessageType.FAIL`.
+
+But wait, maybe the `EventKafkaMessageConsumer` should also consume from the `failedTopic`? Let me check:
+
+```java
+@KafkaListener(topics = "#{'${spring.whale.event.listener}'.split(',')}", ...)
+```
+
+The `listener` method consumes from `${spring.whale.event.listener}`. The `failedTopic` is configured separately. So the `EventKafkaMessageConsumer` does NOT consume from the failed topic.
+
+But the `EventKafkaMessageConsumer` does consume RETRY messages:
+```java
+case RETRY:
+    listeners = Collections.singletonList(getListenerNameToInstanceMap().get(message.getFailListener()));
+    break;
+```
+
+So when the `EventRetryTask` republishes a message with `MessageType.RETRY`, it goes to the main topic (since `eventPublisher.publish(eventMessage)` sends to `message.getTopic()`), and the `EventKafkaMessageConsumer` handles it as a RETRY.
+
+But the initial failed message (with `MessageType.EVENT`) goes to the `failedTopic`. The `KafkaEventConsumeFailedListener` listens on the `failedTopic` but ignores `MessageType.EVENT` messages. So the initial failed messages are never persisted to the database!
+
+This means the retry mechanism is completely broken:
+1. Event message consumed → listener fails → sent to failedTopic with MessageType.EVENT
+2. KafkaEventConsumeFailedListener ignores it (not MessageType.FAIL)
+3. Message is lost
+4. EventRetryTask never finds any records to retry (because none were persisted)
+
+This is a **CRITICAL** architecture bug.
+
+The fix should be: in `KafkaEventConsumeFailedListener`, the condition should be:
+```java
+if (message.getMessageType() == MessageType.FAIL) {
+    // handle final failure
+} else {
+    // handle retry-eligible failure (EVENT or RETRY that failed)
+    handleMessage(message);
+}
+```
+
+Or more simply, remove the `MessageType.FAIL` check entirely and handle all messages that come to the failed topic.
+
+Actually wait, let me re-think. Maybe the intention is different. Let me look at the `handleMessage` logic:
+
+```java
+private void handleMessage(EventMessage message) {
+    int retryCount = Objects.requireNonNullElse(message.getRetryCount(), 0);
+    if (retryCount > 0) {
+        updateRetryRecord(message, retryCount);
+    } else if (Boolean.TRUE.equals(message.getRetryEnabled())) {
+        createRetryRecord(message);
+    } else {
+        createDiscardRecord(message);
+    }
+}
+```
+
+So when `retryCount > 0`, it updates the existing record. When `retryEnabled` is true but `retryCount == 0`, it creates a new record. When neither, it creates a discard record.
+
+The `EventRetryTask` sends RETRY messages back to the main topic. When the listener fails again, it sends to the failed topic again. But this time, `retryCount` has been incremented (by `EventRetryTask.buildEventMessage`), so `retryCount > 0` and `updateRetryRecord` is called.
+
+But the initial failure (with `MessageType.EVENT`, `retryCount == null`, `retryEnabled == true`) goes to the failed topic and is ignored by `KafkaEventConsumeFailedListener`.
+
+So the fix is straightforward: change the condition in `listenerFailed` to NOT filter out non-FAIL messages.
+
+Actually, let me think about this more carefully. The `MessageType.FAIL` type seems to be for final failures. The flow should be:
+
+1. EVENT message consumed → listener fails → sent to failedTopic (still EVENT type)
+2. KafkaEventConsumeFailedListener picks it up → creates retry record in DB
+3. EventRetryTask picks up retry records → republishes as RETRY to main topic
+4. EventKafkaMessageConsumer handles RETRY → if fails again, sent to failedTopic
+5. KafkaEventConsumeFailedListener picks it up → updates retry record
+6. Repeat until max retries → then set to DISCARDED
+
+But step 2 is broken because of the `MessageType.FAIL` check.
+
+The fix is to change:
+```java
+if (message.getMessageType() != MessageType.FAIL) {
+    ack.acknowledge();
+    return;
+}
+```
+to:
+```java
+if (message.getMessageType() == MessageType.FAIL) {
+    // This is an explicitly failed message, just acknowledge it
+    ack.acknowledge();
+    return;
+}
+```
+
+Or just remove the check entirely and handle all messages.
+
+OK, I now have a comprehensive analysis. Let me write the full review.
+
+#### Bug #17：反序列化到接口 AuthenticationContext
+Good, the diff preview was generated. Now let me continue with more optimization suggestions.
+
+Now let me provide more optimization suggestions with code examples.
+#### Bug #11 + #12：重试任务的并发与顺序问题
+
+**修复思路**：使用乐观锁（状态机 CAS）替代先查后改，确保多实例安全。
+
+```java
+// EventConsumeFailedRecordRepository.java 新增方法
+@Modifying
+@Query("UPDATE EventConsumeFailedRecordEntity e SET e.status = :newStatus, e.updateTime = now() " +
+       "WHERE e.messageId = :messageId AND e.status = :expectedStatus")
+int casUpdateStatus(@Param("messageId") String messageId,
+                    @Param("expectedStatus") EventConsumeStatus expectedStatus,
+                    @Param("newStatus") EventConsumeStatus newStatus);
+```
+
+```java
+// EventRetryTask.java 修复后的 retry() 方法
+@Scheduled(fixedRateString = "${spring.whale.event.retryScheduleInterval:60000}")
+public void retry() {
+    Page<EventConsumeFailedRecordEntity> page = recordRepository
+        .findByStatusAndNextRetryTimeBefore(
+            EventConsumeStatus.PENDING_RETRY, LocalDateTime.now(),
+            PageRequest.of(0, eventProperties.getRetryBatchSize()));
+
+    if (!page.hasContent()) return;
+
+    for (EventConsumeFailedRecordEntity entity : page.getContent()) {
+        // CAS: 先改状态为 RETRYING，只有成功抢占的实例才发送
+        int updated = recordRepository.casUpdateStatus(
+            entity.getMessageId(),
+            EventConsumeStatus.PENDING_RETRY,
+            EventConsumeStatus.RETRYING
+        );
+        if (updated == 0) {
+            continue; // 被其他实例抢占了
+        }
+        try {
+            EventMessage eventMessage = buildEventMessage(entity);
+            eventPublisher.publish(eventMessage);
+        } catch (Exception e) {
+            log.error("Retry publish failed for messageId={}", entity.getMessageId(), e);
+            // 回滚状态到 PENDING_RETRY，等待下次重试
+            recordRepository.casUpdateStatus(
+                entity.getMessageId(),
+                EventConsumeStatus.RETRYING,
+                EventConsumeStatus.PENDING_RETRY
+            );
+        }
+    }
+}
+```
+
+#### Bug #13：缺少 @EnableScheduling
+
+需要在 `spring-whale-event-server-base` 或 `spring-whale-event-server-kafka` 中增加一个配置类：
+
+```java
+// 新文件: spring-whale-event-server-base/src/main/java/.../server/config/EventServerAutoConfiguration.java
+package io.github.springwhale.framework.event.server.config;
+
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.scheduling.annotation.EnableScheduling;
+
+@AutoConfiguration
+@EnableScheduling
+@EnableConfigurationProperties(EventProperties.class)
+public class EventServerAutoConfiguration {
+}
+```
+
+同时在 `resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` 中注册：
+```
+io.github.springwhale.framework.event.server.config.EventServerAutoConfiguration
+```
+
+#### Bug #8：同步阻塞消费者线程
+
+```java
+// EventKafkaMessageConsumer.java - 修复方案
+// 改为异步发送 + 回调
+private void doListener(ConsumerRecord<String, String> record,
+                        List<AbstractEventListener<?>> listeners,
+                        EventMessage message) {
+    try {
+        if (message.getAuthenticationContext() != null) {
+            AuthenticationContextHolder.setContext(message.getAuthenticationContext());
+        }
+        for (AbstractEventListener<?> listener : listeners) {
+            try {
+                var event = jsonMapper.readValue(message.getData(), listener.getEventClass());
+                listener.onEvent(event, getBuildEventContext(record, message));
+            } catch (Exception e) {
+                log.error("Listener [{}] failed to consume message [{}].",
+                    listener.getBusinessName(), message.getData(), e);
+                message.setErrorStack(ExceptionUtil.getStackTrace(e));
+                message.setRetryEnabled(listener.retryEnabled());
+                message.setFailListener(getListenerInstanceToNameMap().get(listener));
+                // 异步发送，不阻塞消费者线程
+                kafkaTemplate.send(eventProperties.getFailedTopic(),
+                    message.getId(),
+                    jsonMapper.writeValueAsString(message));
+            }
+        }
+    } finally {
+        AuthenticationContextHolder.clearContext();
+    }
+}
+```
+
+### 3.2 架构优化建议
+
+#### 建议一：分离 EventMessage 为"业务消息"和"基础设施消息"
+
+```java
+// 业务侧只关心这些
+public record BusinessEvent(String businessName, String data) {}
+
+// 框架内部使用的完整消息
+public class EventMessage {
+    private String id;
+    private String source;
+    private String businessName;
+    private String topic;
+    private String data;
+    private AuthenticationContext authenticationContext;
+    // 重试相关字段单独抽离
+    private RetryContext retryContext;
+}
+
+public class RetryContext {
+    private MessageType messageType;
+    private Integer retryCount;
+    private Boolean retryEnabled;
+    private Boolean retrySuccess;
+    private String errorStack;
+    private String failListener;
+}
+```
+
+#### 建议二：增加 Auto-Configuration 模块
+
+```
+spring-whale-event
+├── spring-whale-event-base          (纯 API，无 Spring 依赖)
+├── spring-whale-event-autoconfigure (自动配置 + spring.factories)
+├── spring-whale-event-kafka
+├── spring-whale-event-server-base
+└── spring-whale-event-server-kafka
+```
+
+#### 建议三：EventPublisher 线程安全修复
+
+```java
+// EventPublisher.java
+protected final Map<Class<?>, Event> eventAnnotations = new ConcurrentHashMap<>();
+
+protected Event findEventAnnotation(Object event) {
+    return eventAnnotations.computeIfAbsent(
+        event.getClass(),
+        clazz -> AnnotationUtils.findAnnotation(clazz, Event.class)
+    );
+}
+```
+
+### 3.3 依赖管理优化
+
+| 问题 | 建议 |
+|------|------|
+| `server-base` 依赖 `spring-whale-database`（JPA） | 改为 `optional` scope，或拆出独立的 `spring-whale-event-server-jpa` 模块 |
+| `tools.jackson.databind.ObjectMapper` 非标准包名 | 确认是否为 shaded 版本；如果是，需在文档中说明兼容性 |
+| `spring-boot-starter-kafka` 在 `event-kafka` 和 `server-kafka` 中重复声明 | 可在父 POM 的 `dependencyManagement` 中统一管理版本 |
+| 缺少 `flyway-database-postgresql` 依赖声明 | `server-base` 需要 Flyway 迁移脚本，但未声明该依赖 |
+| Java 25 编译目标 | 确认是否必须，建议降级到 Java 17/21 以兼容更多用户 |
+
+---
+
+## 📊 4. 整体改进优先级排序
+
+| 优先级 | 编号 | 问题 | 影响 |
+|--------|------|------|------|
+| 🔴 P0 | #18 | 失败消息被静默丢弃，重试机制完全失效 | 框架核心功能不可用 | 1
+| 🔴 P0 | #17 | 反序列化 AuthenticationContext 接口失败 | 重试任务启动即崩溃 | 1
+| 🔴 P0 | #13 | 缺少 @EnableScheduling，定时任务不执行 | 重试调度不工作 | 1
+| 🔴 P0 | #14 | 无 Flyway 迁移脚本，表不存在 | 服务启动即报错 | 1
+| 🔴 P0 | #15 | Entity 不在扫描范围 | JPA 无法识别实体 | 1
+| 🔴 P1 | #12 | 多实例重试消息重复发送 | 生产环境数据重复 | 消费端本身就要自己做幂等
+| 🔴 P1 | #11 | publish 与 updateStatus 顺序错误 | 消息重复/丢失 |
+| 🔴 P1 | #8 | 同步阻塞消费者线程 | 吞吐量严重下降 | 这个异常理论是低频情况，无需复杂设计来提高这块的性能
+| 🟡 P1 | #9 | 发送失败无回调 | 消息静默丢失 |
+| 🟡 P2 | #1 | HashMap 并发风险 | 偶发数据错乱 |
+| 🟡 P2 | #7 | 多 listener 无幂等保证 | 重复消费 |
+| 🟡 P2 | #19 | groupId 硬编码 | 多业务线冲突 |
+| 🟢 P3 | #5 | 启动时抛异常导致容器失败 | 开发体验差 |
+| 🟢 P3 | #3 | EventMessage 字段过多 | 可维护性差 |
+| 🟢 P3 | #16 | NPE 风险 | 边缘场景 |
+
+---
+
+## 📝 5. 总结
+
+**整体评分：⭐⭐⭐（3/5）**
+
+**优点**：
+- 模块划分思路清晰，客户端/服务端分离
+- 重试机制设计理念正确（失败记录 → 定时重试 → 最终丢弃）
+- 监听器路由表设计有亮点（支持运行时动态注册/移除）
+- 使用了 `PublishOption` 支持灵活覆盖 topic 和 businessName
+
+**缺点**：
+- **存在 5 个 P0 致命 Bug**，导致框架核心功能（失败重试）完全不可用
+- 无单元测试，无自动配置，无 Flyway 脚本，离"开箱即用"有较大差距
+- `server-base` 与 JPA 强耦合，不利于扩展
+- 线程模型粗糙（同步阻塞、无并发保护、无分布式锁）
+- 依赖 `tools.jackson` 非标准包名，兼容性存疑
+
+**建议下一步行动**：
+1. 立即修复 5 个 P0 Bug（预计 1-2 天）
+2. 补充 `spring.factories` / `AutoConfiguration.imports` 自动配置（预计 0.5 天）
+3. 补充 Flyway 迁移脚本（预计 0.5 天）
+4. 编写核心流程集成测试（预计 2-3 天）
+5. 考虑引入分布式锁（如 ShedLock）解决多实例重试问题（预计 1 天）
+
+---
+
+> 💡 **提示**：以上 diff 预览仅为展示修改思路，你需要手动点击 **"Review and Accept"** 来应用这些修改。如果你需要我继续深入分析某个模块，或者需要我提供更多代码示例，请告诉我。

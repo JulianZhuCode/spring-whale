@@ -25,6 +25,7 @@ public class KafkaEventConsumeFailedListener extends EventConsumeFailedListener 
         try {
             EventMessage message = jsonMapper.readValue(record.value(), EventMessage.class);
             if (message.getMessageType() != MessageType.FAIL) {
+                log.debug("Received non-fail message: {}", message);
                 ack.acknowledge();
                 return;
             }

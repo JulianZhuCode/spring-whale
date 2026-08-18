@@ -2,10 +2,7 @@ package io.github.springwhale.framework.event.kafka;
 
 import io.github.springwhale.framework.core.context.AuthenticationContextHolder;
 import io.github.springwhale.framework.core.utils.ExceptionUtil;
-import io.github.springwhale.framework.event.AbstractEventListener;
-import io.github.springwhale.framework.event.EventContext;
-import io.github.springwhale.framework.event.EventMessage;
-import io.github.springwhale.framework.event.EventMessageConsumer;
+import io.github.springwhale.framework.event.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -86,6 +83,7 @@ public class EventKafkaMessageConsumer extends EventMessageConsumer {
                     message.setErrorStack(ExceptionUtil.getStackTrace(e));
                     message.setRetryEnabled(listener.retryEnabled());
                     message.setFailListener(getListenerInstanceToNameMap().get(listener));
+                    message.setMessageType(MessageType.FAIL);
                     kafkaTemplate.send(eventProperties.getFailedTopic(), message.getId(), jsonMapper.writeValueAsString(message)).get(eventProperties.getSendTimeoutSeconds(), TimeUnit.SECONDS);
                 }
             }
