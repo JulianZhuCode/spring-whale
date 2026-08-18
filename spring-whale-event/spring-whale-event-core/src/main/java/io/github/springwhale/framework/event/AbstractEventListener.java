@@ -42,17 +42,25 @@ public abstract class AbstractEventListener<T> {
     }
 
     /**
-     * Entry point called by the framework. Validates the event and delegates to {@link #doEvent(Object, EventContext)}.
+     * Entry point called by the framework. Validates the event type and delegates to {@link #doEvent(Object, EventContext)}.
+     * <p>Uses {@link Class#isInstance(Object)} and {@link Class#cast(Object)} for runtime type safety,
+     * providing a clear error message when the deserialized object does not match the expected type {@code <T>}.</p>
      *
-     * @param event       the event object (nullable — null events are silently ignored)
+     * @param event        the event object (nullable — null events are silently ignored)
      * @param eventContext the event context with metadata
+     * @throws ClassCastException if the event object is not an instance of {@code T}
      */
     public void onEvent(Object event, EventContext eventContext) {
         if (event == null) {
             log.info("No event received for {}", eventClass.getSimpleName());
             return;
         }
-        doEvent((T) event, eventContext);
+        if (!eventClass.isInstance(event)) {
+            throw new ClassCastException(
+                    "Event type mismatch: expected " + eventClass.getName()
+                            + " but got " + event.getClass().getName());
+        }
+        doEvent(eventClass.cast(event), eventContext);
     }
 
     /**

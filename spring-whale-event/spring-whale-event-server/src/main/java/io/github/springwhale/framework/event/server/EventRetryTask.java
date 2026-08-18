@@ -89,18 +89,17 @@ public class EventRetryTask {
     /**
      * Scheduled retry task for failed event messages.
      * <p>Uses "publish-first, then update status" strategy: the message is published
-     * to the MQ broker synchronously via {@link EventPublisher}, then the database status
-     * is updated via CAS. If the publish succeeds but the DB update fails, the message
-     * will be picked up again on the next retry cycle (duplicate delivery is acceptable
-     * — at-least-once semantics). Message loss is NOT acceptable, so if the publish
-     * fails, the status is not updated and the message will be retried on the next schedule.</p>
-     * <p>Retry records are processed in parallel via a thread pool to reduce
-     * total batch processing time. Each record is still handled independently in its own
-     * try-catch block so that one record's failure does not interrupt others.</p>
-     * <p>Multi-instance safety is achieved via CAS (Compare-And-Swap) on the status field.
-     * Without a distributed lock, two instances may attempt to retry the same record.
-     * Only one instance will succeed in the CAS transition from PENDING_RETRY to RETRYING;
-     * the other will see 0 affected rows and the record is safely skipped.</p>
+     * to the MQ broker synchronously, then the database status is updated via CAS.
+     * If the publish succeeds but the DB update fails, the record will be picked up
+     * again on the next retry cycle (duplicate delivery is acceptable for at-least-once
+     * semantics). If the publish fails, the status is not updated and the message
+     * will be retried on the next schedule.</p>
+     * <p>Multi-instance safety: CAS on the status field prevents duplicate DB updates.
+     * When two instances race on the same record, both will publish (duplicate message),
+     * but only one succeeds in the CAS transition from PENDING_RETRY to RETRYING.
+     * The other sees 0 affected rows and the record is safely skipped from DB update.</p>
+     * <p>Each record is handled in its own try-catch, so one record's failure does not
+     * interrupt others. A thread pool is used for parallel processing.</p>
      */
     @Scheduled(fixedDelayString = "${spring.whale.event.retryScheduleInterval:" + EventProperties.DEFAULT_RETRY_SCHEDULE_INTERVAL + "}")
     public void retry() {
@@ -140,14 +139,8 @@ public class EventRetryTask {
     }
 
     /**
-     * Scheduled cleanup task for historical failed-event records.
-     * <p>Records in terminal states (DISCARDED, REPLAY_SUCCESS, FINAL_FAILED) that are
-     * older than {@code retryCleanupRetentionDays} (default 30 days) are deleted in batches.
-     * This prevents the {@code event_consume_failed_record} table from growing unbounded
-     * while retaining enough history for operational review.</p>
-     * <p>Deletion is a simple batch delete. If the cleanup fails, the error is logged
-     * and the next scheduled run will retry. No data loss risk because these records
-     * are already in terminal states.</p>
+     * Scheduled cleanup of terminal records (DISCARDED, REPLAY_SUCCESS, FINAL_FAILED)
+     * older than {@code retryCleanupRetentionDays} (default 30 days).
      */
     @Scheduled(fixedDelayString = "${spring.whale.event.retryCleanupScheduleInterval:" + EventProperties.DEFAULT_RETRY_CLEANUP_SCHEDULE_INTERVAL + "}")
     public void cleanup() {

@@ -37,8 +37,8 @@ public class KafkaEventConsumeFailedListener extends EventConsumeFailedListener 
      * it once the system recovers. This provides at-least-once semantics.</p>
      */
     @KafkaListener(topics = "#{@eventProperties.failedTopic}",
-            concurrency = "#{@kafkaEventProperties.failedConcurrency}",
-            groupId = "#{@kafkaEventProperties.failedGroupId}")
+            concurrency = "#{@eventProperties.failedConcurrency}",
+            groupId = "#{@eventProperties.failedGroupId}")
     public void listenerFailed(ConsumerRecord<String, String> record, Acknowledgment ack) {
         try {
             EventMessage message = jsonMapper.readValue(record.value(), EventMessage.class);

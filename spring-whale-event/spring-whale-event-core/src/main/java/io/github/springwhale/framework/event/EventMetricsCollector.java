@@ -31,4 +31,7 @@ public interface EventMetricsCollector {
     /** Called when retries are exhausted and the message is discarded. */
     default void onRetryExhausted(String messageId, String listenerName, int retryCount) {}
 
+    /** Called after a listener processes an event, recording the elapsed time in milliseconds. */
+    default void onConsumeLatency(String businessName, String listenerName, long durationMs, boolean success) {}
+
 }

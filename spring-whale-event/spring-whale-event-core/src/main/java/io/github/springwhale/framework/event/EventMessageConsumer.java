@@ -14,39 +14,26 @@ import java.util.stream.Collectors;
 
 /**
  * Abstract MQ event message consumer.
- * <p>Merge listeners from spring container and manual registration, build runtime routing tables.
- * addListener / removeListener supports runtime modification, each call triggers full routing‑table rebuild.</p>
- * <p>All routing maps are replaced atomically via volatile field assignment, ensuring that
- * consumer threads always see a consistent view (either the old or the new complete map).</p>
+ * <p>Merges listeners from Spring container and manual registration, builds runtime routing tables.
+ * {@code addListener} / {@code removeListener} support runtime modification; each call triggers
+ * a full routing-table rebuild. All routing maps are replaced atomically via volatile field
+ * assignment, ensuring consumer threads always see a consistent view.</p>
  */
 @Slf4j
 public abstract class EventMessageConsumer {
 
-    /**
-     * Manually registered listeners, support runtime concurrent put/remove.
-     */
     private final Map<String, AbstractEventListener<?>> customRegisterMap = new ConcurrentHashMap<>();
     protected final ObjectMapper jsonMapper;
     protected final EventProperties eventProperties;
     private final List<EventMetricsCollector> metricsCollectors;
     private final Map<String, AbstractEventListener<?>> springListenerBeanMap;
-    /**
-     * Listener instance -> registered name. Unmodifiable view.
-     * <p>Key is object reference, do NOT serialize this map.</p>
-     */
+
     @Getter
     private volatile Map<AbstractEventListener<?>, String> listenerInstanceToNameMap = Collections.emptyMap();
 
-    /**
-     * Registered name -> listener instance. Unmodifiable view.
-     */
     @Getter
     private volatile Map<String, AbstractEventListener<?>> listenerNameToInstanceMap = Collections.emptyMap();
 
-    /**
-     * Routing table: key = businessName, value = list of matched listeners.
-     * volatile guarantees visibility across MQ consumer threads.
-     */
     @Getter
     private volatile Map<String, List<AbstractEventListener<?>>> listenerGroup = Collections.emptyMap();
 
@@ -60,38 +47,22 @@ public abstract class EventMessageConsumer {
         rebuildRouteTable();
     }
 
-    /**
-     * Check whether no listener registered.
-     *
-     * @return true if no listener
-     */
     public boolean listenerIsEmpty() {
         return CollectionUtils.isEmpty(this.listenerGroup);
     }
 
-    /**
-     * Register listener manually, trigger full routing‑table rebuild.
-     *
-     * @param name     registered name
-     * @param listener target listener instance
-     */
     public void addListener(String name, AbstractEventListener<?> listener) {
         customRegisterMap.put(name, listener);
         rebuildRouteTable();
     }
 
-    /**
-     * Remove manually registered listener, trigger full routing‑table rebuild.
-     *
-     * @param name registered name
-     */
     public void removeListener(String name) {
         customRegisterMap.remove(name);
         rebuildRouteTable();
     }
 
     /**
-     * Force rebuild all listener routing tables. Avoid frequent runtime call.
+     * Force rebuild all routing tables. Avoid frequent calls at runtime.
      */
     public void refreshListeners() {
         rebuildRouteTable();
@@ -99,7 +70,6 @@ public abstract class EventMessageConsumer {
 
     /**
      * Rebuild all routing tables from combined listener sources.
-     * All volatile references will be replaced with new unmodifiable view.
      */
     private void rebuildRouteTable() {
         Map<String, AbstractEventListener<?>> allListenersMap = new HashMap<>(
@@ -114,20 +84,16 @@ public abstract class EventMessageConsumer {
             return;
         }
 
-        // build businessName group routing
         Collection<AbstractEventListener<?>> allListeners = allListenersMap.values();
         Map<String, List<AbstractEventListener<?>>> groupMap = allListeners.stream()
                 .collect(Collectors.groupingBy(AbstractEventListener::getBusinessName));
 
-        // build bidirectional mapping: name <-> listener instance
         Map<String, AbstractEventListener<?>> tempNameToInstance = new HashMap<>(allListenersMap.size());
         Map<AbstractEventListener<?>, String> tempInstanceToName = new HashMap<>(allListenersMap.size());
 
         for (Map.Entry<String, AbstractEventListener<?>> entry : allListenersMap.entrySet()) {
             String name = entry.getKey();
             AbstractEventListener<?> listener = entry.getValue();
-
-            // detect conflict: one instance bind multiple name
             if (tempInstanceToName.containsKey(listener)) {
                 throw new IllegalStateException(
                         "Listener instance already bound to name[" + tempInstanceToName.get(listener)
@@ -138,7 +104,6 @@ public abstract class EventMessageConsumer {
             tempInstanceToName.put(listener, name);
         }
 
-        // assign unmodifiable view, volatile reference replace
         this.listenerGroup = Collections.unmodifiableMap(groupMap);
         this.listenerNameToInstanceMap = Collections.unmodifiableMap(tempNameToInstance);
         this.listenerInstanceToNameMap = Collections.unmodifiableMap(tempInstanceToName);
@@ -219,11 +184,14 @@ public abstract class EventMessageConsumer {
                 AuthenticationContextHolder.setContext(message.getAuthenticationContext());
             }
             for (AbstractEventListener<?> listener : listeners) {
+                long start = System.currentTimeMillis();
+                boolean success = true;
                 try {
                     var event = jsonMapper.readValue(message.getData(), listener.getEventClass());
                     listener.onEvent(event, context);
                     onConsumeSuccess(message.getBusinessName(), getListenerInstanceToNameMap().get(listener));
                 } catch (Exception e) {
+                    success = false;
                     log.error("Listener [{}] failed to consume message [{}].", listener.getBusinessName(), message.getData(), e);
                     onConsumeFailure(message.getBusinessName(), getListenerInstanceToNameMap().get(listener), e);
                     message.setErrorStack(ExceptionUtil.getStackTrace(e));
@@ -231,6 +199,11 @@ public abstract class EventMessageConsumer {
                     message.setFailListener(getListenerInstanceToNameMap().get(listener));
                     message.setMessageType(MessageType.FAIL);
                     sendToFailedTopic(message);
+                } finally {
+                    long durationMs = System.currentTimeMillis() - start;
+                    boolean finalSuccess = success;
+                    metricsCollectors.forEach(c -> c.onConsumeLatency(
+                            message.getBusinessName(), getListenerInstanceToNameMap().get(listener), durationMs, finalSuccess));
                 }
                 if (MessageType.RETRY == message.getMessageType()) {
                     message.setRetrySuccess(true);

@@ -9,17 +9,8 @@ import lombok.Data;
 @Data
 public class KafkaEventProperties {
 
-    public static final int DEFAULT_CONCURRENCY = 1;
     public static final String DEFAULT_AUTO_OFFSET_RESET = "latest";
-    public static final int DEFAULT_FAILED_CONCURRENCY = 1;
-    public static final String DEFAULT_FAILED_GROUP_ID = "spring-whale-event-server";
-
-    private int concurrency = DEFAULT_CONCURRENCY;
 
     private String autoOffsetReset = DEFAULT_AUTO_OFFSET_RESET;
-
-    private int failedConcurrency = DEFAULT_FAILED_CONCURRENCY;
-
-    private String failedGroupId = DEFAULT_FAILED_GROUP_ID;
 
 }

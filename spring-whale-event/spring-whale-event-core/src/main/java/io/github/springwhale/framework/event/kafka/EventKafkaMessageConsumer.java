@@ -35,9 +35,9 @@ public class EventKafkaMessageConsumer extends EventMessageConsumer {
      * The outer catch block intentionally does NOT acknowledge the message, so that
      * Kafka will re-deliver it — this is by design for at-least-once semantics.</p>
      */
-    @KafkaListener(topics = "#{@eventProperties.listener.split(',')}",
-            concurrency = "#{@kafkaEventProperties.concurrency}",
-            groupId = "${spring.application.name}",
+    @KafkaListener(topics = "#{@eventProperties.consumerTopics.split(',')}",
+            concurrency = "#{@eventProperties.concurrency}",
+            groupId = "#{spring.application.name}",
             properties = {"#{'auto.offset.reset:' + @kafkaEventProperties.autoOffsetReset}"})
     public void listener(ConsumerRecord<String, String> record, Acknowledgment ack) {
         try {

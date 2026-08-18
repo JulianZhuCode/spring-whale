@@ -51,4 +51,10 @@ public class LogMetricsCollector implements EventMetricsCollector {
         log.warn("Retry exhausted: messageId={}, listener={}, retryCount={}", messageId, listenerName, retryCount);
     }
 
+    @Override
+    public void onConsumeLatency(String businessName, String listenerName, long durationMs, boolean success) {
+        log.debug("Consume latency: businessName={}, listener={}, durationMs={}, success={}",
+                businessName, listenerName, durationMs, success);
+    }
+
 }

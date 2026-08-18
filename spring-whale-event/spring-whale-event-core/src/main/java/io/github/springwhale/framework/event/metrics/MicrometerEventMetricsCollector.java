@@ -3,9 +3,11 @@ package io.github.springwhale.framework.event.metrics;
 import io.github.springwhale.framework.event.EventMetricsCollector;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Micrometer-based implementation of {@link EventMetricsCollector}.
@@ -22,6 +24,7 @@ public class MicrometerEventMetricsCollector implements EventMetricsCollector {
     private static final String METRIC_PUBLISH = "springwhale.event.publish";
     private static final String METRIC_CONSUME = "springwhale.event.consume";
     private static final String METRIC_RETRY = "springwhale.event.retry";
+    private static final String METRIC_CONSUME_LATENCY = "springwhale.event.consume.latency";
 
     private static final String TAG_TOPIC = "topic";
     private static final String TAG_BUSINESS = "business";
@@ -35,6 +38,7 @@ public class MicrometerEventMetricsCollector implements EventMetricsCollector {
 
     private final MeterRegistry meterRegistry;
     private final Map<String, Counter> counterCache = new ConcurrentHashMap<>();
+    private final Map<String, Timer> timerCache = new ConcurrentHashMap<>();
 
     public MicrometerEventMetricsCollector(MeterRegistry meterRegistry) {
         this.meterRegistry = meterRegistry;
@@ -75,9 +79,22 @@ public class MicrometerEventMetricsCollector implements EventMetricsCollector {
         counter(METRIC_RETRY, TAG_LISTENER, listenerName, TAG_RESULT, RESULT_EXHAUSTED).increment();
     }
 
+    @Override
+    public void onConsumeLatency(String businessName, String listenerName, long durationMs, boolean success) {
+        timer(METRIC_CONSUME_LATENCY, TAG_BUSINESS, businessName, TAG_LISTENER, listenerName, TAG_RESULT,
+                success ? RESULT_SUCCESS : RESULT_FAILURE).record(durationMs, TimeUnit.MILLISECONDS);
+    }
+
     private Counter counter(String name, String... tags) {
         String cacheKey = name + ":" + String.join(",", tags);
         return counterCache.computeIfAbsent(cacheKey, k -> Counter.builder(name)
+                .tags(tags)
+                .register(meterRegistry));
+    }
+
+    private Timer timer(String name, String... tags) {
+        String cacheKey = name + ":" + String.join(",", tags);
+        return timerCache.computeIfAbsent(cacheKey, k -> Timer.builder(name)
                 .tags(tags)
                 .register(meterRegistry));
     }

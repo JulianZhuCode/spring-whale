@@ -113,7 +113,7 @@ public abstract class EventConsumeFailedListener {
         RetryStrategy strategy = retryStrategyRegistry.get(eventProperties.getRetryStrategy());
         return LocalDateTime.now().plusSeconds(
                 strategy.calculateDelay(
-                        eventProperties.getRetryInterval(),
+                        eventProperties.getRetryIntervalSeconds(),
                         eventProperties.getRetryMaxInterval(),
                         retryCount));
     }
