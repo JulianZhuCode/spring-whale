@@ -10,11 +10,12 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.StringUtils;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class EventPublisher {
-    protected final Map<Class<?>, Event> eventAnnotations = new ConcurrentHashMap<>();
+    protected final Map<Class<?>, Event> eventAnnotations = new HashMap<>();
     @Autowired
     protected EventProperties properties;
     @Autowired
