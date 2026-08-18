@@ -1,0 +1,2 @@
+io.github.springwhale.framework.event.server.SpringWhaleEventServerConfiguration
+io.github.springwhale.framework.event.server.kafka.KafkaEventServerConfiguration

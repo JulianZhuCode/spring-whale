@@ -102,22 +102,12 @@
             </dependency>
             <dependency>
                 <groupId>io.github.julianzhucode</groupId>
-                <artifactId>spring-whale-event-base</artifactId>
+                <artifactId>spring-whale-event-core</artifactId>
                 <version>${my.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.julianzhucode</groupId>
-                <artifactId>spring-whale-event-server-base</artifactId>
-                <version>${my.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.github.julianzhucode</groupId>
-                <artifactId>spring-whale-event-kafka</artifactId>
-                <version>${my.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.github.julianzhucode</groupId>
-                <artifactId>spring-whale-event-server-kafka</artifactId>
+                <artifactId>spring-whale-event-server</artifactId>
                 <version>${my.version}</version>
             </dependency>
             <dependency>
