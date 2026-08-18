@@ -8,6 +8,7 @@ import io.github.springwhale.framework.event.server.enums.EventConsumeStatus;
 import io.github.springwhale.framework.event.server.util.EventFailedRecordIdGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.jspecify.annotations.NonNull;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
@@ -72,7 +73,7 @@ public class KafkaEventConsumeFailedListener extends EventConsumeFailedListener 
             nextRetryTime = null;
         } else {
             status = EventConsumeStatus.PENDING_RETRY;
-            nextRetryTime = LocalDateTime.now().plusSeconds(eventProperties.getRetryInterval());
+            nextRetryTime = computeNextRetryTime(retryCount);
         }
 
         failedRecordRepository.updateRetryResult(
@@ -84,7 +85,7 @@ public class KafkaEventConsumeFailedListener extends EventConsumeFailedListener 
         EventConsumeFailedRecordEntity entity = buildRecordEntity(message);
         entity.setStatus(EventConsumeStatus.PENDING_RETRY);
         entity.setRetryCount(1);
-        entity.setNextRetryTime(LocalDateTime.now().plusSeconds(eventProperties.getRetryInterval()));
+        entity.setNextRetryTime(computeNextRetryTime(1));
         failedRecordRepository.save(entity);
     }
 
@@ -92,5 +93,13 @@ public class KafkaEventConsumeFailedListener extends EventConsumeFailedListener 
         EventConsumeFailedRecordEntity entity = buildRecordEntity(message);
         entity.setStatus(EventConsumeStatus.DISCARDED);
         failedRecordRepository.save(entity);
+    }
+
+    private @NonNull LocalDateTime computeNextRetryTime(int retryCount) {
+        return LocalDateTime.now().plusSeconds(
+                eventProperties.getRetryStrategy().calculateDelay(
+                        eventProperties.getRetryInterval(),
+                        eventProperties.getRetryMaxInterval(),
+                        retryCount));
     }
 }

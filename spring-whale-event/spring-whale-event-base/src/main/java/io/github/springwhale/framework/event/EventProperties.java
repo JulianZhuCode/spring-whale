@@ -27,6 +27,7 @@ public class EventProperties {
     public static final int DEFAULT_RETRY_CLEANUP_RETENTION_DAYS = 30;
     public static final int DEFAULT_RETRY_CLEANUP_BATCH_SIZE = 500;
     public static final int DEFAULT_RETRY_CLEANUP_SCHEDULE_INTERVAL = 86_400_000;
+    public static final int DEFAULT_RETRY_MAX_INTERVAL = 300;
 
     private String eventTopic = DEFAULT_EVENT_TOPIC;
 
@@ -51,5 +52,9 @@ public class EventProperties {
     private int retryCleanupBatchSize = DEFAULT_RETRY_CLEANUP_BATCH_SIZE;
 
     private int retryCleanupScheduleInterval = DEFAULT_RETRY_CLEANUP_SCHEDULE_INTERVAL;
+
+    private RetryStrategy retryStrategy = RetryStrategy.FIXED;
+
+    private int retryMaxInterval = DEFAULT_RETRY_MAX_INTERVAL;
 
 }
