@@ -5,6 +5,7 @@ import io.github.springwhale.framework.core.utils.ExceptionUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.*;
@@ -141,6 +142,40 @@ public abstract class EventMessageConsumer {
         this.listenerGroup = Collections.unmodifiableMap(groupMap);
         this.listenerNameToInstanceMap = Collections.unmodifiableMap(tempNameToInstance);
         this.listenerInstanceToNameMap = Collections.unmodifiableMap(tempInstanceToName);
+    }
+
+    /**
+     * Consume a raw payload string from the MQ broker.
+     * <p>Handles empty-listener check, null-payload check, deserialization, and routing.
+     * Deserialization failures are treated as unrecoverable — the message is logged and
+     * the success callback is invoked (e.g. ack the malformed message).</p>
+     * <p>If {@link #handleMessage} throws (e.g. database unavailable), the exception
+     * propagates to the caller and the success callback is NOT invoked, allowing the
+     * MQ broker to re-deliver the message.</p>
+     *
+     * @param rawPayload the raw JSON payload from the MQ broker
+     * @param context    the event context built from MQ-specific metadata (timestamp, topic, etc.)
+     * @param onSuccess  callback invoked on successful processing or unrecoverable failure (deserialization error)
+     */
+    protected void consumeRawMessage(String rawPayload, EventContext context, Runnable onSuccess) {
+        if (listenerIsEmpty()) {
+            onSuccess.run();
+            return;
+        }
+        if (rawPayload == null) {
+            onSuccess.run();
+            return;
+        }
+        EventMessage message;
+        try {
+            message = jsonMapper.readValue(rawPayload, EventMessage.class);
+        } catch (JacksonException e) {
+            log.error("Failed to deserialize event message: {}", rawPayload, e);
+            onSuccess.run();
+            return;
+        }
+        handleMessage(message, context);
+        onSuccess.run();
     }
 
     /**

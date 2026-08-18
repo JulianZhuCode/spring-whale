@@ -11,7 +11,6 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.Acknowledgment;
-import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
@@ -30,21 +29,11 @@ public class EventKafkaMessageConsumer extends EventMessageConsumer {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    private static EventContext buildEventContext(ConsumerRecord<String, String> record, EventMessage message) {
-        return EventContext.builder()
-                .timestamp(record.timestamp())
-                .topic(record.topic())
-                .authenticationContext(message.getAuthenticationContext())
-                .build();
-    }
-
     /**
      * Main Kafka event listener.
      * <p>Consumes messages from the configured topic(s) with manual acknowledgment.
      * The outer catch block intentionally does NOT acknowledge the message, so that
-     * Kafka will re-deliver it — this is by design for at-least-once semantics.
-     * The only truly unrecoverable scenario (deserialization failure) is handled
-     * in the inner catch block where the message is acknowledged and discarded.</p>
+     * Kafka will re-deliver it — this is by design for at-least-once semantics.</p>
      */
     @KafkaListener(topics = "#{@eventProperties.listener.split(',')}",
             concurrency = "#{@kafkaEventProperties.concurrency}",
@@ -53,25 +42,11 @@ public class EventKafkaMessageConsumer extends EventMessageConsumer {
     public void listener(ConsumerRecord<String, String> record, Acknowledgment ack) {
         try {
             log.debug("Consuming event message: {}", record.value());
-            if (listenerIsEmpty()) {
-                ack.acknowledge();
-                return;
-            }
-            if (record.value() == null) {
-                ack.acknowledge();
-                return;
-            }
-            EventMessage message;
-            try {
-                message = jsonMapper.readValue(record.value(), EventMessage.class);
-            } catch (JacksonException e) {
-                log.error("Failed to deserialize event message: {}", record.value(), e);
-                ack.acknowledge();
-                return;
-            }
-            EventContext context = buildEventContext(record, message);
-            handleMessage(message, context);
-            ack.acknowledge();
+            EventContext context = EventContext.builder()
+                    .timestamp(record.timestamp())
+                    .topic(record.topic())
+                    .build();
+            consumeRawMessage(record.value(), context, ack::acknowledge);
         } catch (Exception e) {
             // Intentionally do NOT acknowledge here: at-least-once semantics.
             // If processing fails (e.g. database or downstream unavailable),
