@@ -36,7 +36,11 @@ public class EventRetryTask {
         eventMessage.setData(entity.getRawMessage());
         eventMessage.setBusinessName(entity.getBusinessName());
         eventMessage.setTopic(entity.getTopic());
-        eventMessage.setAuthenticationContext(jsonMapper.readValue(entity.getAuthenticationContext(), AuthenticationContext.class));
+        try {
+            eventMessage.setAuthenticationContext(jsonMapper.readValue(entity.getAuthenticationContext(), AuthenticationContext.class));
+        } catch (Exception e) {
+            log.warn("parse authentication context failed", e);
+        }
         eventMessage.setMessageType(MessageType.RETRY);
         eventMessage.setRetryCount(entity.getRetryCount() + 1);
         eventMessage.setRetryEnabled(true);
@@ -53,9 +57,21 @@ public class EventRetryTask {
         List<EventConsumeFailedRecordEntity> entities = page.getContent();
         log.info("Found [{}] failed messages to retry", entities.size());
         for (EventConsumeFailedRecordEntity entity : entities) {
-            EventMessage eventMessage = buildEventMessage(entity);
-            eventPublisher.publish(eventMessage);
-            recordRepository.updateRetryStatus(entity.getMessageId(), EventConsumeStatus.RETRYING);
+            int updated = recordRepository.updateRetryStatus(entity.getMessageId(), EventConsumeStatus.PENDING_RETRY, EventConsumeStatus.RETRYING);
+            if (updated == 0) {
+                continue;
+            }
+            try {
+                EventMessage eventMessage = buildEventMessage(entity);
+                eventPublisher.publish(eventMessage);
+            } catch (Exception e) {
+                log.error("Retry publish failed for messageId={}", entity.getMessageId(), e);
+                recordRepository.updateRetryStatus(
+                        entity.getMessageId(),
+                        EventConsumeStatus.RETRYING,
+                        EventConsumeStatus.PENDING_RETRY
+                );
+            }
         }
     }
 

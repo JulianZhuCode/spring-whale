@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import java.util.concurrent.TimeUnit;
+
 @Component
 @RequiredArgsConstructor
 public class KafkaEventPublisher extends EventPublisher {
@@ -62,7 +64,11 @@ public class KafkaEventPublisher extends EventPublisher {
     }
 
     private void send(EventMessage message) {
-        kafkaTemplate.send(message.getTopic(), message.getId(), jsonMapper.writeValueAsString(message));
+        try {
+            kafkaTemplate.send(message.getTopic(), message.getId(), jsonMapper.writeValueAsString(message)).get(properties.getSendTimeoutSeconds(), TimeUnit.SECONDS);
+        } catch (Exception e) {
+            throw new RuntimeException("send event to Kafka failed", e);
+        }
     }
 
 }

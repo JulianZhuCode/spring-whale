@@ -86,7 +86,7 @@ public class EventKafkaMessageConsumer extends EventMessageConsumer {
                     message.setErrorStack(ExceptionUtil.getStackTrace(e));
                     message.setRetryEnabled(listener.retryEnabled());
                     message.setFailListener(getListenerInstanceToNameMap().get(listener));
-                    kafkaTemplate.send(eventProperties.getFailedTopic(), message.getId(), jsonMapper.writeValueAsString(message)).get(3, TimeUnit.SECONDS);
+                    kafkaTemplate.send(eventProperties.getFailedTopic(), message.getId(), jsonMapper.writeValueAsString(message)).get(eventProperties.getSendTimeoutSeconds(), TimeUnit.SECONDS);
                 }
             }
         } finally {

@@ -8,8 +8,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "event_consume_failed_record", indexes = {
-        @Index(name = "idx_status", columnList = "status"),
-        @Index(name = "idx_next_retry_time", columnList = "nextRetryTime")
+        @Index(name = "idx_event_consume_failed_record_next_retry_time", columnList = "nextRetryTime")
 })
 @Data
 public class EventConsumeFailedRecordEntity {
