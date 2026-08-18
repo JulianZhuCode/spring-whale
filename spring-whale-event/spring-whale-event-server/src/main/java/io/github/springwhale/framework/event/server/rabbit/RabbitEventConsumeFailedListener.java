@@ -1,14 +1,10 @@
 package io.github.springwhale.framework.event.server.rabbit;
 
-import io.github.springwhale.framework.event.EventMessage;
-import io.github.springwhale.framework.event.EventMetricsCollector;
-import io.github.springwhale.framework.event.EventProperties;
-import io.github.springwhale.framework.event.MessageType;
-import io.github.springwhale.framework.event.RetryStrategyRegistry;
+import com.rabbitmq.client.Channel;
+import io.github.springwhale.framework.event.*;
 import io.github.springwhale.framework.event.server.EventConsumeFailedListener;
 import io.github.springwhale.framework.event.server.EventConsumeTerminalHandler;
-import io.github.springwhale.framework.event.server.repository.EventConsumeFailedRecordRepository;
-import com.rabbitmq.client.Channel;
+import io.github.springwhale.framework.event.server.dao.EventConsumeFailedRecordDao;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.support.AmqpHeaders;
@@ -20,12 +16,12 @@ import java.util.List;
 @Slf4j
 public class RabbitEventConsumeFailedListener extends EventConsumeFailedListener {
 
-    public RabbitEventConsumeFailedListener(EventConsumeFailedRecordRepository failedRecordRepository,
+    public RabbitEventConsumeFailedListener(EventConsumeFailedRecordDao failedRecordDao,
                                             EventProperties eventProperties, ObjectMapper jsonMapper,
                                             RetryStrategyRegistry retryStrategyRegistry,
                                             List<EventMetricsCollector> metricsCollectors,
                                             List<EventConsumeTerminalHandler> terminalHandlers) {
-        super(failedRecordRepository, eventProperties, jsonMapper, retryStrategyRegistry,
+        super(failedRecordDao, eventProperties, jsonMapper, retryStrategyRegistry,
                 metricsCollectors, terminalHandlers);
     }
 

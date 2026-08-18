@@ -1,20 +1,13 @@
 package io.github.springwhale.framework.event.server;
 
 import io.github.springwhale.framework.core.context.AuthenticationContext;
-import io.github.springwhale.framework.event.EventMessage;
-import io.github.springwhale.framework.event.EventMetricsCollector;
-import io.github.springwhale.framework.event.EventProperties;
-import io.github.springwhale.framework.event.EventPublisher;
-import io.github.springwhale.framework.event.MessageType;
-import io.github.springwhale.framework.event.server.entity.EventConsumeFailedRecordEntity;
+import io.github.springwhale.framework.event.*;
+import io.github.springwhale.framework.event.server.dao.EventConsumeFailedRecordDao;
 import io.github.springwhale.framework.event.server.enums.EventConsumeStatus;
-import io.github.springwhale.framework.event.server.repository.EventConsumeFailedRecordRepository;
+import io.github.springwhale.framework.event.server.model.EventConsumeFailedRecord;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
@@ -27,19 +20,19 @@ import java.util.concurrent.*;
 @Slf4j
 @Component
 public class EventRetryTask {
-    private final EventConsumeFailedRecordRepository recordRepository;
+    private final EventConsumeFailedRecordDao recordDao;
     private final EventProperties eventProperties;
     private final EventPublisher eventPublisher;
     private final ObjectMapper jsonMapper;
     private final List<EventMetricsCollector> metricsCollectors;
     private final ExecutorService retryExecutor;
 
-    public EventRetryTask(EventConsumeFailedRecordRepository recordRepository,
+    public EventRetryTask(EventConsumeFailedRecordDao recordDao,
                           EventProperties eventProperties,
                           EventPublisher eventPublisher,
                           ObjectMapper jsonMapper,
                           List<EventMetricsCollector> metricsCollectors) {
-        this.recordRepository = recordRepository;
+        this.recordDao = recordDao;
         this.eventProperties = eventProperties;
         this.eventPublisher = eventPublisher;
         this.jsonMapper = jsonMapper;
@@ -67,7 +60,7 @@ public class EventRetryTask {
         }
     }
 
-    private @NonNull EventMessage buildEventMessage(EventConsumeFailedRecordEntity entity) {
+    private @NonNull EventMessage buildEventMessage(EventConsumeFailedRecord entity) {
         EventMessage eventMessage = new EventMessage();
         eventMessage.setId(entity.getMessageId());
         eventMessage.setSource(entity.getSource());
@@ -103,13 +96,12 @@ public class EventRetryTask {
      */
     @Scheduled(fixedDelayString = "${spring.whale.event.retryScheduleInterval:" + EventProperties.DEFAULT_RETRY_SCHEDULE_INTERVAL + "}")
     public void retry() {
-        Page<EventConsumeFailedRecordEntity> page = recordRepository.findByStatusAndNextRetryTimeBefore(
+        List<EventConsumeFailedRecord> entities = recordDao.findPendingRetry(
                 EventConsumeStatus.PENDING_RETRY, LocalDateTime.now(),
-                PageRequest.of(0, eventProperties.getRetryBatchSize(), Sort.by(Sort.Direction.ASC, "nextRetryTime")));
-        if (!page.hasContent()) {
+                eventProperties.getRetryBatchSize());
+        if (entities.isEmpty()) {
             return;
         }
-        List<EventConsumeFailedRecordEntity> entities = page.getContent();
         log.info("Found [{}] failed messages to retry", entities.size());
 
         CompletableFuture<?>[] futures = entities.stream()
@@ -127,11 +119,11 @@ public class EventRetryTask {
         }
     }
 
-    private void retrySingle(EventConsumeFailedRecordEntity entity) {
+    private void retrySingle(EventConsumeFailedRecord entity) {
         try {
             EventMessage eventMessage = buildEventMessage(entity);
             eventPublisher.publish(eventMessage);
-            recordRepository.casTransitionStatus(entity.getId(), EventConsumeStatus.PENDING_RETRY, EventConsumeStatus.RETRYING);
+            recordDao.casTransitionStatus(entity.getId(), EventConsumeStatus.PENDING_RETRY, EventConsumeStatus.RETRYING);
             metricsCollectors.forEach(c -> c.onRetryScheduled(entity.getMessageId(), entity.getListenerName(), eventMessage.getRetryCount()));
         } catch (Exception e) {
             log.error("Retry publish or update status failed for messageId={}", entity.getMessageId(), e);
@@ -145,15 +137,15 @@ public class EventRetryTask {
     @Scheduled(fixedDelayString = "${spring.whale.event.retryCleanupScheduleInterval:" + EventProperties.DEFAULT_RETRY_CLEANUP_SCHEDULE_INTERVAL + "}")
     public void cleanup() {
         LocalDateTime cutoff = LocalDateTime.now().minusDays(eventProperties.getRetryCleanupRetentionDays());
-        List<EventConsumeFailedRecordEntity> page = recordRepository.findByStatusInAndCreateTimeBefore(
+        List<EventConsumeFailedRecord> records = recordDao.findTerminalRecords(
                 List.of(EventConsumeStatus.DISCARDED, EventConsumeStatus.REPLAY_SUCCESS, EventConsumeStatus.FINAL_FAILED),
                 cutoff,
-                PageRequest.of(0, eventProperties.getRetryCleanupBatchSize()));
-        if (page.isEmpty()) {
+                eventProperties.getRetryCleanupBatchSize());
+        if (records.isEmpty()) {
             return;
         }
-        log.info("Cleaning up [{}] terminal status records older than {}", page.size(), cutoff);
-        recordRepository.deleteAll(page);
+        log.info("Cleaning up [{}] terminal status records older than {}", records.size(), cutoff);
+        recordDao.deleteAll(records);
     }
 
 }

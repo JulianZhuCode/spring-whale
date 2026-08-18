@@ -4,7 +4,7 @@ import io.github.springwhale.framework.event.EventMetricsCollector;
 import io.github.springwhale.framework.event.EventProperties;
 import io.github.springwhale.framework.event.RetryStrategyRegistry;
 import io.github.springwhale.framework.event.server.EventConsumeTerminalHandler;
-import io.github.springwhale.framework.event.server.repository.EventConsumeFailedRecordRepository;
+import io.github.springwhale.framework.event.server.dao.EventConsumeFailedRecordDao;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -21,12 +21,12 @@ public class RabbitEventServerConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public RabbitEventConsumeFailedListener rabbitEventConsumeFailedListener(
-            EventConsumeFailedRecordRepository failedRecordRepository,
+            EventConsumeFailedRecordDao failedRecordDao,
             EventProperties eventProperties, ObjectMapper jsonMapper,
             RetryStrategyRegistry retryStrategyRegistry,
             List<EventMetricsCollector> metricsCollectors,
             List<EventConsumeTerminalHandler> terminalHandlers) {
-        return new RabbitEventConsumeFailedListener(failedRecordRepository, eventProperties,
+        return new RabbitEventConsumeFailedListener(failedRecordDao, eventProperties,
                 jsonMapper, retryStrategyRegistry, metricsCollectors, terminalHandlers);
     }
 

@@ -1,13 +1,9 @@
 package io.github.springwhale.framework.event.server.kafka;
 
-import io.github.springwhale.framework.event.EventMessage;
-import io.github.springwhale.framework.event.EventMetricsCollector;
-import io.github.springwhale.framework.event.EventProperties;
-import io.github.springwhale.framework.event.MessageType;
-import io.github.springwhale.framework.event.RetryStrategyRegistry;
+import io.github.springwhale.framework.event.*;
 import io.github.springwhale.framework.event.server.EventConsumeFailedListener;
 import io.github.springwhale.framework.event.server.EventConsumeTerminalHandler;
-import io.github.springwhale.framework.event.server.repository.EventConsumeFailedRecordRepository;
+import io.github.springwhale.framework.event.server.dao.EventConsumeFailedRecordDao;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -19,13 +15,13 @@ import java.util.List;
 @Slf4j
 public class KafkaEventConsumeFailedListener extends EventConsumeFailedListener {
 
-    public KafkaEventConsumeFailedListener(EventConsumeFailedRecordRepository failedRecordRepository,
+    public KafkaEventConsumeFailedListener(EventConsumeFailedRecordDao failedRecordDao,
                                            EventProperties eventProperties, ObjectMapper jsonMapper,
                                            RetryStrategyRegistry retryStrategyRegistry,
                                            List<EventMetricsCollector> metricsCollectors,
                                            List<EventConsumeTerminalHandler> terminalHandlers) {
-        super(failedRecordRepository, eventProperties, jsonMapper, retryStrategyRegistry,
-              metricsCollectors, terminalHandlers);
+        super(failedRecordDao, eventProperties, jsonMapper, retryStrategyRegistry,
+                metricsCollectors, terminalHandlers);
     }
 
     /**

@@ -1,6 +1,6 @@
 package io.github.springwhale.framework.event.server;
 
-import io.github.springwhale.framework.event.server.entity.EventConsumeFailedRecordEntity;
+import io.github.springwhale.framework.event.server.model.EventConsumeFailedRecord;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -17,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 public class LogTerminalHandler implements EventConsumeTerminalHandler {
 
     @Override
-    public void onDiscarded(EventConsumeFailedRecordEntity record) {
+    public void onDiscarded(EventConsumeFailedRecord record) {
         log.warn("Event message discarded: messageId={}, businessName={}, listener={}, retryCount={}",
                 record.getMessageId(), record.getBusinessName(), record.getListenerName(), record.getRetryCount());
     }

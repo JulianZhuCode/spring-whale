@@ -1,14 +1,9 @@
 package io.github.springwhale.framework.event.server;
 
-import io.github.springwhale.framework.event.EventMessage;
-import io.github.springwhale.framework.event.EventMetricsCollector;
-import io.github.springwhale.framework.event.EventProperties;
-import io.github.springwhale.framework.event.MessageType;
-import io.github.springwhale.framework.event.RetryStrategy;
-import io.github.springwhale.framework.event.RetryStrategyRegistry;
-import io.github.springwhale.framework.event.server.entity.EventConsumeFailedRecordEntity;
+import io.github.springwhale.framework.event.*;
+import io.github.springwhale.framework.event.server.dao.EventConsumeFailedRecordDao;
 import io.github.springwhale.framework.event.server.enums.EventConsumeStatus;
-import io.github.springwhale.framework.event.server.repository.EventConsumeFailedRecordRepository;
+import io.github.springwhale.framework.event.server.model.EventConsumeFailedRecord;
 import io.github.springwhale.framework.event.server.util.EventFailedRecordIdGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
@@ -22,19 +17,19 @@ import java.util.Objects;
 
 @Slf4j
 public abstract class EventConsumeFailedListener {
-    protected final EventConsumeFailedRecordRepository failedRecordRepository;
+    protected final EventConsumeFailedRecordDao failedRecordDao;
     protected final EventProperties eventProperties;
     protected final ObjectMapper jsonMapper;
     protected final RetryStrategyRegistry retryStrategyRegistry;
     protected final List<EventMetricsCollector> metricsCollectors;
     protected final List<EventConsumeTerminalHandler> terminalHandlers;
 
-    public EventConsumeFailedListener(EventConsumeFailedRecordRepository failedRecordRepository,
+    public EventConsumeFailedListener(EventConsumeFailedRecordDao failedRecordDao,
                                       EventProperties eventProperties, ObjectMapper jsonMapper,
                                       RetryStrategyRegistry retryStrategyRegistry,
                                       List<EventMetricsCollector> metricsCollectors,
                                       List<EventConsumeTerminalHandler> terminalHandlers) {
-        this.failedRecordRepository = failedRecordRepository;
+        this.failedRecordDao = failedRecordDao;
         this.eventProperties = eventProperties;
         this.jsonMapper = jsonMapper;
         this.retryStrategyRegistry = retryStrategyRegistry;
@@ -75,12 +70,12 @@ public abstract class EventConsumeFailedListener {
             nextRetryTime = computeNextRetryTime(retryCount);
         }
 
-        failedRecordRepository.updateRetryResult(
+        failedRecordDao.updateRetryResult(
                 EventFailedRecordIdGenerator.generate(message.getId(), message.getFailListener()),
                 status, nextRetryTime, message.getErrorStack());
 
         if (status == EventConsumeStatus.DISCARDED) {
-            EventConsumeFailedRecordEntity record = failedRecordRepository
+            EventConsumeFailedRecord record = failedRecordDao
                     .findById(EventFailedRecordIdGenerator.generate(message.getId(), message.getFailListener()))
                     .orElse(null);
             if (record != null) {
@@ -92,17 +87,17 @@ public abstract class EventConsumeFailedListener {
     }
 
     private void createRetryRecord(EventMessage message) {
-        EventConsumeFailedRecordEntity entity = buildRecordEntity(message);
+        EventConsumeFailedRecord entity = buildRecordEntity(message);
         entity.setStatus(EventConsumeStatus.PENDING_RETRY);
         entity.setRetryCount(1);
         entity.setNextRetryTime(computeNextRetryTime(1));
-        failedRecordRepository.save(entity);
+        failedRecordDao.save(entity);
     }
 
     private void createDiscardRecord(EventMessage message) {
-        EventConsumeFailedRecordEntity entity = buildRecordEntity(message);
+        EventConsumeFailedRecord entity = buildRecordEntity(message);
         entity.setStatus(EventConsumeStatus.DISCARDED);
-        failedRecordRepository.save(entity);
+        failedRecordDao.save(entity);
         metricsCollectors.forEach(c -> c.onRetryExhausted(message.getId(), message.getFailListener(), 0));
         terminalHandlers.stream()
                 .sorted(Comparator.comparingInt(EventConsumeTerminalHandler::getOrder))
@@ -118,8 +113,8 @@ public abstract class EventConsumeFailedListener {
                         retryCount));
     }
 
-    protected @NonNull EventConsumeFailedRecordEntity buildRecordEntity(EventMessage message) {
-        EventConsumeFailedRecordEntity entity = new EventConsumeFailedRecordEntity();
+    protected @NonNull EventConsumeFailedRecord buildRecordEntity(EventMessage message) {
+        EventConsumeFailedRecord entity = new EventConsumeFailedRecord();
         entity.setId(EventFailedRecordIdGenerator.generate(message.getId(), message.getFailListener()));
         entity.setMessageId(message.getId());
         entity.setSource(message.getSource());

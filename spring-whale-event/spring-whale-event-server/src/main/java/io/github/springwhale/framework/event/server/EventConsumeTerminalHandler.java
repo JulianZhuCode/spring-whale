@@ -1,6 +1,6 @@
 package io.github.springwhale.framework.event.server;
 
-import io.github.springwhale.framework.event.server.entity.EventConsumeFailedRecordEntity;
+import io.github.springwhale.framework.event.server.model.EventConsumeFailedRecord;
 
 /**
  * SPI interface for handling messages that have reached a terminal state.
@@ -16,7 +16,7 @@ public interface EventConsumeTerminalHandler {
      *
      * @param record the failed record entity with full context
      */
-    void onDiscarded(EventConsumeFailedRecordEntity record);
+    void onDiscarded(EventConsumeFailedRecord record);
 
     /**
      * Execution order. Lower values execute first. Default is 0.

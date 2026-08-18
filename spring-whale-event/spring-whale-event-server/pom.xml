@@ -19,8 +19,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.github.julianzhucode</groupId>
-            <artifactId>spring-whale-database</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
         <dependency>
             <groupId>io.github.julianzhucode</groupId>

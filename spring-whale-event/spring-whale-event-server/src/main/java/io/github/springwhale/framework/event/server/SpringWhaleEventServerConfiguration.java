@@ -1,18 +1,26 @@
 package io.github.springwhale.framework.event.server;
 
+import io.github.springwhale.framework.event.server.dao.EventConsumeFailedRecordDao;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.persistence.autoconfigure.EntityScan;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
+
+import javax.sql.DataSource;
 
 @AutoConfiguration
 @EnableScheduling
-@EnableJpaRepositories
-@EntityScan
 @Slf4j
 public class SpringWhaleEventServerConfiguration {
+
     static {
         log.debug("SpringWhaleEventServerConfiguration loaded");
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public EventConsumeFailedRecordDao eventConsumeFailedRecordDao(DataSource dataSource) {
+        return new EventConsumeFailedRecordDao(dataSource);
     }
 }
