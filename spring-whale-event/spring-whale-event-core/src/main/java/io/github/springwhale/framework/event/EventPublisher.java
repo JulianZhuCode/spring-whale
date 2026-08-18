@@ -5,7 +5,6 @@ import io.github.springwhale.framework.core.utils.SpringContextUtils;
 import jakarta.validation.Valid;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -20,12 +19,16 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class EventPublisher {
     protected final Map<Class<?>, Event> eventAnnotations = new ConcurrentHashMap<>();
     private final Set<Class<?>> noAnnotationClasses = ConcurrentHashMap.newKeySet();
-    @Autowired
-    protected EventProperties properties;
-    @Autowired
-    protected ObjectMapper jsonMapper;
-    @Autowired(required = false)
-    private List<EventMetricsCollector> metricsCollectors = Collections.emptyList();
+    protected final EventProperties properties;
+    protected final ObjectMapper jsonMapper;
+    private final List<EventMetricsCollector> metricsCollectors;
+
+    public EventPublisher(EventProperties properties, ObjectMapper jsonMapper,
+                          List<EventMetricsCollector> metricsCollectors) {
+        this.properties = properties;
+        this.jsonMapper = jsonMapper;
+        this.metricsCollectors = metricsCollectors != null ? metricsCollectors : Collections.emptyList();
+    }
 
     /**
      * Publish an event object. The {@link Event} annotation is optional —

@@ -1,6 +1,5 @@
 package io.github.springwhale.framework.event;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -18,13 +17,9 @@ public class RetryStrategyRegistry {
 
     private final Map<String, RetryStrategy> strategies = new ConcurrentHashMap<>();
 
-    public RetryStrategyRegistry() {
+    public RetryStrategyRegistry(Map<String, RetryStrategy> customStrategies) {
         strategies.put("fixed", new FixedRetryStrategy());
         strategies.put("exponential", new ExponentialRetryStrategy());
-    }
-
-    @Autowired(required = false)
-    public void registerCustom(Map<String, RetryStrategy> customStrategies) {
         if (customStrategies != null) {
             strategies.putAll(customStrategies);
         }

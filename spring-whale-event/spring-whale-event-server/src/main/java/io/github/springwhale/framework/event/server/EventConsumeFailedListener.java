@@ -12,7 +12,6 @@ import io.github.springwhale.framework.event.server.repository.EventConsumeFaile
 import io.github.springwhale.framework.event.server.util.EventFailedRecordIdGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
@@ -23,18 +22,25 @@ import java.util.Objects;
 
 @Slf4j
 public abstract class EventConsumeFailedListener {
-    @Autowired
-    protected EventConsumeFailedRecordRepository failedRecordRepository;
-    @Autowired
-    protected EventProperties eventProperties;
-    @Autowired
-    protected ObjectMapper jsonMapper;
-    @Autowired
-    protected RetryStrategyRegistry retryStrategyRegistry;
-    @Autowired(required = false)
-    protected List<EventMetricsCollector> metricsCollectors = Collections.emptyList();
-    @Autowired(required = false)
-    protected List<EventConsumeTerminalHandler> terminalHandlers = Collections.emptyList();
+    protected final EventConsumeFailedRecordRepository failedRecordRepository;
+    protected final EventProperties eventProperties;
+    protected final ObjectMapper jsonMapper;
+    protected final RetryStrategyRegistry retryStrategyRegistry;
+    protected final List<EventMetricsCollector> metricsCollectors;
+    protected final List<EventConsumeTerminalHandler> terminalHandlers;
+
+    public EventConsumeFailedListener(EventConsumeFailedRecordRepository failedRecordRepository,
+                                      EventProperties eventProperties, ObjectMapper jsonMapper,
+                                      RetryStrategyRegistry retryStrategyRegistry,
+                                      List<EventMetricsCollector> metricsCollectors,
+                                      List<EventConsumeTerminalHandler> terminalHandlers) {
+        this.failedRecordRepository = failedRecordRepository;
+        this.eventProperties = eventProperties;
+        this.jsonMapper = jsonMapper;
+        this.retryStrategyRegistry = retryStrategyRegistry;
+        this.metricsCollectors = metricsCollectors != null ? metricsCollectors : Collections.emptyList();
+        this.terminalHandlers = terminalHandlers != null ? terminalHandlers : Collections.emptyList();
+    }
 
     /**
      * Handle a failed-event message: determine status and persist the record.

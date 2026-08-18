@@ -12,7 +12,6 @@ import io.github.springwhale.framework.event.server.repository.EventConsumeFaile
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -32,18 +31,19 @@ public class EventRetryTask {
     private final EventProperties eventProperties;
     private final EventPublisher eventPublisher;
     private final ObjectMapper jsonMapper;
+    private final List<EventMetricsCollector> metricsCollectors;
     private final ExecutorService retryExecutor;
-    @Autowired(required = false)
-    private List<EventMetricsCollector> metricsCollectors = Collections.emptyList();
 
     public EventRetryTask(EventConsumeFailedRecordRepository recordRepository,
                           EventProperties eventProperties,
                           EventPublisher eventPublisher,
-                          ObjectMapper jsonMapper) {
+                          ObjectMapper jsonMapper,
+                          List<EventMetricsCollector> metricsCollectors) {
         this.recordRepository = recordRepository;
         this.eventProperties = eventProperties;
         this.eventPublisher = eventPublisher;
         this.jsonMapper = jsonMapper;
+        this.metricsCollectors = metricsCollectors != null ? metricsCollectors : Collections.emptyList();
         this.retryExecutor = new ThreadPoolExecutor(
                 eventProperties.getRetryThreadPoolSize(),
                 eventProperties.getRetryThreadPoolSize(),

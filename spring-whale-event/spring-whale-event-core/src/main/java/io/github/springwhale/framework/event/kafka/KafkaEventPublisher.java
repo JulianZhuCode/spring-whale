@@ -1,16 +1,25 @@
 package io.github.springwhale.framework.event.kafka;
 
 import io.github.springwhale.framework.event.EventMessage;
+import io.github.springwhale.framework.event.EventMetricsCollector;
+import io.github.springwhale.framework.event.EventProperties;
 import io.github.springwhale.framework.event.EventPublisher;
-import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
+import tools.jackson.databind.ObjectMapper;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-@RequiredArgsConstructor
 public class KafkaEventPublisher extends EventPublisher {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
+
+    public KafkaEventPublisher(EventProperties properties, ObjectMapper jsonMapper,
+                               List<EventMetricsCollector> metricsCollectors,
+                               KafkaTemplate<String, String> kafkaTemplate) {
+        super(properties, jsonMapper, metricsCollectors);
+        this.kafkaTemplate = kafkaTemplate;
+    }
 
     /**
      * Send the event message to Kafka synchronously with a configurable timeout.

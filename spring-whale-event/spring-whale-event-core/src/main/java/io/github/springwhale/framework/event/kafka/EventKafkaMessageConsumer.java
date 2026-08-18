@@ -1,22 +1,34 @@
 package io.github.springwhale.framework.event.kafka;
 
+import io.github.springwhale.framework.event.AbstractEventListener;
 import io.github.springwhale.framework.event.EventContext;
 import io.github.springwhale.framework.event.EventMessage;
 import io.github.springwhale.framework.event.EventMessageConsumer;
-import lombok.RequiredArgsConstructor;
+import io.github.springwhale.framework.event.EventMetricsCollector;
+import io.github.springwhale.framework.event.EventProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.Acknowledgment;
 import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-@RequiredArgsConstructor
 public class EventKafkaMessageConsumer extends EventMessageConsumer {
     private final KafkaTemplate<String, String> kafkaTemplate;
+
+    public EventKafkaMessageConsumer(ObjectMapper jsonMapper, EventProperties eventProperties,
+                                     List<EventMetricsCollector> metricsCollectors,
+                                     Map<String, AbstractEventListener<?>> springListenerBeanMap,
+                                     KafkaTemplate<String, String> kafkaTemplate) {
+        super(jsonMapper, eventProperties, metricsCollectors, springListenerBeanMap);
+        this.kafkaTemplate = kafkaTemplate;
+    }
 
     private static EventContext buildEventContext(ConsumerRecord<String, String> record, EventMessage message) {
         return EventContext.builder()

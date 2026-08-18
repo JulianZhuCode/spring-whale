@@ -4,8 +4,6 @@ import io.github.springwhale.framework.core.context.AuthenticationContextHolder;
 import io.github.springwhale.framework.core.utils.ExceptionUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import tools.jackson.databind.ObjectMapper;
 
@@ -21,18 +19,16 @@ import java.util.stream.Collectors;
  * consumer threads always see a consistent view (either the old or the new complete map).</p>
  */
 @Slf4j
-public abstract class EventMessageConsumer implements InitializingBean {
+public abstract class EventMessageConsumer {
 
     /**
      * Manually registered listeners, support runtime concurrent put/remove.
      */
     private final Map<String, AbstractEventListener<?>> customRegisterMap = new ConcurrentHashMap<>();
-    @Autowired
-    protected ObjectMapper jsonMapper;
-    @Autowired
-    protected EventProperties eventProperties;
-    @Autowired(required = false)
-    private List<EventMetricsCollector> metricsCollectors = Collections.emptyList();
+    protected final ObjectMapper jsonMapper;
+    protected final EventProperties eventProperties;
+    private final List<EventMetricsCollector> metricsCollectors;
+    private final Map<String, AbstractEventListener<?>> springListenerBeanMap;
     /**
      * Listener instance -> registered name. Unmodifiable view.
      * <p>Key is object reference, do NOT serialize this map.</p>
@@ -47,17 +43,21 @@ public abstract class EventMessageConsumer implements InitializingBean {
     private volatile Map<String, AbstractEventListener<?>> listenerNameToInstanceMap = Collections.emptyMap();
 
     /**
-     * Listeners auto‑injected by Spring container, keyed by bean name.
-     */
-    @Autowired(required = false)
-    private Map<String, AbstractEventListener<?>> springListenerBeanMap;
-
-    /**
      * Routing table: key = businessName, value = list of matched listeners.
      * volatile guarantees visibility across MQ consumer threads.
      */
     @Getter
     private volatile Map<String, List<AbstractEventListener<?>>> listenerGroup = Collections.emptyMap();
+
+    public EventMessageConsumer(ObjectMapper jsonMapper, EventProperties eventProperties,
+                                List<EventMetricsCollector> metricsCollectors,
+                                Map<String, AbstractEventListener<?>> springListenerBeanMap) {
+        this.jsonMapper = jsonMapper;
+        this.eventProperties = eventProperties;
+        this.metricsCollectors = metricsCollectors != null ? metricsCollectors : Collections.emptyList();
+        this.springListenerBeanMap = springListenerBeanMap;
+        rebuildRouteTable();
+    }
 
     /**
      * Check whether no listener registered.
@@ -93,11 +93,6 @@ public abstract class EventMessageConsumer implements InitializingBean {
      * Force rebuild all listener routing tables. Avoid frequent runtime call.
      */
     public void refreshListeners() {
-        rebuildRouteTable();
-    }
-
-    @Override
-    public void afterPropertiesSet() {
         rebuildRouteTable();
     }
 
