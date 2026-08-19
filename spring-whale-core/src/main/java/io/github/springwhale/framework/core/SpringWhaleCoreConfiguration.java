@@ -22,7 +22,4 @@ import org.springframework.context.annotation.FilterType;
         ))
 @Slf4j
 public class SpringWhaleCoreConfiguration {
-    static {
-        log.debug("SpringWhaleCoreConfiguration loaded");
-    }
 }

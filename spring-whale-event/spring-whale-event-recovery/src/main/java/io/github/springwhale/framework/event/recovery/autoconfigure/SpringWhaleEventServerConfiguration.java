@@ -13,10 +13,7 @@ import javax.sql.DataSource;
 @EnableScheduling
 @Slf4j
 public class SpringWhaleEventServerConfiguration {
-
-    static {
-        log.debug("SpringWhaleEventServerConfiguration loaded");
-    }
+ 
 
     @Bean
     @ConditionalOnMissingBean
