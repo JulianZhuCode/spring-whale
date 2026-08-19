@@ -19,6 +19,13 @@ public interface EventConsumeTerminalHandler {
     void onDiscarded(EventConsumeFailedRecord record);
 
     /**
+     * Called when a message has reached a terminal failure state (all retries exhausted).
+     *
+     * @param record the failed record entity with full context
+     */
+    void onFinalFailed(EventConsumeFailedRecord record);
+
+    /**
      * Execution order. Lower values execute first. Default is 0.
      */
     default int getOrder() {

@@ -18,7 +18,13 @@ public class LogTerminalHandler implements EventConsumeTerminalHandler {
 
     @Override
     public void onDiscarded(EventConsumeFailedRecord record) {
-        log.warn("Event message discarded: messageId={}, businessName={}, listener={}, retryCount={}",
+        log.warn("Event message discarded: messageId={}, businessName={}, listener={}",
+                record.getMessageId(), record.getBusinessName(), record.getListenerName());
+    }
+
+    @Override
+    public void onFinalFailed(EventConsumeFailedRecord record) {
+        log.warn("Event message final failed: messageId={}, businessName={}, listener={}, retryCount={}",
                 record.getMessageId(), record.getBusinessName(), record.getListenerName(), record.getRetryCount());
     }
 

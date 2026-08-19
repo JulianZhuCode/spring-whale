@@ -62,7 +62,7 @@ public abstract class EventConsumeFailedListener {
             nextRetryTime = null;
             metricsCollectors.forEach(c -> c.onRetrySuccess(message.getId(), message.getFailListener()));
         } else if (retryCount >= eventProperties.getMaxRetries()) {
-            status = EventConsumeStatus.DISCARDED;
+            status = EventConsumeStatus.FINAL_FAILED;
             nextRetryTime = null;
             metricsCollectors.forEach(c -> c.onRetryExhausted(message.getId(), message.getFailListener(), retryCount));
         } else {
@@ -74,15 +74,11 @@ public abstract class EventConsumeFailedListener {
                 EventFailedRecordIdGenerator.generate(message.getId(), message.getFailListener()),
                 status, nextRetryTime, message.getErrorStack());
 
-        if (status == EventConsumeStatus.DISCARDED) {
-            EventConsumeFailedRecord record = failedRecordDao
-                    .findById(EventFailedRecordIdGenerator.generate(message.getId(), message.getFailListener()))
-                    .orElse(null);
-            if (record != null) {
-                terminalHandlers.stream()
-                        .sorted(Comparator.comparingInt(EventConsumeTerminalHandler::getOrder))
-                        .forEach(h -> h.onDiscarded(record));
-            }
+        if (status == EventConsumeStatus.FINAL_FAILED) {
+            failedRecordDao
+                    .findById(EventFailedRecordIdGenerator.generate(message.getId(), message.getFailListener())).ifPresent(record -> terminalHandlers.stream()
+                            .sorted(Comparator.comparingInt(EventConsumeTerminalHandler::getOrder))
+                            .forEach(h -> h.onFinalFailed(record)));
         }
     }
 
