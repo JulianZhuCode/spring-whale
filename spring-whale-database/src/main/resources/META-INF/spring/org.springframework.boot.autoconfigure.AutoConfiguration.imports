@@ -1,1 +1,1 @@
-io.github.springwhale.database.SpringWhaleDatabaseConfiguration
+io.github.springwhale.database.autoconfigure.FlywayConfiguration
