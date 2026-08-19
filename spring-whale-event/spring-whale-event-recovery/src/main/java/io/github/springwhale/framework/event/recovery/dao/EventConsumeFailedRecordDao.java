@@ -67,6 +67,18 @@ public class EventConsumeFailedRecordDao {
 
     private static final String DELETE_BY_IDS = "DELETE FROM event_consume_failed_record WHERE id IN (%s)";
 
+    private static final String RESET_TO_PENDING_RETRY = """
+            UPDATE event_consume_failed_record
+            SET status = ?, next_retry_time = ?, retry_count = 0, update_time = ?
+            WHERE %s
+            """;
+
+    private static final String RESET_TO_PENDING_RETRY_KEEP_COUNT = """
+            UPDATE event_consume_failed_record
+            SET status = ?, next_retry_time = ?, update_time = ?
+            WHERE %s
+            """;
+
     private final DataSource dataSource;
 
     public void save(EventConsumeFailedRecord entity) {
@@ -198,6 +210,50 @@ public class EventConsumeFailedRecordDao {
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Failed to delete records", e);
+        }
+    }
+
+    public int batchResetToPendingRetry(List<String> ids, List<EventConsumeStatus> statuses,
+                                        boolean resetRetryCount) {
+        if ((ids == null || ids.isEmpty()) && (statuses == null || statuses.isEmpty())) {
+            throw new IllegalArgumentException("At least one of ids or statuses must be provided");
+        }
+
+        StringBuilder whereClause = new StringBuilder();
+        List<Object> params = new ArrayList<>();
+
+        if (ids != null && !ids.isEmpty()) {
+            String placeholders = String.join(",", Collections.nCopies(ids.size(), "?"));
+            whereClause.append("id IN (").append(placeholders).append(")");
+            params.addAll(ids);
+        }
+
+        if (statuses != null && !statuses.isEmpty()) {
+            if (whereClause.length() > 0) {
+                whereClause.append(" AND ");
+            }
+            String placeholders = String.join(",", Collections.nCopies(statuses.size(), "?"));
+            whereClause.append("status IN (").append(placeholders).append(")");
+            for (EventConsumeStatus status : statuses) {
+                params.add(status.name());
+            }
+        }
+
+        String template = resetRetryCount ? RESET_TO_PENDING_RETRY : RESET_TO_PENDING_RETRY_KEEP_COUNT;
+        String sql = String.format(template, whereClause.toString());
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, EventConsumeStatus.PENDING_RETRY.name());
+            ps.setObject(2, LocalDateTime.now());
+            ps.setObject(3, LocalDateTime.now());
+            int idx = 4;
+            for (Object param : params) {
+                ps.setObject(idx++, param);
+            }
+            return ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to batch reset records to pending retry", e);
         }
     }
 
