@@ -1,10 +1,11 @@
-package io.github.springwhale.framework.event.recovery.kafka;
+package io.github.springwhale.framework.event.recovery.autoconfigure;
 
 import io.github.springwhale.framework.event.EventMetricsCollector;
 import io.github.springwhale.framework.event.EventProperties;
 import io.github.springwhale.framework.event.RetryStrategyRegistry;
 import io.github.springwhale.framework.event.recovery.EventConsumeTerminalHandler;
 import io.github.springwhale.framework.event.recovery.dao.EventConsumeFailedRecordDao;
+import io.github.springwhale.framework.event.recovery.kafka.KafkaEventConsumeFailedListener;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;

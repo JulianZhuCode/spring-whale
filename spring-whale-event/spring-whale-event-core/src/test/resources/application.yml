@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: test-event-app
+  whale:
+    event:
+      event-topic: test-event-topic
+      failed-topic: test-failed-topic
+      consumer-topics: test-event-topic
+      send-timeout-seconds: 3
+      kafka:
+        auto-offset-reset: earliest

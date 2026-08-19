@@ -1,5 +1,6 @@
-package io.github.springwhale.framework.event.metrics;
+package io.github.springwhale.framework.event.autoconfigure;
 
+import io.github.springwhale.framework.event.metrics.MicrometerEventMetricsCollector;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;

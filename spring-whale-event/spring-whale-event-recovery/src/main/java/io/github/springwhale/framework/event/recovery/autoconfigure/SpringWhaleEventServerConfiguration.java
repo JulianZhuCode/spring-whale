@@ -1,4 +1,4 @@
-package io.github.springwhale.framework.event.recovery;
+package io.github.springwhale.framework.event.recovery.autoconfigure;
 
 import io.github.springwhale.framework.event.recovery.dao.EventConsumeFailedRecordDao;
 import lombok.extern.slf4j.Slf4j;

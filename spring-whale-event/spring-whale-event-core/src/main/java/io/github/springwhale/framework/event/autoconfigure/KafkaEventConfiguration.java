@@ -1,8 +1,11 @@
-package io.github.springwhale.framework.event.kafka;
+package io.github.springwhale.framework.event.autoconfigure;
 
 import io.github.springwhale.framework.event.AbstractEventListener;
 import io.github.springwhale.framework.event.EventMetricsCollector;
 import io.github.springwhale.framework.event.EventProperties;
+import io.github.springwhale.framework.event.kafka.EventKafkaMessageConsumer;
+import io.github.springwhale.framework.event.kafka.KafkaEventProperties;
+import io.github.springwhale.framework.event.kafka.KafkaEventPublisher;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -36,10 +39,10 @@ public class KafkaEventConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public EventKafkaMessageConsumer eventKafkaMessageConsumer(ObjectMapper jsonMapper,
-                                                                EventProperties eventProperties,
-                                                                List<EventMetricsCollector> metricsCollectors,
-                                                                Map<String, AbstractEventListener<?>> springListenerBeanMap,
-                                                                KafkaTemplate<String, String> kafkaTemplate) {
+                                                               EventProperties eventProperties,
+                                                               List<EventMetricsCollector> metricsCollectors,
+                                                               Map<String, AbstractEventListener<?>> springListenerBeanMap,
+                                                               KafkaTemplate<String, String> kafkaTemplate) {
         return new EventKafkaMessageConsumer(jsonMapper, eventProperties, metricsCollectors,
                 springListenerBeanMap, kafkaTemplate);
     }

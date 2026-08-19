@@ -22,13 +22,13 @@ public @interface Event {
      * Alias for {@link #businessName()}.
      */
     @AliasFor("businessName")
-    String value();
+    String value() default "";
 
     /**
      * The business name used for listener routing. Must be unique per event type.
      */
     @AliasFor("value")
-    String businessName();
+    String businessName() default "";
 
     /**
      * Override the default topic. If empty, the topic from {@code spring.whale.event.event-topic} is used.

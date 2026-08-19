@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: test-event-recovery
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+      - io.github.springwhale.framework.event.recovery.autoconfigure.KafkaEventServerConfiguration
+      - io.github.springwhale.framework.event.recovery.autoconfigure.RabbitEventServerConfiguration
+  whale:
+    event:
+      event-topic: test-event-topic
+      failed-topic: test-failed-topic
+      consumer-topics: test-event-topic
+      send-timeout-seconds: 3
+      retry-interval-seconds: 5
+      max-retries: 3
+      retry-schedule-interval: 60000
+      retry-batch-size: 100
+      retry-thread-pool-size: 2
+      retry-cleanup-retention-days: 30
+      retry-cleanup-batch-size: 100
+      kafka:
+        auto-offset-reset: earliest

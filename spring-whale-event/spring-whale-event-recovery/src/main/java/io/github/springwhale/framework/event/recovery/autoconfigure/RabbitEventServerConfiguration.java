@@ -1,10 +1,11 @@
-package io.github.springwhale.framework.event.recovery.rabbit;
+package io.github.springwhale.framework.event.recovery.autoconfigure;
 
 import io.github.springwhale.framework.event.EventMetricsCollector;
 import io.github.springwhale.framework.event.EventProperties;
 import io.github.springwhale.framework.event.RetryStrategyRegistry;
 import io.github.springwhale.framework.event.recovery.EventConsumeTerminalHandler;
 import io.github.springwhale.framework.event.recovery.dao.EventConsumeFailedRecordDao;
+import io.github.springwhale.framework.event.recovery.rabbit.RabbitEventConsumeFailedListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;

@@ -1,8 +1,10 @@
-package io.github.springwhale.framework.event.rabbit;
+package io.github.springwhale.framework.event.autoconfigure;
 
 import io.github.springwhale.framework.event.AbstractEventListener;
 import io.github.springwhale.framework.event.EventMetricsCollector;
 import io.github.springwhale.framework.event.EventProperties;
+import io.github.springwhale.framework.event.rabbit.RabbitEventMessageConsumer;
+import io.github.springwhale.framework.event.rabbit.RabbitEventPublisher;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -28,10 +30,10 @@ public class RabbitEventConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public RabbitEventMessageConsumer rabbitEventMessageConsumer(ObjectMapper jsonMapper,
-                                                                  EventProperties eventProperties,
-                                                                  List<EventMetricsCollector> metricsCollectors,
-                                                                  Map<String, AbstractEventListener<?>> springListenerBeanMap,
-                                                                  RabbitTemplate rabbitTemplate) {
+                                                                 EventProperties eventProperties,
+                                                                 List<EventMetricsCollector> metricsCollectors,
+                                                                 Map<String, AbstractEventListener<?>> springListenerBeanMap,
+                                                                 RabbitTemplate rabbitTemplate) {
         return new RabbitEventMessageConsumer(jsonMapper, eventProperties, metricsCollectors,
                 springListenerBeanMap, rabbitTemplate);
     }

@@ -37,7 +37,7 @@ public class EventKafkaMessageConsumer extends EventMessageConsumer {
      */
     @KafkaListener(topics = "#{@eventProperties.consumerTopics.split(',')}",
             concurrency = "#{@eventProperties.concurrency}",
-            groupId = "#{spring.application.name}",
+            groupId = "${spring.application.name}",
             properties = {"#{'auto.offset.reset:' + @kafkaEventProperties.autoOffsetReset}"})
     public void listener(ConsumerRecord<String, String> record, Acknowledgment ack) {
         try {
