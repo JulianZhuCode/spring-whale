@@ -9,7 +9,6 @@ import io.github.springwhale.framework.event.kafka.KafkaEventPublisher;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.core.KafkaTemplate;
 import tools.jackson.databind.ObjectMapper;
@@ -23,7 +22,6 @@ public class KafkaEventConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    @ConfigurationProperties(prefix = "spring.whale.event.kafka")
     public KafkaEventProperties kafkaEventProperties() {
         return new KafkaEventProperties();
     }

@@ -5,7 +5,6 @@ import io.github.springwhale.framework.event.recovery.enums.EventConsumeStatus;
 import io.github.springwhale.framework.event.recovery.model.ResetRetryRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.EnumSet;
@@ -20,7 +19,6 @@ import java.util.Set;
  * with the desired filter criteria.</p>
  */
 @Slf4j
-@Component
 @RequiredArgsConstructor
 public class EventRecoveryManager {
 

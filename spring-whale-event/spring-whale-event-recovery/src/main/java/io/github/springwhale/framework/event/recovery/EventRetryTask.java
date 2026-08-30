@@ -9,7 +9,6 @@ import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
@@ -18,7 +17,6 @@ import java.util.List;
 import java.util.concurrent.*;
 
 @Slf4j
-@Component
 public class EventRetryTask {
     private final EventConsumeFailedRecordDao recordDao;
     private final EventProperties eventProperties;

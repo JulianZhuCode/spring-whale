@@ -1,7 +1,5 @@
 package io.github.springwhale.framework.event;
 
-import org.springframework.stereotype.Component;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -12,7 +10,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * Spring beans with a unique name (e.g. {@code @Component("jitter")}) and will
  * override built-in ones with the same name.</p>
  */
-@Component
 public class RetryStrategyRegistry {
 
     private final Map<String, RetryStrategy> strategies = new ConcurrentHashMap<>();

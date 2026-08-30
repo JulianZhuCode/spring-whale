@@ -2,17 +2,12 @@ package io.github.springwhale.framework.event;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
 
 /**
  * Configuration properties for the spring-whale-event framework.
- * <p>Registered as a {@code @Component} (not just {@code @ConfigurationProperties}) because
- * this module is only included when the event framework is actively used — there is no
- * scenario where the module is on the classpath but the framework is not needed.</p>
  * <p>All properties are prefixed with {@code spring.whale.event}.</p>
  */
 @Data
-@Component
 @ConfigurationProperties(prefix = "spring.whale.event")
 public class EventProperties {
 
