@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 @Data
 @MappedSuperclass
-@SQLDelete(sql = "UPDATE #{entityName} SET del_flag = 1, update_time = now() WHERE id = ?")
+@SQLDelete(sql = "UPDATE #{entityName} SET del_flag = 1, update_time = CURRENT_TIMESTAMP WHERE id = ?")
 @SQLRestriction("del_flag = 0")
 public abstract class BaseEntity {
     @Id

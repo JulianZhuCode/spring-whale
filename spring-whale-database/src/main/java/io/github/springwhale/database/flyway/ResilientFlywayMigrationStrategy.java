@@ -12,11 +12,13 @@ import org.springframework.context.ApplicationEventPublisher;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @Slf4j
 @RequiredArgsConstructor
 public class ResilientFlywayMigrationStrategy implements FlywayMigrationStrategy {
-    private static final String ERROR_INSERT_SQL = "INSERT INTO flyway_error_log (server_name, create_time, message) VALUES (?, now(), ?)";
+    private static final String ERROR_INSERT_SQL = "INSERT INTO flyway_error_log (server_name, create_time, message) VALUES (?, ?, ?)";
     private final DataSource dataSource;
     private final String serverName;
     private final ApplicationEventPublisher eventPublisher;
@@ -46,7 +48,8 @@ public class ResilientFlywayMigrationStrategy implements FlywayMigrationStrategy
             try (Connection connection = dataSource.getConnection();
                  PreparedStatement ps = connection.prepareStatement(ERROR_INSERT_SQL)) {
                 ps.setString(1, serverName);
-                ps.setString(2, e.getMessage());
+                ps.setTimestamp(2, Timestamp.valueOf(LocalDateTime.now()));
+                ps.setString(3, e.getMessage());
                 ps.execute();
             } catch (Exception ex) {
                 log.error("Failed to persist flyway error log", ex);
