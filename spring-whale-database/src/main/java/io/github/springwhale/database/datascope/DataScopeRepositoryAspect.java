@@ -113,14 +113,31 @@ public class DataScopeRepositoryAspect {
         Class<?> clazz = target.getClass();
         while (clazz != null && clazz != Object.class) {
             for (Type type : clazz.getGenericInterfaces()) {
-                if (type instanceof ParameterizedType pt) {
-                    Type rawType = pt.getRawType();
-                    if (rawType instanceof Class<?> rawClass && JpaRepository.class.isAssignableFrom(rawClass)) {
-                        return (Class<?>) pt.getActualTypeArguments()[0];
-                    }
+                Class<?> entityClass = resolveEntityClassFromType(type);
+                if (entityClass != null) {
+                    return entityClass;
                 }
             }
             clazz = clazz.getSuperclass();
+        }
+        return null;
+    }
+
+    private Class<?> resolveEntityClassFromType(Type type) {
+        if (type instanceof ParameterizedType pt) {
+            Type rawType = pt.getRawType();
+            if (rawType instanceof Class<?> rawClass && JpaRepository.class.isAssignableFrom(rawClass)) {
+                return (Class<?>) pt.getActualTypeArguments()[0];
+            }
+        } else if (type instanceof Class<?> clazz) {
+            if (JpaRepository.class.isAssignableFrom(clazz)) {
+                for (Type genericInterface : clazz.getGenericInterfaces()) {
+                    Class<?> entityClass = resolveEntityClassFromType(genericInterface);
+                    if (entityClass != null) {
+                        return entityClass;
+                    }
+                }
+            }
         }
         return null;
     }

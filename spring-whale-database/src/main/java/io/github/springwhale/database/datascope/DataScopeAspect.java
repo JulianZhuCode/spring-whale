@@ -42,8 +42,10 @@ public class DataScopeAspect {
         DataScopeResult result = new DataScopeResult();
         result.setScopeType(effectiveType);
         result.setModule(effectiveModule);
-        result.setUserId(dataScopeHandler.resolveUserId());
         result.setDeptIds(dataScopeHandler.resolveDeptIds(effectiveType, effectiveModule));
+        if (!result.hasDeptIds()) {
+            result.setUserId(dataScopeHandler.resolveUserId());
+        }
 
         DataScopeContext.pushScope(result);
         log.debug("DataScope pushed: type={}, module={}, userId={}, deptIds={}",
