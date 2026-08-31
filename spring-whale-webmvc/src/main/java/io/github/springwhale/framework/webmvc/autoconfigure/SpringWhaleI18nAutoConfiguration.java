@@ -2,6 +2,7 @@ package io.github.springwhale.framework.webmvc.autoconfigure;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.webmvc.autoconfigure.WebMvcAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -36,9 +37,10 @@ import java.util.Locale;
 @AutoConfiguration
 @AutoConfigureBefore(WebMvcAutoConfiguration.class)
 @ConditionalOnProperty(name = "spring.whale.i18n.enabled", havingValue = "true")
-public class SpringWhaleI18nConfig implements WebMvcConfigurer {
+public class SpringWhaleI18nAutoConfiguration implements WebMvcConfigurer {
 
     @Bean
+    @ConditionalOnMissingBean
     public LocaleResolver localeResolver() {
         CookieLocaleResolver resolver = new CookieLocaleResolver("sw_lang");
         resolver.setDefaultLocale(Locale.ENGLISH);
@@ -48,6 +50,7 @@ public class SpringWhaleI18nConfig implements WebMvcConfigurer {
     }
 
     @Bean
+    @ConditionalOnMissingBean
     public LocaleChangeInterceptor localeChangeInterceptor() {
         LocaleChangeInterceptor interceptor = new LocaleChangeInterceptor();
         interceptor.setParamName("lang");

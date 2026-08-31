@@ -1,12 +1,16 @@
-package io.github.springwhale.framework.webmvc.security;
+package io.github.springwhale.framework.webmvc.autoconfigure;
 
+import io.github.springwhale.framework.webmvc.security.JwtAuthenticationFilter;
+import io.github.springwhale.framework.webmvc.security.SecurityProperties;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -29,12 +33,14 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Comparator;
 import java.util.List;
 
-@Configuration
+@AutoConfiguration
 @EnableWebSecurity
 @EnableMethodSecurity
+@EnableConfigurationProperties(SecurityProperties.class)
+@ConditionalOnBean(UserDetailsService.class)
 @RequiredArgsConstructor
 @Slf4j
-public class SecurityConfig {
+public class SecurityAutoConfiguration {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailsService userDetailsService;
@@ -42,11 +48,13 @@ public class SecurityConfig {
     private final List<io.github.springwhale.framework.webmvc.security.SecurityConfigProvider> configProviders;
 
     @Bean
+    @ConditionalOnMissingBean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Bean
+    @ConditionalOnMissingBean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder());
@@ -54,6 +62,7 @@ public class SecurityConfig {
     }
 
     @Bean
+    @ConditionalOnMissingBean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder authBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
         authBuilder.authenticationProvider(authenticationProvider());
@@ -61,7 +70,9 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, @Qualifier("corsConfigurationSource") CorsConfigurationSource corsConfigurationSource) throws Exception {
+    @ConditionalOnMissingBean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   CorsConfigurationSource corsConfigurationSource) throws Exception {
         // Collect all URLs that permit anonymous access
         List<String> permitAllUrls = collectPermitAllUrls();
 
@@ -104,6 +115,7 @@ public class SecurityConfig {
      * </p>
      */
     @Bean
+    @ConditionalOnMissingBean
     public AuthenticationEntryPoint adminConsoleEntryPoint() {
         return (HttpServletRequest request, HttpServletResponse response,
                 AuthenticationException authException) -> {
@@ -159,6 +171,7 @@ public class SecurityConfig {
     }
 
     @Bean
+    @ConditionalOnMissingBean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         securityProperties.getAllowedOriginPatterns().forEach(configuration::addAllowedOriginPattern);

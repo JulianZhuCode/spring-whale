@@ -2,6 +2,7 @@ package io.github.springwhale.framework.webmvc.autoconfigure;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.context.MessageSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.context.MessageSourceProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -34,7 +35,7 @@ import java.util.Set;
 @AutoConfiguration
 @AutoConfigureBefore(MessageSourceAutoConfiguration.class)
 @EnableConfigurationProperties(MessageSourceProperties.class)
-public class SpringWhaleMessageSourceConfig {
+public class SpringWhaleMessageSourceAutoConfiguration {
 
     private static final String MESSAGES_PATTERN = "classpath*:messages-*.properties";
 
@@ -44,6 +45,7 @@ public class SpringWhaleMessageSourceConfig {
     private static final String LOCALE_SUFFIX_REGEX = ".*_[a-z]{2,3}(_[A-Z]{1,3})?\\.properties";
 
     @Bean
+    @ConditionalOnMissingBean
     public MessageSource messageSource(MessageSourceProperties properties, ResourceLoader resourceLoader)
             throws IOException {
 
