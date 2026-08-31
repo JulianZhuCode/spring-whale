@@ -34,5 +34,6 @@ public class EventMessage {
     private Boolean retrySuccess;
     private String errorStack;
     private String failListener;
+    private Integer version;
 
 }

@@ -56,7 +56,7 @@ public abstract class EventPublisher {
         String businessName = option.businessName();
         String topic = option.topic();
         if (StringUtils.hasText(businessName) && StringUtils.hasText(topic)) {
-            send(event, businessName, topic);
+            send(event, businessName, topic, option.partitionKey());
             return;
         }
         Event eventAnnotation = findEventAnnotation(event);
@@ -66,15 +66,61 @@ public abstract class EventPublisher {
         if (!StringUtils.hasText(topic)) {
             topic = buildTopic(eventAnnotation);
         }
-        send(event, businessName, topic);
+        send(event, businessName, topic, option.partitionKey());
     }
 
     /**
      * Publish a pre-built {@link EventMessage} directly.
      */
-    public void publish(@Valid EventMessage message) {
+    public void publish(EventMessage message) {
         Assert.notNull(message, "message must not be null");
-        send(message);
+        send(message, null);
+    }
+
+    /**
+     * Batch publish multiple events. Each event is published independently
+     * via the normal publish flow, with annotation-based or default routing.
+     * <p>A single event failure does not stop the batch — the exception is
+     * caught, logged, and the remaining events continue to be published.
+     * After all events are processed, if any failed, a {@link BatchPublishException}
+     * is thrown containing the details of all failures.</p>
+     *
+     * @param events the event objects to publish (must not be null)
+     */
+    public void publishBatch(List<?> events) throws BatchPublishException {
+        Assert.notNull(events, "events must not be null");
+        publishBatchInternal(events, null);
+    }
+
+    /**
+     * Batch publish multiple events with explicit overrides.
+     * <p>Same failure semantics as {@link #publishBatch(List)}.</p>
+     *
+     * @param events the event objects to publish (must not be null)
+     * @param option override options applied to all events in the batch
+     */
+    public void publishBatch(List<?> events, PublishOption option) throws BatchPublishException {
+        Assert.notNull(events, "events must not be null");
+        publishBatchInternal(events, option);
+    }
+
+    private void publishBatchInternal(List<?> events, PublishOption option) throws BatchPublishException {
+        List<BatchPublishException.Failure> failures = new java.util.ArrayList<>();
+        for (int i = 0; i < events.size(); i++) {
+            Object event = events.get(i);
+            try {
+                if (option != null) {
+                    publish(event, option);
+                } else {
+                    publish(event);
+                }
+            } catch (Exception e) {
+                failures.add(new BatchPublishException.Failure(i, event, e));
+            }
+        }
+        if (!failures.isEmpty()) {
+            throw new BatchPublishException(failures);
+        }
     }
 
     protected String buildBusinessName(Object event, Event eventAnnotation) {
@@ -124,21 +170,27 @@ public abstract class EventPublisher {
         message.setData(jsonMapper.writeValueAsString(event));
         message.setAuthenticationContext(AuthenticationContextHolder.getContext());
         message.setTraceId(MDC.get("traceId"));
+        Event eventAnnotation = findEventAnnotation(event);
+        message.setVersion(eventAnnotation != null ? eventAnnotation.version() : Event.DEFAULT_VERSION);
         return message;
     }
 
     private void send(Object event, String businessName, String topic) {
+        send(event, businessName, topic, null);
+    }
+
+    private void send(Object event, String businessName, String topic, String partitionKey) {
         EventMessage message = buildEventMessage(event, businessName, topic);
-        send(message);
+        send(message, partitionKey);
     }
 
     /**
-     * Send the event message to the MQ broker synchronously via {@link #doSend(EventMessage)}.
+     * Send the event message to the MQ broker synchronously via {@link #doSend(EventMessage, String)}.
      * <p>Wraps the MQ-specific send with metrics collection (success/failure).</p>
      */
-    private void send(EventMessage message) {
+    private void send(EventMessage message, String partitionKey) {
         try {
-            doSend(message);
+            doSend(message, partitionKey);
             onPublishSuccess(message);
         } catch (Exception e) {
             onPublishFailure(message, e);
@@ -152,10 +204,11 @@ public abstract class EventPublisher {
      * (Kafka, RocketMQ, RabbitMQ, etc.). The call must be synchronous with
      * a bounded timeout.</p>
      *
-     * @param message the event message to send
+     * @param message      the event message to send
+     * @param partitionKey partition key for ordered delivery; null means no explicit ordering
      * @throws Exception if the send fails
      */
-    protected abstract void doSend(EventMessage message) throws Exception;
+    protected abstract void doSend(EventMessage message, String partitionKey) throws Exception;
 
     /**
      * Notify all registered {@link EventMetricsCollector}s of a successful publish.

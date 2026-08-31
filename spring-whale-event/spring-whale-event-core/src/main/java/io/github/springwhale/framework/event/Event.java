@@ -18,6 +18,8 @@ import java.lang.annotation.*;
 @Documented
 public @interface Event {
 
+    int DEFAULT_VERSION = 1;
+
     /**
      * Alias for {@link #businessName()}.
      */
@@ -34,5 +36,14 @@ public @interface Event {
      * Override the default topic. If empty, the topic from {@code spring.whale.event.event-topic} is used.
      */
     String topic() default "";
+
+    /**
+     * Event schema version. Used to support multiple versions of the same event type.
+     * <p>Listeners declare which versions they support via {@link AbstractEventListener#supportedVersions()}.
+     * Events with a version not supported by the listener will be silently skipped.</p>
+     *
+     * @return the event version, defaults to {@link #DEFAULT_VERSION} (1)
+     */
+    int version() default DEFAULT_VERSION;
 
 }

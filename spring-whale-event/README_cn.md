@@ -94,8 +94,9 @@ flowchart LR
 
 - **三模式支持**：通过 `spring.whale.event.mode` 配置切换 `local` / `kafka` / `rabbit`，本地模式无需引入 MQ 依赖，适合单体应用快速启动
 - **统一 API**：无论本地还是远程模式，`EventPublisher` 和 `AbstractEventListener` 的 API 完全一致，模式切换零代码改动
-- **声明式事件**：`@Event` 注解声明业务名和路由，无注解时自动推导
+- **声明式事件**：`@Event` 注解声明业务名、版本号和路由，无注解时自动推导
 - **类型安全监听**：`AbstractEventListener<T>` 提供泛型约束，运行时校验事件类型
+- **事件版本化**：`@Event(version=2)` 声明事件版本，监听器 `supportedVersions()` 支持多版本兼容
 - **失败重试**：消费异常自动重试，支持固定间隔和指数退避两种策略
 - **指标采集**：`EventMetricsCollector` SPI 覆盖发布、消费、重试全生命周期
 - **链路追踪**：跨服务自动传递 TraceId，保证分布式日志连续性
@@ -162,7 +163,8 @@ spring:
 ```java
 
 @Data
-@Event("orderPaid")          // businessName = "orderPaid"
+@Event(value = "orderPaid")          // businessName = "orderPaid", version 默认 1
+// @Event(value = "orderPaid", version = 2)  // 声明版本号，用于事件版本化
 public class OrderPaidEvent {
     private Long orderId;
     private BigDecimal amount;
@@ -233,7 +235,40 @@ public class MyMetricsCollector implements EventMetricsCollector {
 }
 ```
 
-### 7. 终端处理（可选）
+### 7. 事件版本化（Event Versioning）
+
+```java
+// ===== 发布端：声明事件版本 =====
+@Event(value = "orderPaid", version = 2)
+public class OrderPaidV2Event {
+    private Long orderId;
+    private BigDecimal amount;
+    private String paymentMethod;  // v2 新增字段
+}
+
+// ===== 消费端：支持多版本 =====
+@Component
+public class OrderPaidListener extends AbstractEventListener<OrderPaidV2Event> {
+
+    public OrderPaidListener() {
+        super(OrderPaidV2Event.class);
+    }
+
+    @Override
+    public int[] supportedVersions() {
+        return new int[] { 1, 2 };  // 同时处理 v1 和 v2 事件
+    }
+
+    @Override
+    protected void doEvent(OrderPaidV2Event event, EventContext context) {
+        // 处理业务逻辑
+    }
+}
+```
+
+> **版本匹配规则：** 事件 `version` 不在监听器 `supportedVersions()` 中时跳过（warn 日志），默认 `version=1`、默认 `supportedVersions={1}`，未声明版本号的应用零影响。
+
+### 8. 终端处理（可选）
 
 ```java
 
@@ -251,7 +286,7 @@ public class MyTerminalHandler implements EventConsumeTerminalHandler {
 }
 ```
 
-### 8. 引入 spring-whale-event-recovery 所需建表
+### 9. 引入 spring-whale-event-recovery 所需建表
 
 ```sql
 CREATE TABLE event_consume_failed_record

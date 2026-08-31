@@ -26,10 +26,14 @@ public class KafkaEventPublisher extends EventPublisher {
      * <p>Synchronous send is used intentionally: the caller needs to know whether the
      * message was accepted by Kafka before proceeding. The timeout is bounded by
      * {@code sendTimeoutSeconds} (default 3s) to prevent indefinite blocking.</p>
+     * <p>When {@code partitionKey} is provided, it is used as the Kafka message key
+     * to guarantee that all events with the same key are written to the same partition
+     * in order. When null, the message ID is used as the key.</p>
      */
     @Override
-    protected void doSend(EventMessage message) throws Exception {
-        kafkaTemplate.send(message.getTopic(), message.getId(), jsonMapper.writeValueAsString(message))
+    protected void doSend(EventMessage message, String partitionKey) throws Exception {
+        String key = partitionKey != null ? partitionKey : message.getId();
+        kafkaTemplate.send(message.getTopic(), key, jsonMapper.writeValueAsString(message))
                 .get(properties.getSendTimeoutSeconds(), TimeUnit.SECONDS);
     }
 

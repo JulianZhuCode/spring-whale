@@ -22,12 +22,14 @@ public class RabbitEventPublisher extends EventPublisher {
 
     /**
      * Send the event message to RabbitMQ using {@code convertAndSend}.
-     * <p>Uses {@code businessName} as the routing key for explicit routing
-     * from the exchange to the bound queue.</p>
+     * <p>When {@code partitionKey} is provided, it is used as the routing key
+     * to guarantee that all events with the same key are routed to the same
+     * queue in order. When null, the {@code businessName} is used as the routing key.</p>
      */
     @Override
-    protected void doSend(EventMessage message) {
-        rabbitTemplate.convertAndSend(message.getTopic(), message.getBusinessName(), jsonMapper.writeValueAsString(message));
+    protected void doSend(EventMessage message, String partitionKey) {
+        String routingKey = partitionKey != null ? partitionKey : message.getBusinessName();
+        rabbitTemplate.convertAndSend(message.getTopic(), routingKey, jsonMapper.writeValueAsString(message));
     }
 
 }

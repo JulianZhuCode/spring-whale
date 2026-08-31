@@ -48,6 +48,21 @@ public abstract class EventMessageConsumer {
         rebuildRouteTable();
     }
 
+    /**
+     * Check whether the message version is supported by the listener.
+     * <p>A {@code null} version on the message is treated as version 1 for backward compatibility.</p>
+     */
+    private static boolean versionMatches(EventMessage message, AbstractEventListener<?> listener) {
+        int eventVersion = message.getVersion() != null ? message.getVersion() : Event.DEFAULT_VERSION;
+        int[] supported = listener.supportedVersions();
+        for (int v : supported) {
+            if (v == eventVersion) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public boolean listenerIsEmpty() {
         return CollectionUtils.isEmpty(this.listenerGroup);
     }
@@ -87,7 +102,7 @@ public abstract class EventMessageConsumer {
 
         Collection<AbstractEventListener<?>> allListeners = allListenersMap.values();
         Map<String, List<AbstractEventListener<?>>> groupMap = allListeners.stream()
-                .collect(Collectors.groupingBy(AbstractEventListener::getBusinessName));
+                .collect(Collectors.groupingBy(AbstractEventListener::businessName));
 
         Map<String, AbstractEventListener<?>> tempNameToInstance = new HashMap<>(allListenersMap.size());
         Map<AbstractEventListener<?>, String> tempInstanceToName = new HashMap<>(allListenersMap.size());
@@ -193,11 +208,20 @@ public abstract class EventMessageConsumer {
                 boolean success = true;
                 try {
                     var event = jsonMapper.readValue(message.getData(), listener.getEventClass());
+                    if (!versionMatches(message, listener)) {
+                        log.debug("Listener [{}] skipped event due to version mismatch: event version={}, supported={}",
+                                listener.businessName(), message.getVersion(), listener.supportedVersions());
+                        continue;
+                    }
+                    if (!listener.accept(event)) {
+                        log.debug("Listener [{}] skipped event due to accept filter", listener.businessName());
+                        continue;
+                    }
                     listener.onEvent(event, context);
                     onConsumeSuccess(message.getBusinessName(), getListenerInstanceToNameMap().get(listener));
                 } catch (Exception e) {
                     success = false;
-                    log.error("Listener [{}] failed to consume message [{}].", listener.getBusinessName(), message.getData(), e);
+                    log.error("Listener [{}] failed to consume message [{}].", listener.businessName(), message.getData(), e);
                     onConsumeFailure(message.getBusinessName(), getListenerInstanceToNameMap().get(listener), e);
                     message.setErrorStack(ExceptionUtil.getStackTrace(e));
                     message.setRetryEnabled(listener.retryEnabled());

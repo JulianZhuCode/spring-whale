@@ -28,9 +28,11 @@ public class LocalEventPublisher extends EventPublisher {
      * <p>The publish is synchronous: the caller blocks until all synchronous
      * listeners have processed the event. Async listeners execute in a
      * separate thread pool.</p>
+     * <p>{@code partitionKey} is ignored in local mode — events are inherently
+     * ordered by the calling thread.</p>
      */
     @Override
-    protected void doSend(EventMessage message) {
+    protected void doSend(EventMessage message, String partitionKey) {
         applicationEventPublisher.publishEvent(message);
     }
 

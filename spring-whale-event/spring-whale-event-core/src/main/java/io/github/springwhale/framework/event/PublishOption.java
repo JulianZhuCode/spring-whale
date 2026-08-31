@@ -9,8 +9,10 @@ import lombok.Builder;
  *
  * @param topic        override the target topic (null = use default)
  * @param businessName override the business name (null = derive from annotation or class name)
+ * @param partitionKey partition key for ordered message delivery (Kafka key / RabbitMQ routing key);
+ *                     null means no explicit ordering. Local mode ignores this value.
  */
 @Builder
-public record PublishOption(String topic, String businessName) {
+public record PublishOption(String topic, String businessName, String partitionKey) {
 
 }

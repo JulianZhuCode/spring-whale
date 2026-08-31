@@ -78,7 +78,7 @@ class EventMessageConsumerTest {
 
         EventMessage message = new EventMessage();
         message.setSource("test-service");
-        message.setBusinessName(listener.getBusinessName());
+        message.setBusinessName(listener.businessName());
         message.setTopic("test-topic");
         message.setData(objectMapper.writeValueAsString(event));
 

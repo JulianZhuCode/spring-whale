@@ -92,7 +92,7 @@ class LocalEventMessageConsumerTest {
 
         EventMessage message = new EventMessage();
         message.setSource("test-service");
-        message.setBusinessName(listener.getBusinessName());
+        message.setBusinessName(listener.businessName());
         message.setTopic("test-topic");
         message.setData(objectMapper.writeValueAsString(event));
         message.setMessageType(MessageType.EVENT);
@@ -109,7 +109,7 @@ class LocalEventMessageConsumerTest {
     void testOnLocalEventWithFailMessageType() {
         EventMessage message = new EventMessage();
         message.setSource("test-service");
-        message.setBusinessName(listener.getBusinessName());
+        message.setBusinessName(listener.businessName());
         message.setTopic("test-topic");
         message.setData("{}");
         message.setMessageType(MessageType.FAIL);

@@ -1,5 +1,6 @@
 package io.github.springwhale.framework.event;
 
+import jakarta.annotation.Nullable;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -17,28 +18,40 @@ import org.springframework.util.StringUtils;
 public abstract class AbstractEventListener<T> {
 
     @Getter
-    private final String businessName;
-    @Getter
     private final Class<T> eventClass;
+    @Nullable
+    private final Event cachedEventAnnotation;
 
     protected AbstractEventListener(Class<T> eventClass) {
         this.eventClass = eventClass;
-        this.businessName = computeBusinessName();
+        this.cachedEventAnnotation = AnnotationUtils.findAnnotation(eventClass, Event.class);
+        if (cachedEventAnnotation != null && !StringUtils.hasText(cachedEventAnnotation.value())) {
+            String errorMsg = "businessName cannot be resolved from @Event annotation, value must not be blank, eventClass:"
+                    + eventClass.getName();
+            log.error(errorMsg);
+            throw new IllegalArgumentException(errorMsg);
+        }
+        if (cachedEventAnnotation == null) {
+            log.info("No event annotation found for {}", eventClass.getSimpleName());
+        } else {
+            log.info("Resolved businessName from @Event annotation: {}", cachedEventAnnotation.value());
+        }
     }
 
-    private String computeBusinessName() {
-        Event event = AnnotationUtils.findAnnotation(eventClass, Event.class);
-        if (event == null) {
-            log.info("No event annotation found for {}", eventClass.getSimpleName());
-            return eventClass.getSimpleName();
+    /**
+     * The business name used for listener routing.
+     * <p>The default implementation reads the business name from the {@link Event} annotation
+     * on the event class bound to this listener. When no {@code @Event} annotation is present,
+     * it falls back to the event class simple name.</p>
+     * <p>Override this method to customize the business name for this listener.</p>
+     *
+     * @return the business name
+     */
+    public String businessName() {
+        if (cachedEventAnnotation != null) {
+            return cachedEventAnnotation.value();
         }
-        if (StringUtils.hasText(event.value())) {
-            log.info("Resolved businessName from @Event annotation: {}", event.value());
-            return event.value();
-        }
-        String errorMsg = "businessName cannot be resolved from @Event annotation, value must not be blank, eventClass:" + eventClass.getName();
-        log.error(errorMsg);
-        throw new IllegalArgumentException(errorMsg);
+        return eventClass.getSimpleName();
     }
 
     /**
@@ -80,5 +93,37 @@ public abstract class AbstractEventListener<T> {
      */
     public boolean retryEnabled() {
         return false;
+    }
+
+    /**
+     * Whether to accept this event for processing. Default is {@code true} (accept all).
+     * <p>Override this method to implement conditional filtering logic.
+     * Events that are not accepted will be silently skipped without triggering
+     * retry or failure handling.</p>
+     * <p>Typical use cases: filter by event attributes (status, type, region, etc.),
+     * or ignore events from certain sources.</p>
+     *
+     * @param event the event object (never null, already type-checked)
+     * @return true if the event should be processed, false to skip
+     */
+    public boolean accept(Object event) {
+        return true;
+    }
+
+    /**
+     * The event versions this listener supports.
+     * <p>The default implementation reads the version from the {@link Event} annotation
+     * on the event class bound to this listener. When no {@code @Event} annotation is present,
+     * it defaults to {@code {1}}.</p>
+     * <p>Override this method to support multiple versions of an event type,
+     * e.g. {@code return new int[] {1, 2}} to handle both v1 and v2.</p>
+     *
+     * @return the supported event versions
+     */
+    public int[] supportedVersions() {
+        if (cachedEventAnnotation != null) {
+            return new int[] { cachedEventAnnotation.version() };
+        }
+        return new int[] { Event.DEFAULT_VERSION };
     }
 }
