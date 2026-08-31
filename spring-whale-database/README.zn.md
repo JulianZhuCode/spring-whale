@@ -333,11 +333,7 @@ public class FlywayAlertListener implements ApplicationListener<FlywayMigrationE
 </dependency>
 ```
 
-事件框架版本的优势：
-
-- **事件持久化**：结合 `spring-whale-event-recovery` 可持久化事件，避免丢失
-- **失败重试**：`FlywayEventRetryListener` 利用事件框架的 `AbstractEventListener` 消费重试事件，自动获得事件框架的重试与恢复能力
-- **统一管理**：与其他业务事件统一通过 `EventPublisher` 发布和消费
+引入后可使用 `AbstractEventListener` 替代 `ApplicationListener` 消费事件：
 
 ```java
 @Component
@@ -351,8 +347,7 @@ public class FlywayAlertListener extends AbstractEventListener<FlywayMigrationEv
 }
 ```
 
-> **注意：** 引入事件框架后，原有的 `ApplicationListener` 实现将不再生效（由 `FlywayEventRetryListener` 替代），请在事件框架版本中统一使用
-`AbstractEventListener`。
+> **注意：** 引入事件框架后，`ApplicationListener` 实现将不再生效，请统一使用 `AbstractEventListener`。
 
 ---
 

@@ -325,11 +325,7 @@ public class FlywayAlertListener implements ApplicationListener<FlywayMigrationE
 </dependency>
 ```
 
-イベントフレームワーク版の利点：
-
-- **イベント永続化**：`spring-whale-event-recovery` と組み合わせることでイベントを永続化し、消失を防止
-- **失敗リトライ**：`FlywayEventRetryListener` がイベントフレームワークの `AbstractEventListener` を通じてリトライイベントを消費し、フレームワークのリトライ・復旧機能を自動的に利用
-- **統合管理**：他のビジネスイベントと統一的に `EventPublisher` で発行・消費
+導入後は `ApplicationListener` の代わりに `AbstractEventListener` を使用してイベントを消費できます：
 
 ```java
 @Component
@@ -343,7 +339,7 @@ public class FlywayAlertListener extends AbstractEventListener<FlywayMigrationEv
 }
 ```
 
-> **注意：** イベントフレームワーク導入後、元の `ApplicationListener` 実装は無効になります（`FlywayEventRetryListener` に置き換えられます）。イベントフレームワーク版では `AbstractEventListener` を統一的に使用してください。
+> **注意：** イベントフレームワーク導入後、`ApplicationListener` 実装は無効になります。`AbstractEventListener` を統一的に使用してください。
 
 ---
 

@@ -325,11 +325,7 @@ When `spring-whale-event-core` is also present in the project, the framework aut
 </dependency>
 ```
 
-Benefits of the event framework version:
-
-- **Event Persistence**: Combined with `spring-whale-event-recovery`, events can be persisted to prevent loss
-- **Failure Retry**: `FlywayEventRetryListener` consumes retry events via the event framework's `AbstractEventListener`, automatically gaining the framework's retry and recovery capabilities
-- **Unified Management**: Events are published and consumed alongside other business events via `EventPublisher`
+Once included, you can use `AbstractEventListener` instead of `ApplicationListener` to consume events:
 
 ```java
 @Component
@@ -343,7 +339,7 @@ public class FlywayAlertListener extends AbstractEventListener<FlywayMigrationEv
 }
 ```
 
-> **Note:** After introducing the event framework, the original `ApplicationListener` implementation will no longer take effect (replaced by `FlywayEventRetryListener`). Please use `AbstractEventListener` uniformly in the event framework version.
+> **Note:** After introducing the event framework, `ApplicationListener` implementations will no longer take effect. Use `AbstractEventListener` uniformly.
 
 ---
 
