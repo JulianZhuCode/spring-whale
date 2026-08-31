@@ -187,6 +187,8 @@ public abstract class EventPublisher {
     /**
      * Send the event message to the MQ broker synchronously via {@link #doSend(EventMessage, String)}.
      * <p>Wraps the MQ-specific send with metrics collection (success/failure).</p>
+     *
+     * @throws EventPublishException if the send fails, preserving the original cause
      */
     private void send(EventMessage message, String partitionKey) {
         try {
@@ -194,7 +196,7 @@ public abstract class EventPublisher {
             onPublishSuccess(message);
         } catch (Exception e) {
             onPublishFailure(message, e);
-            throw new RuntimeException("send event to MQ failed", e);
+            throw new EventPublishException(message.getTopic(), message.getBusinessName(), e);
         }
     }
 

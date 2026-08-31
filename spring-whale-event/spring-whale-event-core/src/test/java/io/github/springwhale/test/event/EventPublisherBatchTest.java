@@ -104,7 +104,7 @@ class EventPublisherBatchTest {
         assertEquals(1, ex.getFailures().size());
         assertEquals(1, ex.getFailures().get(0).getIndex());
         assertEquals(event2, ex.getFailures().get(0).getEvent());
-        assertTrue(ex.getFailures().get(0).getCause().getMessage().contains("send event to MQ failed"));
+        assertTrue(ex.getFailures().get(0).getCause().getMessage().contains("Failed to publish event"));
     }
 
     @Test

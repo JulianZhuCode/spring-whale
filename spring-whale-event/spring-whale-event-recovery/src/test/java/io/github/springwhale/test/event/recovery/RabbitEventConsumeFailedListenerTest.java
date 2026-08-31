@@ -13,6 +13,7 @@ import io.github.springwhale.framework.event.recovery.util.EventFailedRecordIdGe
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import tools.jackson.databind.ObjectMapper;
@@ -43,7 +44,7 @@ class RabbitEventConsumeFailedListenerTest {
                 .setName("rabbit-failed-test")
                 .addScript("classpath:schema.sql")
                 .build();
-        recordDao = new EventConsumeFailedRecordDao(dataSource);
+        recordDao = new EventConsumeFailedRecordDao(new JdbcTemplate(dataSource));
         eventProperties = new EventProperties();
         objectMapper = new ObjectMapper();
         retryStrategyRegistry = new RetryStrategyRegistry(Collections.emptyMap());

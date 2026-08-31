@@ -11,15 +11,33 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
 
 @AutoConfiguration
 @EnableAsync
 @ConditionalOnProperty(name = "spring.whale.event.mode", havingValue = "local", matchIfMissing = true)
 public class LocalEventConfiguration {
+
+    public static final String LOCAL_EVENT_EXECUTOR = "localEventExecutor";
+
+    @Bean(name = LOCAL_EVENT_EXECUTOR)
+    @ConditionalOnMissingBean(name = LOCAL_EVENT_EXECUTOR)
+    public Executor localEventExecutor(EventProperties properties) {
+        int concurrency = properties.getConcurrency();
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(concurrency);
+        executor.setMaxPoolSize(concurrency);
+        executor.setQueueCapacity(Integer.MAX_VALUE);
+        executor.setThreadNamePrefix("local-event-");
+        executor.setRejectedExecutionHandler(new java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy());
+        executor.initialize();
+        return executor;
+    }
 
     @Bean
     @ConditionalOnMissingBean

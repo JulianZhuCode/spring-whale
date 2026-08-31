@@ -42,7 +42,7 @@ public class LocalEventMessageConsumer extends EventMessageConsumer {
      * {@code LocalEventConsumeFailedListener}.</p>
      */
     @EventListener
-    @Async
+    @Async("localEventExecutor")
     public void onLocalEvent(EventMessage message) {
         try {
             log.debug("Consuming local event message: {}", message.getData());

@@ -4,10 +4,9 @@ import io.github.springwhale.framework.event.recovery.enums.EventConsumeStatus;
 import io.github.springwhale.framework.event.recovery.model.EventConsumeFailedRecord;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 
-import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -17,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * JDBC-based DAO for {@code event_consume_failed_record} table.
+ * JDBC-based DAO for {@code event_consume_failed_record} table, backed by Spring's {@link JdbcTemplate}.
  * <p>Uses {@code LIMIT} for row limiting, which is compatible with MySQL, PostgreSQL,
  * MariaDB, and H2. For SQL Server or Oracle, override this DAO with dialect-specific SQL.</p>
  */
@@ -79,94 +78,41 @@ public class EventConsumeFailedRecordDao {
             WHERE %s
             """;
 
-    private final DataSource dataSource;
+    private static final RowMapper<EventConsumeFailedRecord> ROW_MAPPER = new EventConsumeFailedRecordRowMapper();
+
+    private final JdbcTemplate jdbcTemplate;
 
     public void save(EventConsumeFailedRecord entity) {
         LocalDateTime now = LocalDateTime.now();
         entity.setCreateTime(now);
         entity.setUpdateTime(now);
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement ps = conn.prepareStatement(INSERT_SQL)) {
-            ps.setString(1, entity.getId());
-            ps.setString(2, entity.getMessageId());
-            ps.setString(3, entity.getSource());
-            ps.setString(4, entity.getBusinessName());
-            ps.setString(5, entity.getListenerName());
-            ps.setString(6, entity.getAuthenticationContext());
-            ps.setString(7, entity.getTopic());
-            ps.setString(8, entity.getRawMessage());
-            ps.setString(9, entity.getStatus().name());
-            ps.setInt(10, entity.getRetryCount());
-            ps.setObject(11, entity.getNextRetryTime());
-            ps.setString(12, entity.getErrorStack());
-            ps.setObject(13, entity.getCreateTime());
-            ps.setObject(14, entity.getUpdateTime());
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to save failed record: " + entity.getId(), e);
-        }
+        jdbcTemplate.update(INSERT_SQL,
+                entity.getId(), entity.getMessageId(), entity.getSource(),
+                entity.getBusinessName(), entity.getListenerName(), entity.getAuthenticationContext(),
+                entity.getTopic(), entity.getRawMessage(), entity.getStatus().name(),
+                entity.getRetryCount(), entity.getNextRetryTime(), entity.getErrorStack(),
+                entity.getCreateTime(), entity.getUpdateTime());
     }
 
     public Optional<EventConsumeFailedRecord> findById(String id) {
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement ps = conn.prepareStatement(SELECT_BY_ID)) {
-            ps.setString(1, id);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return Optional.of(mapRow(rs));
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to find record by id: " + id, e);
-        }
-        return Optional.empty();
+        List<EventConsumeFailedRecord> results = jdbcTemplate.query(SELECT_BY_ID, ROW_MAPPER, id);
+        return results.isEmpty() ? Optional.empty() : Optional.of(results.get(0));
     }
 
     public List<EventConsumeFailedRecord> findPendingRetry(EventConsumeStatus status, LocalDateTime before,
                                                            int limit) {
-        List<EventConsumeFailedRecord> result = new ArrayList<>();
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement ps = conn.prepareStatement(SELECT_PENDING_RETRY)) {
-            ps.setString(1, status.name());
-            ps.setObject(2, before);
-            ps.setInt(3, limit);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    result.add(mapRow(rs));
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to find pending retry records", e);
-        }
-        return result;
+        return jdbcTemplate.query(SELECT_PENDING_RETRY, ROW_MAPPER, status.name(), before, limit);
     }
 
     public int updateRetryResult(String id, EventConsumeStatus status, LocalDateTime nextRetryTime,
                                  String errorStack) {
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement ps = conn.prepareStatement(UPDATE_RETRY_RESULT)) {
-            ps.setString(1, status.name());
-            ps.setObject(2, nextRetryTime);
-            ps.setString(3, errorStack);
-            ps.setObject(4, LocalDateTime.now());
-            ps.setString(5, id);
-            return ps.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to update retry result: " + id, e);
-        }
+        return jdbcTemplate.update(UPDATE_RETRY_RESULT,
+                status.name(), nextRetryTime, errorStack, LocalDateTime.now(), id);
     }
 
     public int casTransitionStatus(String id, EventConsumeStatus expectedStatus, EventConsumeStatus newStatus) {
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement ps = conn.prepareStatement(CAS_TRANSITION)) {
-            ps.setString(1, newStatus.name());
-            ps.setObject(2, LocalDateTime.now());
-            ps.setString(3, id);
-            ps.setString(4, expectedStatus.name());
-            return ps.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to CAS transition status: " + id, e);
-        }
+        return jdbcTemplate.update(CAS_TRANSITION,
+                newStatus.name(), LocalDateTime.now(), id, expectedStatus.name());
     }
 
     public List<EventConsumeFailedRecord> findTerminalRecords(List<EventConsumeStatus> statuses,
@@ -176,24 +122,15 @@ public class EventConsumeFailedRecordDao {
         }
         String placeholders = String.join(",", Collections.nCopies(statuses.size(), "?"));
         String sql = String.format(SELECT_TERMINAL, placeholders);
-        List<EventConsumeFailedRecord> result = new ArrayList<>();
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            int idx = 1;
-            for (EventConsumeStatus status : statuses) {
-                ps.setString(idx++, status.name());
-            }
-            ps.setObject(idx++, cutoff);
-            ps.setInt(idx, limit);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    result.add(mapRow(rs));
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to find terminal records", e);
+
+        List<Object> params = new ArrayList<>();
+        for (EventConsumeStatus status : statuses) {
+            params.add(status.name());
         }
-        return result;
+        params.add(cutoff);
+        params.add(limit);
+
+        return jdbcTemplate.query(sql, ROW_MAPPER, params.toArray());
     }
 
     public void deleteAll(List<EventConsumeFailedRecord> entities) {
@@ -202,15 +139,8 @@ public class EventConsumeFailedRecordDao {
         }
         String placeholders = String.join(",", Collections.nCopies(entities.size(), "?"));
         String sql = String.format(DELETE_BY_IDS, placeholders);
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            for (int i = 0; i < entities.size(); i++) {
-                ps.setString(i + 1, entities.get(i).getId());
-            }
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to delete records", e);
-        }
+        Object[] ids = entities.stream().map(EventConsumeFailedRecord::getId).toArray();
+        jdbcTemplate.update(sql, ids);
     }
 
     public int batchResetToPendingRetry(List<String> ids, List<EventConsumeStatus> statuses,
@@ -242,37 +172,34 @@ public class EventConsumeFailedRecordDao {
         String template = resetRetryCount ? RESET_TO_PENDING_RETRY : RESET_TO_PENDING_RETRY_KEEP_COUNT;
         String sql = String.format(template, whereClause.toString());
 
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, EventConsumeStatus.PENDING_RETRY.name());
-            ps.setObject(2, LocalDateTime.now());
-            ps.setObject(3, LocalDateTime.now());
-            int idx = 4;
-            for (Object param : params) {
-                ps.setObject(idx++, param);
-            }
-            return ps.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to batch reset records to pending retry", e);
-        }
+        List<Object> allParams = new ArrayList<>();
+        allParams.add(EventConsumeStatus.PENDING_RETRY.name());
+        allParams.add(LocalDateTime.now());
+        allParams.add(LocalDateTime.now());
+        allParams.addAll(params);
+
+        return jdbcTemplate.update(sql, allParams.toArray());
     }
 
-    private EventConsumeFailedRecord mapRow(ResultSet rs) throws SQLException {
-        EventConsumeFailedRecord entity = new EventConsumeFailedRecord();
-        entity.setId(rs.getString("id"));
-        entity.setMessageId(rs.getString("message_id"));
-        entity.setSource(rs.getString("source"));
-        entity.setBusinessName(rs.getString("business_name"));
-        entity.setListenerName(rs.getString("listener_name"));
-        entity.setAuthenticationContext(rs.getString("authentication_context"));
-        entity.setTopic(rs.getString("topic"));
-        entity.setRawMessage(rs.getString("raw_message"));
-        entity.setStatus(EventConsumeStatus.valueOf(rs.getString("status")));
-        entity.setRetryCount(rs.getInt("retry_count"));
-        entity.setNextRetryTime(rs.getObject("next_retry_time", LocalDateTime.class));
-        entity.setErrorStack(rs.getString("error_stack"));
-        entity.setCreateTime(rs.getObject("create_time", LocalDateTime.class));
-        entity.setUpdateTime(rs.getObject("update_time", LocalDateTime.class));
-        return entity;
+    private static class EventConsumeFailedRecordRowMapper implements RowMapper<EventConsumeFailedRecord> {
+        @Override
+        public EventConsumeFailedRecord mapRow(ResultSet rs, int rowNum) throws SQLException {
+            EventConsumeFailedRecord entity = new EventConsumeFailedRecord();
+            entity.setId(rs.getString("id"));
+            entity.setMessageId(rs.getString("message_id"));
+            entity.setSource(rs.getString("source"));
+            entity.setBusinessName(rs.getString("business_name"));
+            entity.setListenerName(rs.getString("listener_name"));
+            entity.setAuthenticationContext(rs.getString("authentication_context"));
+            entity.setTopic(rs.getString("topic"));
+            entity.setRawMessage(rs.getString("raw_message"));
+            entity.setStatus(EventConsumeStatus.valueOf(rs.getString("status")));
+            entity.setRetryCount(rs.getInt("retry_count"));
+            entity.setNextRetryTime(rs.getObject("next_retry_time", LocalDateTime.class));
+            entity.setErrorStack(rs.getString("error_stack"));
+            entity.setCreateTime(rs.getObject("create_time", LocalDateTime.class));
+            entity.setUpdateTime(rs.getObject("update_time", LocalDateTime.class));
+            return entity;
+        }
     }
 }
