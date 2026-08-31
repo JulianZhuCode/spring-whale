@@ -28,4 +28,15 @@ class FlywayMigrationEventTest {
         assertThat(event.getSource()).isSameAs(source);
         assertThat(event.getType()).isEqualTo(FlywayEventType.RETRY_REQUESTED);
     }
+
+    @Test
+    @DisplayName("Should support no-arg constructor for deserialization")
+    void shouldSupportNoArgsConstructor() {
+        FlywayMigrationEvent event = new FlywayMigrationEvent();
+
+        assertThat(event.getSource()).isEqualTo("");
+        assertThat(event.getType()).isNull();
+        event.setType(FlywayEventType.MIGRATION_FAILED);
+        assertThat(event.getType()).isEqualTo(FlywayEventType.MIGRATION_FAILED);
+    }
 }

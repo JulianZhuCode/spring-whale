@@ -74,6 +74,11 @@
             <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.github.julianzhucode</groupId>
+            <artifactId>spring-whale-event-core</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
 </project>
