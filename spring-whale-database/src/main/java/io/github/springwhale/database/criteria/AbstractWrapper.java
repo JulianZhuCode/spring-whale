@@ -10,6 +10,17 @@ import java.lang.invoke.SerializedLambda;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Base class for JPA Criteria API wrappers. Manages the internal condition list,
+ * sort list, and provides the {@link #buildSpecification()} method that converts
+ * accumulated conditions into a Spring Data {@link Specification}.
+ *
+ * <p>Subclasses include {@code JpaQueryWrapper} (main query API) and anonymous
+ * sub-wrappers created by {@code nested()} calls.</p>
+ *
+ * @param <T>      entity type
+ * @param <Children> self-type for fluent API chaining
+ */
 public abstract class AbstractWrapper<T, Children extends AbstractWrapper<T, Children>> implements Wrapper<T, Children> {
 
     protected final List<Condition<T>> conditions = new ArrayList<>();

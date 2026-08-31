@@ -13,8 +13,15 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 
+/**
+ * Flyway migration strategy that gracefully handles migration failures.
+ *
+ * <p>On migration failure, logs the error to the {@code flyway_error_log} table
+ * (if the table exists) and publishes a {@link FlywayMigrationEvent} so the
+ * application can continue starting. Failed migrations can be retried via
+ * the {@link FlywayMigrationRetryListener}.</p>
+ */
 @Slf4j
 @RequiredArgsConstructor
 public class ResilientFlywayMigrationStrategy implements FlywayMigrationStrategy {

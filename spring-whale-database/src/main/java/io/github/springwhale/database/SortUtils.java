@@ -6,6 +6,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Utility for building Spring Data {@link Sort} from comma-separated strings.
+ *
+ * <p>Format: {@code "field1,asc,field2,desc"} — pairs of field name and direction.
+ * Direction defaults to {@code DESC} when omitted. Fields not in the whitelist
+ * are silently skipped.</p>
+ */
 public final class SortUtils {
 
     private SortUtils() {

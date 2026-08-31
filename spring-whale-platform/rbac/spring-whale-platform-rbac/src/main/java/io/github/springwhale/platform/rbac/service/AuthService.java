@@ -50,7 +50,7 @@ public class AuthService {
                     .orElseThrow(() -> new BadCredentialsException("User not found"));
 
             // 3. Generate JWT token
-            String token = jwtUtil.generateToken(user.getUsername(), user.getId());
+            String token = jwtUtil.generateToken(user.getUsername(), user.getId(), null);
 
             // 4. Build response
             return LoginResponse.builder()

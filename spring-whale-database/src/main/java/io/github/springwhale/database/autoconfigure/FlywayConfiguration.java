@@ -15,6 +15,14 @@ import org.springframework.context.annotation.Bean;
 
 import javax.sql.DataSource;
 
+/**
+ * Auto-configuration for resilient Flyway migration.
+ *
+ * <p>Replaces the default {@link FlywayMigrationStrategy} with
+ * {@link ResilientFlywayMigrationStrategy}, which catches migration errors
+ * without blocking application startup. Also registers a
+ * {@link FlywayMigrationRetryListener} for event-driven retry.</p>
+ */
 @AutoConfiguration
 @ConditionalOnClass(Flyway.class)
 @ConditionalOnProperty(prefix = "spring.flyway", name = "enabled", matchIfMissing = true)

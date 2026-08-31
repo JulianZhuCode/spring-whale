@@ -6,6 +6,12 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
+/**
+ * Simplified base entity with {@code id}, {@code createTime}, {@code createBy},
+ * and optimistic locking ({@code @Version}).
+ *
+ * <p>Use when you don't need soft delete or update-time auditing.</p>
+ */
 @MappedSuperclass
 @Data
 public abstract class SimpleBaseEntity {

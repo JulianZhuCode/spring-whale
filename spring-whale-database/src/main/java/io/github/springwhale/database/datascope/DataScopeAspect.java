@@ -10,6 +10,18 @@ import org.springframework.core.annotation.Order;
 
 import java.lang.reflect.Method;
 
+/**
+ * AOP aspect that intercepts {@code @DataScope}-annotated methods and pushes
+ * scope definitions into {@link DataScopeContext}.
+ *
+ * <p>Execution order: {@code @Order(1)} — runs before repository-level aspects.</p>
+ *
+ * <h3>{@code CALLER} delegation</h3>
+ * When {@code @DataScope(scopeType = CALLER)}, the aspect reads the scope from
+ * {@link DataScopeContext} (typically set by {@link DataScopeServerInterceptor}
+ * from an upstream service's HTTP header). This enables cross-service scope
+ * delegation in microservice architectures.
+ */
 @Slf4j
 @Aspect
 @Order(1)

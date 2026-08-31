@@ -5,15 +5,23 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.core.annotation.Order;
-import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.List;
 
+/**
+ * AOP aspect that sets data scope metadata (entity class, department ID fields,
+ * user ID fields) into {@link DataScopeContext} before JPA repository calls.
+ *
+ * <p>Execution order: {@code @Order(3)} — runs after {@code TenantRepositoryAspect}
+ * ({@code @Order(2)}) to ensure tenant fields are set before data scope fields.</p>
+ *
+ * <p>When the current scope is empty (no dept/user IDs), it delegates to
+ * {@link DataScopeHandler#resolveDeptIds} and {@link DataScopeHandler#resolveUserId}
+ * to resolve the scope from the current authentication context.</p>
+ */
 @Slf4j
 @Aspect
-@Order(2)
+@Order(3)
 public class DataScopeRepositoryAspect {
 
     private final DataScopeProperties properties;
@@ -35,6 +43,11 @@ public class DataScopeRepositoryAspect {
             return joinPoint.proceed();
         }
 
+        Class<?> entityClass = dataScopeHelper.resolveEntityClass(joinPoint.getTarget());
+        if (entityClass == null) {
+            return joinPoint.proceed();
+        }
+
         DataScopeResult resolvedScope = scope;
         boolean pushedResolved = false;
         if (scope.isEmpty()) {
@@ -49,30 +62,15 @@ public class DataScopeRepositoryAspect {
                     resolvedScope.getUserId(), resolvedScope.getDeptIds());
         }
 
-        Class<?> entityClass = resolveEntityClass(joinPoint.getTarget());
-        if (entityClass == null) {
-            log.debug("Cannot resolve entity class from repository: {}", joinPoint.getTarget().getClass());
-            if (pushedResolved) {
-                DataScopeContext.popScope();
-            }
-            return joinPoint.proceed();
-        }
+        DataScopeContext.setEntityClass(entityClass);
 
         List<String> deptFields = dataScopeHelper.resolveDeptIdFields(entityClass);
         List<String> userFields = dataScopeHelper.resolveUserIdFields(entityClass);
 
-        if (deptFields.isEmpty() && userFields.isEmpty()) {
-            log.debug("Entity {} has no @DeptIdField/@UserIdField annotations, skip data scope",
-                    entityClass.getSimpleName());
-            if (pushedResolved) {
-                DataScopeContext.popScope();
-            }
-            return joinPoint.proceed();
+        if (!deptFields.isEmpty() || !userFields.isEmpty()) {
+            DataScopeContext.setDeptFields(deptFields);
+            DataScopeContext.setUserFields(userFields);
         }
-
-        DataScopeContext.setEntityClass(entityClass);
-        DataScopeContext.setDeptFields(deptFields);
-        DataScopeContext.setUserFields(userFields);
 
         log.debug("Data scope enabled for entity: {}, deptFields={}, userFields={}, userId={}, deptIds={}",
                 entityClass.getSimpleName(), deptFields, userFields,
@@ -107,38 +105,5 @@ public class DataScopeRepositoryAspect {
         }
 
         return resolved;
-    }
-
-    private Class<?> resolveEntityClass(Object target) {
-        Class<?> clazz = target.getClass();
-        while (clazz != null && clazz != Object.class) {
-            for (Type type : clazz.getGenericInterfaces()) {
-                Class<?> entityClass = resolveEntityClassFromType(type);
-                if (entityClass != null) {
-                    return entityClass;
-                }
-            }
-            clazz = clazz.getSuperclass();
-        }
-        return null;
-    }
-
-    private Class<?> resolveEntityClassFromType(Type type) {
-        if (type instanceof ParameterizedType pt) {
-            Type rawType = pt.getRawType();
-            if (rawType instanceof Class<?> rawClass && JpaRepository.class.isAssignableFrom(rawClass)) {
-                return (Class<?>) pt.getActualTypeArguments()[0];
-            }
-        } else if (type instanceof Class<?> clazz) {
-            if (JpaRepository.class.isAssignableFrom(clazz)) {
-                for (Type genericInterface : clazz.getGenericInterfaces()) {
-                    Class<?> entityClass = resolveEntityClassFromType(genericInterface);
-                    if (entityClass != null) {
-                        return entityClass;
-                    }
-                }
-            }
-        }
-        return null;
     }
 }

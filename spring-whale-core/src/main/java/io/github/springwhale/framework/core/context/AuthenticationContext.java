@@ -15,5 +15,5 @@ import lombok.NoArgsConstructor;
 public class AuthenticationContext {
     private Integer userId;
     private String username;
-    private boolean isAuthenticated;
+    private Object tenantId;
 }

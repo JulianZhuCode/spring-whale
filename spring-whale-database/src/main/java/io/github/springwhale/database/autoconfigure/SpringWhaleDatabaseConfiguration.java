@@ -14,6 +14,25 @@ import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import java.util.List;
+
+/**
+ * Auto-configuration for data scope and tenant isolation.
+ *
+ * <h3>Conditional assembly matrix</h3>
+ * <table>
+ *   <tr><th>{@code enabled}</th><th>{@code tenant-enabled}</th><th>Registered beans</th></tr>
+ *   <tr><td>{@code true}</td><td>{@code true}</td><td>DataScopeInterceptor + TenantSqlInspector → CompositeStatementInspector</td></tr>
+ *   <tr><td>{@code true}</td><td>{@code false}</td><td>DataScopeInterceptor only</td></tr>
+ *   <tr><td>{@code false}</td><td>{@code true}</td><td>TenantSqlInspector only</td></tr>
+ *   <tr><td>{@code false}</td><td>{@code false}</td><td>None (all data scope/tenant beans disabled)</td></tr>
+ * </table>
+ *
+ * <h3>{@code @Order} chain</h3>
+ * <pre>
+ * DataScopeAspect (1) → TenantRepositoryAspect (2) → DataScopeRepositoryAspect (3)
+ * </pre>
+ */
 @AutoConfiguration
 @EnableConfigurationProperties(DataScopeProperties.class)
 public class SpringWhaleDatabaseConfiguration {
@@ -39,6 +58,16 @@ public class SpringWhaleDatabaseConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnClass(JpaRepository.class)
+    @ConditionalOnProperty(prefix = "spring.whale.database.datascope", name = "tenant-enabled", havingValue = "true", matchIfMissing = true)
+    public TenantRepositoryAspect tenantRepositoryAspect(DataScopeProperties properties,
+                                                         DataScopeHelper dataScopeHelper,
+                                                         DataScopeHandler dataScopeHandler) {
+        return new TenantRepositoryAspect(properties, dataScopeHelper, dataScopeHandler);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnClass(JpaRepository.class)
     @ConditionalOnProperty(prefix = "spring.whale.database.datascope", name = "enabled", havingValue = "true", matchIfMissing = true)
     public DataScopeRepositoryAspect dataScopeRepositoryAspect(DataScopeProperties properties,
                                                                DataScopeHelper dataScopeHelper,
@@ -55,10 +84,41 @@ public class SpringWhaleDatabaseConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = "spring.whale.database.datascope", name = "tenant-enabled", havingValue = "true", matchIfMissing = true)
+    public TenantSqlInspector tenantSqlInspector(DataScopeProperties properties) {
+        return new TenantSqlInspector(properties);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(name = "statementInspector")
     @ConditionalOnProperty(prefix = "spring.whale.database.datascope", name = "enabled", havingValue = "true", matchIfMissing = true)
-    public HibernatePropertiesCustomizer dataScopeHibernateCustomizer(DataScopeInterceptor interceptor) {
+    @ConditionalOnProperty(prefix = "spring.whale.database.datascope", name = "tenant-enabled", havingValue = "true", matchIfMissing = true)
+    public HibernatePropertiesCustomizer dataScopeHibernateCustomizer(DataScopeInterceptor dataScopeInterceptor,
+                                                                      TenantSqlInspector tenantSqlInspector) {
         return properties -> {
-            properties.put("hibernate.session_factory.statement_inspector", interceptor);
+            CompositeStatementInspector compositeInspector = new CompositeStatementInspector(
+                    List.of(tenantSqlInspector, dataScopeInterceptor));
+            properties.put("hibernate.session_factory.statement_inspector", compositeInspector);
+        };
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(name = "statementInspector")
+    @ConditionalOnProperty(prefix = "spring.whale.database.datascope", name = "enabled", havingValue = "true", matchIfMissing = true)
+    @ConditionalOnProperty(prefix = "spring.whale.database.datascope", name = "tenant-enabled", havingValue = "false")
+    public HibernatePropertiesCustomizer dataScopeOnlyHibernateCustomizer(DataScopeInterceptor dataScopeInterceptor) {
+        return properties -> {
+            properties.put("hibernate.session_factory.statement_inspector", dataScopeInterceptor);
+        };
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(name = "statementInspector")
+    @ConditionalOnProperty(prefix = "spring.whale.database.datascope", name = "tenant-enabled", havingValue = "true", matchIfMissing = true)
+    @ConditionalOnProperty(prefix = "spring.whale.database.datascope", name = "enabled", havingValue = "false")
+    public HibernatePropertiesCustomizer tenantOnlyHibernateCustomizer(TenantSqlInspector tenantSqlInspector) {
+        return properties -> {
+            properties.put("hibernate.session_factory.statement_inspector", tenantSqlInspector);
         };
     }
 
@@ -72,13 +132,24 @@ public class SpringWhaleDatabaseConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnClass(DispatcherServlet.class)
-    public WebMvcConfigurer dataScopeWebMvcConfigurer(DataScopeServerInterceptor interceptor) {
+    public TenantWebMvcInterceptor tenantWebMvcInterceptor(DataScopeProperties properties) {
+        return new TenantWebMvcInterceptor(properties);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnClass(DispatcherServlet.class)
+    public WebMvcConfigurer dataScopeWebMvcConfigurer(DataScopeServerInterceptor serverInterceptor,
+                                                      TenantWebMvcInterceptor tenantInterceptor) {
         return new WebMvcConfigurer() {
             @Override
             public void addInterceptors(@NonNull InterceptorRegistry registry) {
-                registry.addInterceptor(interceptor)
+                registry.addInterceptor(serverInterceptor)
                         .addPathPatterns("/**")
                         .order(0);
+                registry.addInterceptor(tenantInterceptor)
+                        .addPathPatterns("/**")
+                        .order(1);
             }
         };
     }

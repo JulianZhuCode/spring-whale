@@ -4,6 +4,23 @@ import io.github.springwhale.framework.core.utils.AuthUtil;
 
 import java.util.List;
 
+/**
+ * SPI for resolving data scope parameters (user ID, department IDs, tenant ID).
+ *
+ * <p>Default implementations delegate to {@link AuthUtil}. Override
+ * {@link #resolveDeptIds(DataScopeType, String)} to provide custom department
+ * resolution logic (e.g., from a database or cache).</p>
+ *
+ * <h3>Example</h3>
+ * <pre>{@code
+ * @Component
+ * public class MyDataScopeHandler implements DataScopeHandler {
+ *     public List<Object> resolveDeptIds(DataScopeType type, String module) {
+ *         return deptService.getChildDeptIds(AuthUtil.getUserId());
+ *     }
+ * }
+ * }</pre>
+ */
 public interface DataScopeHandler {
 
     default Object resolveUserId() {
@@ -11,4 +28,8 @@ public interface DataScopeHandler {
     }
 
     List<Object> resolveDeptIds(DataScopeType scopeType, String module);
+
+    default Object resolveTenantId() {
+        return AuthUtil.getTenantId();
+    }
 }

@@ -50,7 +50,7 @@ class DataScopeIntegrationTest {
 
     private void loginAs(Integer userId) {
         AuthenticationContextHolder.setContext(
-                new AuthenticationContext(userId, "user" + userId, true));
+                new AuthenticationContext(userId, "user" + userId, null));
     }
 
     @Test

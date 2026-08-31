@@ -16,6 +16,11 @@ public class AuthUtil {
 
     public static boolean isAuthenticated() {
         var context = AuthenticationContextHolder.getContext();
-        return context != null && context.isAuthenticated();
+        return context != null && context.getUserId() != null;
+    }
+
+    public static Object getTenantId() {
+        var context = AuthenticationContextHolder.getContext();
+        return context != null ? context.getTenantId() : null;
     }
 }

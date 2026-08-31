@@ -15,7 +15,8 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -34,7 +35,7 @@ class JwtAuthenticationFilterTest {
 
     @BeforeEach
     void setUp() {
-        validToken = jwtUtil.generateToken("testuser", 1001);
+        validToken = jwtUtil.generateToken("testuser", 1001, null);
         assertTrue(jwtUtil.validateToken(validToken), "Token should be valid immediately after generation");
     }
 
@@ -76,7 +77,7 @@ class JwtAuthenticationFilterTest {
         shortLivedProps.setJwtSecret("MyTestSecretKeyForJWT2024WithAtLeast32Bytes!");
         shortLivedProps.setJwtExpiration(1L);
         JwtUtil shortLivedJwtUtil = new JwtUtil(shortLivedProps);
-        String expiredToken = shortLivedJwtUtil.generateToken("testuser", 1001);
+        String expiredToken = shortLivedJwtUtil.generateToken("testuser", 1001, null);
 
         Thread.sleep(10);
 

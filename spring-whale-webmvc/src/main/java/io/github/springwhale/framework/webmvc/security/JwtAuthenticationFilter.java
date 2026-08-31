@@ -74,6 +74,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } finally {
             AuthenticationContextHolder.clearContext();
+            SecurityContextHolder.clearContext();
         }
     }
 
@@ -92,10 +93,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String username = jwtUtil.getUsernameFromToken(jwt);
         Integer userId = jwtUtil.getUserIdFromToken(jwt);
+        Object tenantId = jwtUtil.getTenantIdFromToken(jwt);
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
         setSpringSecurityAuthentication(userDetails, request);
-        setApplicationContext(userId, username);
+        setApplicationContext(userId, username, tenantId);
 
         log.debug("Authenticated user '{}' for request: {}", username, requestURI);
     }
@@ -107,8 +109,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
-    private void setApplicationContext(Integer userId, String username) {
-        AuthenticationContextHolder.setContext(new AuthenticationContext(userId, username, true));
+    private void setApplicationContext(Integer userId, String username, Object tenantId) {
+        AuthenticationContextHolder.setContext(new AuthenticationContext(userId, username, tenantId));
     }
 
     private static boolean isAdminPage(String requestURI) {

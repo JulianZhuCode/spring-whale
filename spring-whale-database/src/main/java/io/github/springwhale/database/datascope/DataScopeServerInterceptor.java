@@ -6,22 +6,37 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+/**
+ * Spring MVC interceptor that receives data scope and tenant ID from HTTP headers
+ * and populates {@link DataScopeContext}.
+ *
+ * <p>Entry point for cross-service scope/tenant propagation in microservice
+ * architectures. The Feign counterpart is {@link DataScopeFeignInterceptor}.</p>
+ *
+ * <p>{@link #afterCompletion} unconditionally calls {@link DataScopeContext#clear()}
+ * to prevent ThreadLocal leaks, regardless of whether the handler threw an exception.</p>
+ */
 @Slf4j
 @RequiredArgsConstructor
 public class DataScopeServerInterceptor implements HandlerInterceptor {
 
-    private static final String PUSHED_FLAG = DataScopeServerInterceptor.class.getName() + ".PUSHED";
     private final DataScopeProperties properties;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-        if (!properties.isTransmitEnabled()) {
-            return true;
+        if (properties.isTransmitEnabled()) {
+            receiveDataScope(request);
         }
+        if (properties.isTenantEnabled()) {
+            receiveTenantId(request);
+        }
+        return true;
+    }
 
+    private void receiveDataScope(HttpServletRequest request) {
         String scopeTypeStr = request.getHeader(properties.getScopeTypeHeader());
         if (scopeTypeStr == null || scopeTypeStr.isEmpty()) {
-            return true;
+            return;
         }
 
         try {
@@ -33,20 +48,37 @@ public class DataScopeServerInterceptor implements HandlerInterceptor {
             result.setModule(module);
 
             DataScopeContext.pushScope(result);
-            request.setAttribute(PUSHED_FLAG, Boolean.TRUE);
             log.debug("Data scope transmitted from header: type={}, module={}", scopeType, module);
         } catch (IllegalArgumentException e) {
             log.warn("Invalid DataScopeType from header: {}", scopeTypeStr);
         }
+    }
 
-        return true;
+    private void receiveTenantId(HttpServletRequest request) {
+        String tenantIdStr = request.getHeader(properties.getTenantIdHeader());
+        if (tenantIdStr == null || tenantIdStr.isEmpty()) {
+            return;
+        }
+        try {
+            Object tenantId = parseTenantId(tenantIdStr);
+            DataScopeContext.setTenantId(tenantId);
+            log.debug("Tenant id transmitted from header: {}", tenantId);
+        } catch (NumberFormatException e) {
+            log.warn("Invalid tenant id from header: {}", tenantIdStr);
+        }
+    }
+
+    private Object parseTenantId(String value) {
+        try {
+            return Long.parseLong(value);
+        } catch (NumberFormatException e) {
+            return value;
+        }
     }
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response,
                                 Object handler, Exception ex) {
-        if (Boolean.TRUE.equals(request.getAttribute(PUSHED_FLAG))) {
-            DataScopeContext.clear();
-        }
+        DataScopeContext.clear();
     }
 }

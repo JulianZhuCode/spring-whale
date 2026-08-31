@@ -113,15 +113,15 @@ class DataScopeServerInterceptorTest {
     }
 
     @Test
-    @DisplayName("Should not clear scope after completion when scope was not pushed by this interceptor")
-    void shouldNotClearScopeWhenNotPushed() {
+    @DisplayName("Should always clear context after completion, even when scope was pushed externally")
+    void shouldAlwaysClearContextAfterCompletion() {
         DataScopeResult scope = new DataScopeResult();
         scope.setScopeType(DataScopeType.SELF);
         DataScopeContext.pushScope(scope);
 
         interceptor.afterCompletion(request, response, new Object(), null);
 
-        assertThat(DataScopeContext.hasScope()).isTrue();
+        assertThat(DataScopeContext.hasScope()).isFalse();
     }
 
     @Test

@@ -8,6 +8,18 @@ import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 
+/**
+ * Base JPA entity with audit fields, optimistic locking, and soft delete.
+ *
+ * <h3>Features</h3>
+ * <ul>
+ *   <li><b>Auto-audit</b> — {@code createBy}, {@code updateBy}, {@code createTime}, {@code updateTime}
+ *       are populated automatically via {@code @PrePersist} / {@code @PreUpdate}</li>
+ *   <li><b>Optimistic locking</b> — {@code @Version} on {@code version} field</li>
+ *   <li><b>Soft delete</b> — {@code @SQLDelete} sets {@code delFlag = 1} instead of physical DELETE,
+ *       {@code @SQLRestriction} filters out deleted records</li>
+ * </ul>
+ */
 @Data
 @MappedSuperclass
 @SQLDelete(sql = "UPDATE #{entityName} SET del_flag = 1, update_time = CURRENT_TIMESTAMP WHERE id = ?")

@@ -32,7 +32,7 @@ class JwtUtilTest {
     @Test
     @DisplayName("generateToken should create a non-null JWT string")
     void testGenerateToken() {
-        String token = jwtUtil.generateToken("testuser", 1001);
+        String token = jwtUtil.generateToken("testuser", 1001, null);
 
         assertNotNull(token);
         assertTrue(token.contains("."));
@@ -41,7 +41,7 @@ class JwtUtilTest {
     @Test
     @DisplayName("getUsernameFromToken should return the correct username")
     void testGetUsernameFromToken() {
-        String token = jwtUtil.generateToken("testuser", 1001);
+        String token = jwtUtil.generateToken("testuser", 1001, null);
 
         String username = jwtUtil.getUsernameFromToken(token);
 
@@ -51,7 +51,7 @@ class JwtUtilTest {
     @Test
     @DisplayName("getUserIdFromToken should return the correct userId")
     void testGetUserIdFromToken() {
-        String token = jwtUtil.generateToken("testuser", 1001);
+        String token = jwtUtil.generateToken("testuser", 1001, null);
 
         Integer userId = jwtUtil.getUserIdFromToken(token);
 
@@ -61,7 +61,7 @@ class JwtUtilTest {
     @Test
     @DisplayName("getUserIdFromToken should return null when userId claim is not present")
     void testGetUserIdFromTokenMissing() {
-        String token = jwtUtil.generateToken("testuser", null);
+        String token = jwtUtil.generateToken("testuser", null, null);
 
         Integer userId = jwtUtil.getUserIdFromToken(token);
 
@@ -71,7 +71,7 @@ class JwtUtilTest {
     @Test
     @DisplayName("validateToken should return true for a valid token")
     void testValidateTokenValid() {
-        String token = jwtUtil.generateToken("testuser", 1001);
+        String token = jwtUtil.generateToken("testuser", 1001, null);
 
         assertTrue(jwtUtil.validateToken(token));
     }
@@ -91,7 +91,7 @@ class JwtUtilTest {
     @Test
     @DisplayName("validateToken should return false for a tampered token")
     void testValidateTokenTampered() {
-        String token = jwtUtil.generateToken("testuser", 1001);
+        String token = jwtUtil.generateToken("testuser", 1001, null);
 
         String tampered = token.substring(0, token.length() - 2) + "xx";
 
@@ -103,7 +103,7 @@ class JwtUtilTest {
     void testValidateTokenExpired() throws InterruptedException {
         securityProperties.setJwtExpiration(1L);
         jwtUtil = new JwtUtil(securityProperties);
-        String token = jwtUtil.generateToken("testuser", 1001);
+        String token = jwtUtil.generateToken("testuser", 1001, null);
 
         Thread.sleep(10);
 
@@ -113,7 +113,7 @@ class JwtUtilTest {
     @Test
     @DisplayName("validateToken should return false for token signed with a different secret")
     void testValidateTokenDifferentSecret() {
-        String token = jwtUtil.generateToken("testuser", 1001);
+        String token = jwtUtil.generateToken("testuser", 1001, null);
 
         SecurityProperties otherProps = new SecurityProperties();
         otherProps.setJwtSecret("AnotherDifferentSecretKeyForJWT2024!!");
