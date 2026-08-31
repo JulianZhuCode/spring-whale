@@ -4,6 +4,14 @@ import io.github.springwhale.database.SerializableFunction;
 
 public interface Like<T, Children extends AbstractWrapper<T, Children>> extends Wrapper<T, Children> {
 
+    private static void ensureValueNotNull(String methodName, String fieldName, String value) {
+        if (value == null) {
+            throw new IllegalArgumentException(methodName + " value cannot be null when condition is true. " +
+                    "Use condition=false to skip this condition, or provide a valid value. " +
+                    "Field: " + fieldName);
+        }
+    }
+
     default Children like(boolean condition, SerializableFunction<T, ?> field, String value) {
         if (condition) {
             ensureValueNotNull("like()", AbstractWrapper.getPropertyName(field), value);
@@ -106,13 +114,5 @@ public interface Like<T, Children extends AbstractWrapper<T, Children>> extends 
 
     default Children likeRight(String field, String value) {
         return likeRight(true, field, value);
-    }
-
-    private static void ensureValueNotNull(String methodName, String fieldName, String value) {
-        if (value == null) {
-            throw new IllegalArgumentException(methodName + " value cannot be null when condition is true. " +
-                    "Use condition=false to skip this condition, or provide a valid value. " +
-                    "Field: " + fieldName);
-        }
     }
 }

@@ -23,24 +23,18 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class ResilientFlywayMigrationStrategyTest {
 
+    private static final String SERVER_NAME = "test-server";
     @Mock
     private DataSource dataSource;
-
     @Mock
     private ApplicationEventPublisher eventPublisher;
-
     @Mock
     private Flyway flyway;
-
     @Mock
     private Connection connection;
-
     @Mock
     private PreparedStatement preparedStatement;
-
     private ResilientFlywayMigrationStrategy strategy;
-
-    private static final String SERVER_NAME = "test-server";
 
     @BeforeEach
     void setUp() {

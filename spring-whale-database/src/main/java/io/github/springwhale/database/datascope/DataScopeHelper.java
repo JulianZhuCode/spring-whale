@@ -19,6 +19,22 @@ import java.util.List;
  */
 public class DataScopeHelper {
 
+    static String camelToSnake(String name) {
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < name.length(); i++) {
+            char ch = name.charAt(i);
+            if (Character.isUpperCase(ch)) {
+                if (i > 0 && !Character.isUpperCase(name.charAt(i - 1))) {
+                    result.append('_');
+                }
+                result.append(Character.toLowerCase(ch));
+            } else {
+                result.append(ch);
+            }
+        }
+        return result.toString();
+    }
+
     public List<String> resolveDeptIdFields(Class<?> entityClass) {
         return findAllFieldsWithAnnotation(entityClass, DeptIdField.class);
     }
@@ -84,21 +100,5 @@ public class DataScopeHelper {
             }
         }
         return null;
-    }
-
-    static String camelToSnake(String name) {
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < name.length(); i++) {
-            char ch = name.charAt(i);
-            if (Character.isUpperCase(ch)) {
-                if (i > 0 && !Character.isUpperCase(name.charAt(i - 1))) {
-                    result.append('_');
-                }
-                result.append(Character.toLowerCase(ch));
-            } else {
-                result.append(ch);
-            }
-        }
-        return result.toString();
     }
 }
