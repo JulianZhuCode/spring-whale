@@ -48,6 +48,11 @@ public class TestUserService {
         return nestedService.innerSelf();
     }
 
+    @DataScope(scopeType = DataScopeType.CALLER, module = "test")
+    public List<TestUser> listByCaller() {
+        return repository.findAll();
+    }
+
     public TestUser save(TestUser user) {
         return repository.save(user);
     }

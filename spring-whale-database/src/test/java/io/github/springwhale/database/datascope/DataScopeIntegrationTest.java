@@ -189,4 +189,95 @@ class DataScopeIntegrationTest {
         assertThat(result).extracting(TestUser::getName)
                 .containsExactlyInAnyOrder("Alice", "Bob", "Charlie", "David", "Eve");
     }
+
+    @Test
+    @DisplayName("CALLER scope: should use transmitted scope for filtering")
+    void testCallerScope() {
+        loginAs(1);
+
+        DataScopeResult transmittedScope = new DataScopeResult();
+        transmittedScope.setScopeType(DataScopeType.DEPT);
+        transmittedScope.setModule("test");
+        DataScopeContext.pushScope(transmittedScope);
+
+        try {
+            List<TestUser> result = testUserService.listByCaller();
+
+            assertThat(result).extracting(TestUser::getName)
+                    .containsExactlyInAnyOrder("Alice", "Bob");
+        } finally {
+            DataScopeContext.popScope();
+        }
+    }
+
+    @Test
+    @DisplayName("CALLER scope with SELF: should use transmitted SELF scope for filtering")
+    void testCallerScopeWithSelf() {
+        loginAs(1);
+
+        DataScopeResult transmittedScope = new DataScopeResult();
+        transmittedScope.setScopeType(DataScopeType.SELF);
+        transmittedScope.setModule("test");
+        DataScopeContext.pushScope(transmittedScope);
+
+        try {
+            List<TestUser> result = testUserService.listByCaller();
+
+            assertThat(result).extracting(TestUser::getName)
+                    .containsExactlyInAnyOrder("Alice", "David");
+        } finally {
+            DataScopeContext.popScope();
+        }
+    }
+
+    @Test
+    @DisplayName("CALLER scope with DEPT_AND_CHILD: should use transmitted DEPT_AND_CHILD scope")
+    void testCallerScopeWithDeptAndChild() {
+        loginAs(1);
+
+        DataScopeResult transmittedScope = new DataScopeResult();
+        transmittedScope.setScopeType(DataScopeType.DEPT_AND_CHILD);
+        transmittedScope.setModule("test");
+        DataScopeContext.pushScope(transmittedScope);
+
+        try {
+            List<TestUser> result = testUserService.listByCaller();
+
+            assertThat(result).extracting(TestUser::getName)
+                    .containsExactlyInAnyOrder("Alice", "Bob", "Charlie", "David");
+        } finally {
+            DataScopeContext.popScope();
+        }
+    }
+
+    @Test
+    @DisplayName("CALLER scope with no transmitted scope: should return all data")
+    void testCallerScopeNoTransmittedScope() {
+        loginAs(1);
+
+        List<TestUser> result = testUserService.listByCaller();
+
+        assertThat(result).extracting(TestUser::getName)
+                .containsExactlyInAnyOrder("Alice", "Bob", "Charlie", "David", "Eve");
+    }
+
+    @Test
+    @DisplayName("CALLER scope with different user: should use transmitted scope with caller's context")
+    void testCallerScopeWithDifferentUser() {
+        loginAs(3);
+
+        DataScopeResult transmittedScope = new DataScopeResult();
+        transmittedScope.setScopeType(DataScopeType.DEPT);
+        transmittedScope.setModule("test");
+        DataScopeContext.pushScope(transmittedScope);
+
+        try {
+            List<TestUser> result = testUserService.listByCaller();
+
+            assertThat(result).extracting(TestUser::getName)
+                    .containsExactlyInAnyOrder("Charlie", "David");
+        } finally {
+            DataScopeContext.popScope();
+        }
+    }
 }
