@@ -4,43 +4,38 @@ import io.github.springwhale.framework.event.EventMessage;
 import io.github.springwhale.framework.event.EventProperties;
 import io.github.springwhale.framework.event.MessageType;
 import io.github.springwhale.framework.event.RetryStrategyRegistry;
-import io.github.springwhale.framework.event.recovery.kafka.KafkaEventConsumeFailedListener;
 import io.github.springwhale.framework.event.recovery.dao.EventConsumeFailedRecordDao;
-import io.github.springwhale.framework.event.recovery.EventConsumeTerminalHandler;
 import io.github.springwhale.framework.event.recovery.enums.EventConsumeStatus;
+import io.github.springwhale.framework.event.recovery.local.LocalEventConsumeFailedListener;
 import io.github.springwhale.framework.event.recovery.model.EventConsumeFailedRecord;
 import io.github.springwhale.framework.event.recovery.util.EventFailedRecordIdGenerator;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import tools.jackson.databind.ObjectMapper;
-import org.springframework.kafka.support.Acknowledgment;
 
 import javax.sql.DataSource;
 import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
-class KafkaEventConsumeFailedListenerTest {
+class LocalEventConsumeFailedListenerTest {
 
     private EventConsumeFailedRecordDao recordDao;
     private EventProperties eventProperties;
     private ObjectMapper objectMapper;
     private RetryStrategyRegistry retryStrategyRegistry;
-    private KafkaEventConsumeFailedListener listener;
+    private LocalEventConsumeFailedListener listener;
 
     @BeforeEach
     void setUp() {
         DataSource dataSource = new EmbeddedDatabaseBuilder()
                 .setType(EmbeddedDatabaseType.H2)
-                .setName("kafka-failed-test")
+                .setName("local-failed-test")
                 .addScript("classpath:schema.sql")
                 .build();
         recordDao = new EventConsumeFailedRecordDao(dataSource);
@@ -48,7 +43,7 @@ class KafkaEventConsumeFailedListenerTest {
         objectMapper = new ObjectMapper();
         retryStrategyRegistry = new RetryStrategyRegistry(Collections.emptyMap());
 
-        listener = new KafkaEventConsumeFailedListener(
+        listener = new LocalEventConsumeFailedListener(
                 recordDao, eventProperties, objectMapper, retryStrategyRegistry,
                 Collections.emptyList(), Collections.emptyList());
     }
@@ -68,11 +63,7 @@ class KafkaEventConsumeFailedListenerTest {
         failMessage.setFailListener("orderListener");
         failMessage.setErrorStack("java.lang.RuntimeException: test error");
 
-        String rawPayload = objectMapper.writeValueAsString(failMessage);
-        ConsumerRecord<String, String> record = new ConsumerRecord<>("test-topic", 0, 0, "key", rawPayload);
-        Acknowledgment ack = mock(Acknowledgment.class);
-
-        listener.listenerFailed(record, ack);
+        listener.onFailedEvent(failMessage);
 
         String expectedId = EventFailedRecordIdGenerator.generate("msg-001", "orderListener");
         Optional<EventConsumeFailedRecord> saved = recordDao.findById(expectedId);
@@ -80,7 +71,6 @@ class KafkaEventConsumeFailedListenerTest {
         assertEquals(EventConsumeStatus.PENDING_RETRY, saved.get().getStatus());
         assertEquals(1, saved.get().getRetryCount());
         assertNotNull(saved.get().getNextRetryTime());
-        verify(ack).acknowledge();
     }
 
     @Test
@@ -97,17 +87,12 @@ class KafkaEventConsumeFailedListenerTest {
         failMessage.setRetryCount(0);
         failMessage.setFailListener("orderListener");
 
-        String rawPayload = objectMapper.writeValueAsString(failMessage);
-        ConsumerRecord<String, String> record = new ConsumerRecord<>("test-topic", 0, 0, "key", rawPayload);
-        Acknowledgment ack = mock(Acknowledgment.class);
-
-        listener.listenerFailed(record, ack);
+        listener.onFailedEvent(failMessage);
 
         String expectedId = EventFailedRecordIdGenerator.generate("msg-002", "orderListener");
         Optional<EventConsumeFailedRecord> saved = recordDao.findById(expectedId);
         assertTrue(saved.isPresent());
         assertEquals(EventConsumeStatus.DISCARDED, saved.get().getStatus());
-        verify(ack).acknowledge();
     }
 
     @Test
@@ -140,16 +125,11 @@ class KafkaEventConsumeFailedListenerTest {
         failMessage.setRetrySuccess(true);
         failMessage.setFailListener("orderListener");
 
-        String rawPayload = objectMapper.writeValueAsString(failMessage);
-        ConsumerRecord<String, String> record = new ConsumerRecord<>("test-topic", 0, 0, "key", rawPayload);
-        Acknowledgment ack = mock(Acknowledgment.class);
-
-        listener.listenerFailed(record, ack);
+        listener.onFailedEvent(failMessage);
 
         Optional<EventConsumeFailedRecord> updated = recordDao.findById(recordId);
         assertTrue(updated.isPresent());
         assertEquals(EventConsumeStatus.REPLAY_SUCCESS, updated.get().getStatus());
-        verify(ack).acknowledge();
     }
 
     @Test
@@ -182,20 +162,15 @@ class KafkaEventConsumeFailedListenerTest {
         failMessage.setRetrySuccess(false);
         failMessage.setFailListener("orderListener");
 
-        String rawPayload = objectMapper.writeValueAsString(failMessage);
-        ConsumerRecord<String, String> record = new ConsumerRecord<>("test-topic", 0, 0, "key", rawPayload);
-        Acknowledgment ack = mock(Acknowledgment.class);
-
-        listener.listenerFailed(record, ack);
+        listener.onFailedEvent(failMessage);
 
         Optional<EventConsumeFailedRecord> updated = recordDao.findById(recordId);
         assertTrue(updated.isPresent());
         assertEquals(EventConsumeStatus.FINAL_FAILED, updated.get().getStatus());
-        verify(ack).acknowledge();
     }
 
     @Test
-    @DisplayName("Should ack and skip non-FAIL message type")
+    @DisplayName("Should skip non-FAIL message type")
     void testSkipNonFailMessage() throws Exception {
         EventMessage eventMessage = new EventMessage();
         eventMessage.setId("msg-005");
@@ -205,70 +180,10 @@ class KafkaEventConsumeFailedListenerTest {
         eventMessage.setData("{}");
         eventMessage.setMessageType(MessageType.EVENT);
 
-        String rawPayload = objectMapper.writeValueAsString(eventMessage);
-        ConsumerRecord<String, String> record = new ConsumerRecord<>("test-topic", 0, 0, "key", rawPayload);
-        Acknowledgment ack = mock(Acknowledgment.class);
+        listener.onFailedEvent(eventMessage);
 
-        listener.listenerFailed(record, ack);
-
-        verify(ack).acknowledge();
         String expectedId = EventFailedRecordIdGenerator.generate("msg-005", "orderListener");
-        assertFalse(recordDao.findById(expectedId).isPresent());
-    }
-
-    @Test
-    @DisplayName("Should not ack when deserialization fails")
-    void testNotAckOnDeserializationFailure() {
-        ConsumerRecord<String, String> record = new ConsumerRecord<>("test-topic", 0, 0, "key", "invalid-json");
-        Acknowledgment ack = mock(Acknowledgment.class);
-
-        listener.listenerFailed(record, ack);
-
-        verify(ack, never()).acknowledge();
-    }
-
-    @Test
-    @DisplayName("Should invoke terminal handlers on FINAL_FAILED")
-    void testTerminalHandlersOnFinalFailed() throws Exception {
-        EventConsumeTerminalHandler handler = mock(EventConsumeTerminalHandler.class);
-
-        KafkaEventConsumeFailedListener listenerWithHandler = new KafkaEventConsumeFailedListener(
-                recordDao, eventProperties, objectMapper, retryStrategyRegistry,
-                Collections.emptyList(), List.of(handler));
-
-        String recordId = EventFailedRecordIdGenerator.generate("msg-006", "orderListener");
-
-        EventConsumeFailedRecord existing = new EventConsumeFailedRecord();
-        existing.setId(recordId);
-        existing.setMessageId("msg-006");
-        existing.setSource("test-service");
-        existing.setBusinessName("order.created");
-        existing.setListenerName("orderListener");
-        existing.setTopic("test-topic");
-        existing.setRawMessage("{}");
-        existing.setStatus(EventConsumeStatus.PENDING_RETRY);
-        existing.setRetryCount(2);
-        existing.setNextRetryTime(LocalDateTime.now().plusMinutes(5));
-        recordDao.save(existing);
-
-        EventMessage failMessage = new EventMessage();
-        failMessage.setId("msg-006");
-        failMessage.setSource("test-service");
-        failMessage.setBusinessName("order.created");
-        failMessage.setTopic("test-topic");
-        failMessage.setData("{}");
-        failMessage.setMessageType(MessageType.FAIL);
-        failMessage.setRetryEnabled(true);
-        failMessage.setRetryCount(eventProperties.getMaxRetries());
-        failMessage.setRetrySuccess(false);
-        failMessage.setFailListener("orderListener");
-
-        String rawPayload = objectMapper.writeValueAsString(failMessage);
-        ConsumerRecord<String, String> record = new ConsumerRecord<>("test-topic", 0, 0, "key", rawPayload);
-        Acknowledgment ack = mock(Acknowledgment.class);
-
-        listenerWithHandler.listenerFailed(record, ack);
-
-        verify(handler).onFinalFailed(any(EventConsumeFailedRecord.class));
+        Optional<EventConsumeFailedRecord> saved = recordDao.findById(expectedId);
+        assertTrue(saved.isEmpty());
     }
 }

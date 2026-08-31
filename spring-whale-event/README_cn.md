@@ -1,6 +1,6 @@
 # spring-whale-event
 
-spring-whale 事件驱动框架，提供业务事件的发布、消费、失败重试能力，支持 Kafka 和 RabbitMQ。
+spring-whale 事件驱动框架，提供业务事件的发布、消费、失败重试能力，支持**本地（Spring 事件）**、**Kafka** 和 **RabbitMQ** 三种模式。
 
 ---
 
@@ -13,7 +13,7 @@ spring-whale 事件驱动框架，提供业务事件的发布、消费、失败�
 
 ```
 spring-whale-event
-├── spring-whale-event-core    事件发布/消费核心（Kafka / RabbitMQ 双通道）
+├── spring-whale-event-core    事件发布/消费核心（本地 / Kafka / RabbitMQ 三通道）
 └── spring-whale-event-recovery  失败事件恢复（JDBC 持久化 + 定时重试 + 清理）
 ```
 
@@ -23,6 +23,8 @@ spring-whale-event
 ---
 
 ## 流程概览
+
+### 远程模式（Kafka / RabbitMQ）
 
 ```mermaid
 flowchart LR
@@ -52,11 +54,46 @@ flowchart LR
     FT -.->|重试退避| RS
 ```
 
+### 本地模式（Spring 事件）
+
+```mermaid
+flowchart LR
+    subgraph 业务应用
+        EP[EventPublisher.publish]
+        EL[AbstractEventListener.doEvent]
+        TH[EventConsumeTerminalHandler]
+    end
+
+    subgraph Spring事件
+        AE[ApplicationEventPublisher]
+        FL[LocalEventConsumeFailedListener]
+    end
+
+    subgraph SPI扩展
+        MC[EventMetricsCollector]
+        RS[RetryStrategy]
+    end
+
+    EP -->|发布 Spring 事件| AE
+    AE -->|异步 @EventListener| EL
+    EL -->|消费异常| AE
+    AE -->|失败事件| FL
+    FL -->|JDBC 持久化| DB[(event_consume_failed_record)]
+    DB -->|EventRetryTask 定时重试| EP
+    EL -->|重试耗尽| TH
+    EP -.->|指标采集| MC
+    EL -.->|指标采集| MC
+    FL -.->|重试退避| RS
+```
+
+> **关键设计：** 本地模式与远程模式使用完全相同的 API（`EventPublisher`、`AbstractEventListener`），内部事件流转也完全一致。应用从单体扩展为微服务时，只需修改 `spring.whale.event.mode` 配置即可切换。
+
 ---
 
 ## 核心能力
 
-- **双通道支持**：自动适配 Kafka 或 RabbitMQ，无需额外配置
+- **三模式支持**：通过 `spring.whale.event.mode` 配置切换 `local` / `kafka` / `rabbit`，本地模式无需引入 MQ 依赖，适合单体应用快速启动
+- **统一 API**：无论本地还是远程模式，`EventPublisher` 和 `AbstractEventListener` 的 API 完全一致，模式切换零代码改动
 - **声明式事件**：`@Event` 注解声明业务名和路由，无注解时自动推导
 - **类型安全监听**：`AbstractEventListener<T>` 提供泛型约束，运行时校验事件类型
 - **失败重试**：消费异常自动重试，支持固定间隔和指数退避两种策略
@@ -77,21 +114,22 @@ flowchart LR
     <artifactId>spring-whale-event-core</artifactId>
 </dependency>
 
-        <!-- 可选：失败重试与持久化 -->
+<!-- 可选：失败重试与持久化 -->
 <dependency>
-<groupId>io.github.julianzhucode</groupId>
-<artifactId>spring-whale-event-recovery</artifactId>
+    <groupId>io.github.julianzhucode</groupId>
+    <artifactId>spring-whale-event-recovery</artifactId>
 </dependency>
 
-        <!-- 按需引入 MQ 通道 -->
+<!-- 本地模式：无需额外引入 MQ 依赖 -->
+<!-- Kafka 模式：引入以下依赖 -->
 <dependency>
-<groupId>org.springframework.boot</groupId>
-<artifactId>spring-boot-starter-kafka</artifactId>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-kafka</artifactId>
 </dependency>
-        <!-- 或 -->
+<!-- RabbitMQ 模式：引入以下依赖 -->
 <dependency>
-<groupId>org.springframework.boot</groupId>
-<artifactId>spring-boot-starter-amqp</artifactId>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-amqp</artifactId>
 </dependency>
 ```
 
@@ -101,11 +139,13 @@ flowchart LR
 spring:
   whale:
     event:
-      # 业务事件 Topic（默认 EVENT_TOPIC）
+      # 事件模式：local / kafka / rabbit（默认 kafka）
+      mode: local
+      # 业务事件 Topic（默认 EVENT_TOPIC，本地模式忽略）
       event-topic: my_event_topic
-      # 消费的 Topic 列表（默认同 event-topic）
+      # 消费的 Topic 列表（默认同 event-topic，本地模式忽略）
       consumer-topics: my_event_topic
-      # 失败事件 Topic（默认 EVENT_FAILED_TOPIC）
+      # 失败事件 Topic（默认 EVENT_FAILED_TOPIC，本地模式忽略）
       failed-topic: my_event_failed_topic
       # 最大重试次数（默认 3）
       max-retries: 3
@@ -114,6 +154,8 @@ spring:
       # 重试策略：fixed / exponential（默认 fixed）
       retry-strategy: fixed
 ```
+
+> **本地模式特点：** 设置 `mode: local` 后，事件发布/消费完全基于 Spring 的 `ApplicationEventPublisher` 和 `@EventListener`，无需引入任何 MQ 依赖即可运行。API 使用方式与远程模式完全一致，后续切换为微服务时只需将 `mode` 改为 `kafka` 或 `rabbit` 并引入对应 MQ 依赖即可。
 
 ### 3. 定义事件
 

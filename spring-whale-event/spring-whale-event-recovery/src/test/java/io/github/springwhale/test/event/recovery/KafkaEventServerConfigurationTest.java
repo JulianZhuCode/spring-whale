@@ -10,7 +10,10 @@ import org.springframework.context.annotation.Import;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@SpringBootTest
+@SpringBootTest(properties = {
+        "spring.whale.event.mode=kafka",
+        "spring.application.name=kafka-test"
+})
 @Import({TestRecoveryConfiguration.class, KafkaEventServerConfiguration.class})
 class KafkaEventServerConfigurationTest {
 

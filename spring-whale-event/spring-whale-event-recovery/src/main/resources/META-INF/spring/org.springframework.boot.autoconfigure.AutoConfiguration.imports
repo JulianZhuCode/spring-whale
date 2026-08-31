@@ -1,3 +1,4 @@
 io.github.springwhale.framework.event.recovery.autoconfigure.SpringWhaleEventServerConfiguration
 io.github.springwhale.framework.event.recovery.autoconfigure.KafkaEventServerConfiguration
 io.github.springwhale.framework.event.recovery.autoconfigure.RabbitEventServerConfiguration
+io.github.springwhale.framework.event.recovery.autoconfigure.LocalEventRecoveryConfiguration

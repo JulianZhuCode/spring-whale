@@ -27,6 +27,9 @@ public class EventProperties {
     public static final int DEFAULT_CONCURRENCY = 1;
     public static final int DEFAULT_FAILED_CONCURRENCY = 1;
     public static final String DEFAULT_FAILED_GROUP_ID = "spring-whale-event-recovery";
+    public static final String DEFAULT_MODE = "local";
+
+    private String mode = DEFAULT_MODE;
 
     private String eventTopic = DEFAULT_EVENT_TOPIC;
 

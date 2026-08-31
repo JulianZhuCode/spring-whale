@@ -10,6 +10,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import tools.jackson.databind.ObjectMapper;
 
@@ -17,6 +18,7 @@ import java.util.List;
 
 @AutoConfiguration
 @ConditionalOnClass(RabbitTemplate.class)
+@ConditionalOnProperty(name = "spring.whale.event.mode", havingValue = "rabbit")
 public class RabbitEventServerConfiguration {
 
     @Bean

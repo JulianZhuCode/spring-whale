@@ -2,3 +2,4 @@ io.github.springwhale.framework.event.autoconfigure.SpringWhaleEventConfiguratio
 io.github.springwhale.framework.event.autoconfigure.KafkaEventConfiguration
 io.github.springwhale.framework.event.autoconfigure.RabbitEventConfiguration
 io.github.springwhale.framework.event.autoconfigure.MicrometerEventConfiguration
+io.github.springwhale.framework.event.autoconfigure.LocalEventConfiguration

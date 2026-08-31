@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Import;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SpringBootTest
+@SpringBootTest(properties = "spring.whale.event.mode=kafka")
 @Import(TestEventConfiguration.class)
 class KafkaEventConfigurationTest {
 
