@@ -1,6 +1,7 @@
 package io.github.springwhale.framework.webmvc.autoconfigure;
 
 import io.github.springwhale.framework.webmvc.security.JwtAuthenticationFilter;
+import io.github.springwhale.framework.webmvc.security.SecurityFeignInterceptor;
 import io.github.springwhale.framework.webmvc.security.SecurityProperties;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -8,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -184,5 +186,12 @@ public class SecurityAutoConfiguration {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnClass(feign.RequestInterceptor.class)
+    public SecurityFeignInterceptor securityFeignInterceptor(SecurityProperties securityProperties) {
+        return new SecurityFeignInterceptor(securityProperties);
     }
 }
