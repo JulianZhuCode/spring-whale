@@ -3,6 +3,7 @@ package io.github.springwhale.framework.webmvc.autoconfigure;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.context.MessageSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.context.MessageSourceProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -33,6 +34,7 @@ import java.util.Set;
  * </p>
  */
 @AutoConfiguration
+@ConditionalOnWebApplication
 @AutoConfigureBefore(MessageSourceAutoConfiguration.class)
 @EnableConfigurationProperties(MessageSourceProperties.class)
 public class SpringWhaleMessageSourceAutoConfiguration {

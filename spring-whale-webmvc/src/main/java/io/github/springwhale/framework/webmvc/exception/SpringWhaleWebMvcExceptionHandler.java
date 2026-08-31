@@ -15,8 +15,26 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
-import org.yaml.snakeyaml.constructor.DuplicateKeyException;
 
+/**
+ * Global exception handler that intercepts exceptions thrown by controllers
+ * and returns a unified {@link ApiResult} response.
+ *
+ * <h3>Exception mapping</h3>
+ * <table>
+ *   <tr><th>Exception</th><th>HTTP status</th><th>Error code</th></tr>
+ *   <tr><td>{@link BusinessException}</td><td>200</td><td>module_errorCode</td></tr>
+ *   <tr><td>Validation / Bind / IllegalArgument</td><td>200</td><td>400</td></tr>
+ *   <tr><td>{@link HttpRequestMethodNotSupportedException}</td><td>200</td><td>405</td></tr>
+ *   <tr><td>{@link NoResourceFoundException}</td><td>200</td><td>404</td></tr>
+ *   <tr><td>All other exceptions</td><td>200</td><td>500</td></tr>
+ * </table>
+ *
+ * <h3>i18n support</h3>
+ * When {@code spring.whale.web-mvc.exception.enable-i18n=true},
+ * error messages are resolved via {@link MessageSource} using the error code
+ * as the message key, falling back to the configured default message.
+ */
 @Slf4j
 @RestControllerAdvice
 public class SpringWhaleWebMvcExceptionHandler {
@@ -71,15 +89,6 @@ public class SpringWhaleWebMvcExceptionHandler {
     public ApiResult<Boolean> handleNoResourceFoundException(NoResourceFoundException e) {
         log.debug("no resource found: {}", e.getMessage());
         return ApiResult.error("404", getI18nMessage(properties.getMessage404(), properties.getCode404()));
-    }
-
-    @ExceptionHandler(value = DuplicateKeyException.class)
-    public ApiResult<Boolean> handleDuplicateKeyException(DuplicateKeyException e) {
-        log.warn("duplicate key exception occurred, message={}", e.getMessage());
-        if (log.isDebugEnabled()) {
-            log.debug("duplicate key exception occurred, stack trace:", e);
-        }
-        return ApiResult.error("409", getI18nMessage(properties.getMessage409(), properties.getCode409()));
     }
 
     private String getI18nMessage(String msg, String errorCode) {

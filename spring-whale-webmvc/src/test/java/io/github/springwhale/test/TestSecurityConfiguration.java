@@ -23,7 +23,11 @@ public class TestSecurityConfiguration {
                 .password("{noop}test")
                 .roles("USER")
                 .build();
-        return new InMemoryUserDetailsManager(user);
+        UserDetails testUser = User.withUsername("testuser")
+                .password("{noop}test")
+                .roles("USER")
+                .build();
+        return new InMemoryUserDetailsManager(user, testUser);
     }
 
     /**

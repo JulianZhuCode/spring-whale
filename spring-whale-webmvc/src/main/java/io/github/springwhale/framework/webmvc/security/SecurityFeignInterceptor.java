@@ -2,7 +2,6 @@ package io.github.springwhale.framework.webmvc.security;
 
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +14,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 public class SecurityFeignInterceptor implements RequestInterceptor {
 
     private final SecurityProperties securityProperties;
+    private final JwtUtil jwtUtil;
 
     @Override
     public void apply(RequestTemplate template) {
@@ -26,7 +26,7 @@ public class SecurityFeignInterceptor implements RequestInterceptor {
         }
 
         HttpServletRequest request = attributes.getRequest();
-        String jwt = extractJwt(request);
+        String jwt = jwtUtil.extractJwtFromRequest(request);
         if (!StringUtils.hasText(jwt)) {
             log.debug("No JWT found in current request, skipping token transmission");
             return;
@@ -37,26 +37,5 @@ public class SecurityFeignInterceptor implements RequestInterceptor {
 
         log.debug("JWT token transmitted via Feign: header={}, prefix={}",
                 securityProperties.getTokenHeader(), securityProperties.getTokenPrefix());
-    }
-
-    /**
-     * Extract JWT from request, checking both the Authorization header
-     * (for REST API clients) and the "sw_token" cookie (for admin console).
-     */
-    private String extractJwt(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
-        }
-
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("sw_token".equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        return null;
     }
 }

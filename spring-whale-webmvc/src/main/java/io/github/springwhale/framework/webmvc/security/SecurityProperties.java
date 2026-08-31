@@ -15,15 +15,13 @@ public class SecurityProperties {
 
     private List<String> permitAllUrls = new ArrayList<>();
 
-    private List<String> allowedOriginPatterns = new ArrayList<>();
-
     private boolean csrfEnabled = false;
-
-    private boolean corsEnabled = true;
 
     private String tokenPrefix = "Bearer ";
 
     private String tokenHeader = "Authorization";
+
+    private String tokenCookieName = "sw_token";
 
     private String jwtSecret = "SpringWhaleSecretKey2024ForJWTTokenGeneration";
 

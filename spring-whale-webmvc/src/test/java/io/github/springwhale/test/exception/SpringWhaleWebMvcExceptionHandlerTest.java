@@ -18,7 +18,6 @@ import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.yaml.snakeyaml.constructor.DuplicateKeyException;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -175,21 +174,6 @@ class SpringWhaleWebMvcExceptionHandlerTest {
         assertEquals("405", result.getCode());
         assertFalse(result.getData());
         assertEquals("Method not allowed!", result.getMessage());
-    }
-
-    @Test
-    @DisplayName("Should handle DuplicateKeyException with 409 error")
-    void testHandleDuplicateKeyException() {
-        // Create DuplicateKeyException using mock since constructor is protected
-        DuplicateKeyException ex = mock(DuplicateKeyException.class);
-        when(ex.getMessage()).thenReturn("Duplicate key found");
-
-        ApiResult<Boolean> result = mockHandler.handleDuplicateKeyException(ex);
-
-        assertNotNull(result);
-        assertEquals("409", result.getCode());
-        assertFalse(result.getData());
-        assertEquals("Duplicate records!", result.getMessage());
     }
 
     @Test

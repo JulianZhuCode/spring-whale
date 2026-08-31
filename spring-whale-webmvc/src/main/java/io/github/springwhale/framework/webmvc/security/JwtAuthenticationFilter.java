@@ -4,7 +4,6 @@ import io.github.springwhale.framework.core.context.AuthenticationContext;
 import io.github.springwhale.framework.core.context.AuthenticationContextHolder;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -15,14 +14,39 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Set;
 
+/**
+ * A {@code OncePerRequestFilter} that extracts a JWT from the incoming request,
+ * validates it, and sets both the Spring Security authentication context and
+ * the custom {@link AuthenticationContextHolder}.
+ *
+ * <h3>Authentication flow</h3>
+ * <ol>
+ *   <li>Extract JWT from the {@code Authorization} header or the configured cookie</li>
+ *   <li>Validate the token signature and expiration</li>
+ *   <li>Load {@link UserDetails} and set {@link SecurityContextHolder}</li>
+ *   <li>Set {@link AuthenticationContextHolder} for downstream use</li>
+ * </ol>
+ *
+ * <p>Missing or invalid tokens do not block the request — the filter chain
+ * continues, and the {@link org.springframework.security.web.AuthenticationEntryPoint} (configured in
+ * {@code SecurityAutoConfiguration}) decides whether to redirect (admin pages)
+ * or return 401 (REST APIs).</p>
+ *
+ * <p>The {@link AuthenticationContextHolder} is always cleared in {@code finally}
+ * to prevent thread-local leaks.</p>
+ */
 @RequiredArgsConstructor
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    private static final String ADMIN_PATH_PREFIX = "/admin";
+    private static final Set<String> ADMIN_STATIC_PATH_PREFIXES = Set.of("/admin/css", "/admin/js");
+    private static final int TOKEN_PREVIEW_MAX_LENGTH = 30;
 
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
@@ -32,46 +56,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
         String requestURI = request.getRequestURI();
-        try {
-            String jwt = getJwtFromRequest(request);
 
-            if (!StringUtils.hasText(jwt)) {
-                // Only log for admin pages (skip static resources to reduce noise)
-                if (requestURI.startsWith("/admin") && !requestURI.startsWith("/admin/css") && !requestURI.startsWith("/admin/js")) {
-                    log.warn("JWT not found in request: {}", requestURI);
-                }
+        try {
+            String jwt = jwtUtil.extractJwtFromRequest(request);
+            if (jwt == null) {
+                handleMissingJwt(requestURI);
                 filterChain.doFilter(request, response);
                 return;
             }
 
-            log.info("JWT found for request: {}, token length: {}, token preview: {}...",
-                    requestURI, jwt.length(), jwt.substring(0, Math.min(30, jwt.length())));
-
-            if (jwtUtil.validateToken(jwt)) {
-                String username = jwtUtil.getUsernameFromToken(jwt);
-                Integer userId = jwtUtil.getUserIdFromToken(jwt);
-
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities()
-                );
-
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-
-                AuthenticationContextHolder.setContext(new AuthenticationContext(userId, username, true));
-
-                log.info("Set authentication for user: {} on request: {}", username, requestURI);
-            } else {
-                log.warn("JWT validation failed for request: {}, token preview: {}...",
-                        requestURI, jwt.substring(0, Math.min(30, jwt.length())));
-            }
+            authenticateWithJwt(jwt, request, requestURI);
         } catch (Exception e) {
-            log.error("Could not set user authentication in security context for request: {}", requestURI, e);
+            log.error("Authentication failed for request: {}", requestURI, e);
         }
 
         try {
@@ -81,25 +77,49 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
     }
 
-    /**
-     * Extract JWT from request, checking both the Authorization header
-     * (for REST API clients) and the "sw_token" cookie (for admin console).
-     */
-    private String getJwtFromRequest(HttpServletRequest request) {
-        // Check Authorization header first (API clients)
-        String bearerToken = request.getHeader("Authorization");
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
+    private void handleMissingJwt(String requestURI) {
+        if (isAdminPage(requestURI)) {
+            log.warn("JWT not found in request: {}", requestURI);
         }
-        // Fall back to cookie (admin console)
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("sw_token".equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
+    }
+
+    private void authenticateWithJwt(String jwt, HttpServletRequest request, String requestURI) {
+        if (!jwtUtil.validateToken(jwt)) {
+            log.warn("JWT validation failed for request: {}, token preview: {}...",
+                    requestURI, truncateToken(jwt));
+            return;
         }
-        return null;
+
+        String username = jwtUtil.getUsernameFromToken(jwt);
+        Integer userId = jwtUtil.getUserIdFromToken(jwt);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+        setSpringSecurityAuthentication(userDetails, request);
+        setApplicationContext(userId, username);
+
+        log.debug("Authenticated user '{}' for request: {}", username, requestURI);
+    }
+
+    private void setSpringSecurityAuthentication(UserDetails userDetails, HttpServletRequest request) {
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                userDetails, null, userDetails.getAuthorities());
+        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
+
+    private void setApplicationContext(Integer userId, String username) {
+        AuthenticationContextHolder.setContext(new AuthenticationContext(userId, username, true));
+    }
+
+    private static boolean isAdminPage(String requestURI) {
+        if (!requestURI.startsWith(ADMIN_PATH_PREFIX)) {
+            return false;
+        }
+        return ADMIN_STATIC_PATH_PREFIXES.stream().noneMatch(requestURI::startsWith);
+    }
+
+    private static String truncateToken(String token) {
+        int length = Math.min(token.length(), TOKEN_PREVIEW_MAX_LENGTH);
+        return token.substring(0, length);
     }
 }

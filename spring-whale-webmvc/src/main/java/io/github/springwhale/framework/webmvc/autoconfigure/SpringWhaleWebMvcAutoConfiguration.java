@@ -9,6 +9,7 @@ import io.github.springwhale.framework.webmvc.security.SecurityProperties;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
@@ -26,10 +27,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
  * </p>
  */
 @AutoConfiguration
-@EnableConfigurationProperties({
-        SpringWhaleWebMvcExceptionProperties.class,
-        SecurityProperties.class
-})
+@ConditionalOnWebApplication
+@EnableConfigurationProperties(SpringWhaleWebMvcExceptionProperties.class)
 public class SpringWhaleWebMvcAutoConfiguration {
 
     @Bean

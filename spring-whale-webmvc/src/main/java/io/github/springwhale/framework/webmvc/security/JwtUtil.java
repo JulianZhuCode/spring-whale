@@ -3,8 +3,11 @@ package io.github.springwhale.framework.webmvc.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
@@ -12,6 +15,18 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Utility for creating, parsing, and validating JWT tokens.
+ *
+ * <p>Tokens are signed with HMAC-SHA using the secret configured via
+ * {@link SecurityProperties#getJwtSecret()}. Claims include
+ * {@code userId} and {@code username} alongside the standard JWT
+ * {@code sub} and {@code exp} fields.</p>
+ *
+ * <p>Token extraction from HTTP requests supports both the
+ * {@code Authorization} header (Bearer scheme) and cookies,
+ * as configured in {@link SecurityProperties}.</p>
+ */
 @Slf4j
 @RequiredArgsConstructor
 public class JwtUtil {
@@ -67,5 +82,32 @@ public class JwtUtil {
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
+    }
+
+    /**
+     * Extract JWT from request, checking both the Authorization header
+     * (for REST API clients) and the token cookie (for admin console).
+     * <p>Uses the configured {@link SecurityProperties#getTokenHeader()},
+     * {@link SecurityProperties#getTokenPrefix()}, and
+     * {@link SecurityProperties#getTokenCookieName()} values.</p>
+     */
+    public String extractJwtFromRequest(HttpServletRequest request) {
+        String headerValue = request.getHeader(securityProperties.getTokenHeader());
+        String tokenPrefix = securityProperties.getTokenPrefix();
+
+        if (StringUtils.hasText(headerValue) && headerValue.startsWith(tokenPrefix)) {
+            return headerValue.substring(tokenPrefix.length());
+        }
+
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            String cookieName = securityProperties.getTokenCookieName();
+            for (Cookie cookie : cookies) {
+                if (cookieName.equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
     }
 }

@@ -18,6 +18,21 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Automatically wraps controller return values in {@link ApiResult#success(Object)}.
+ *
+ * <p>This advice runs on every controller response unless the return type
+ * matches one of the following exclusions:</p>
+ * <ul>
+ *   <li>{@link ApiResult} — already wrapped</li>
+ *   <li>{@link ResponseEntity} / {@link HttpEntity} — may carry custom status codes</li>
+ *   <li>{@link ModelAndView} — server-side rendered views</li>
+ *   <li>{@code void} — returns {@link ApiResult#success()} with no body</li>
+ *   <li>Methods annotated with {@link AdviceIgnore} — opt-out at method level</li>
+ * </ul>
+ *
+ * <p>Additional types can be excluded via {@link #addIgnore(Class)}.</p>
+ */
 @RestControllerAdvice
 public class SpringWhaleWebMvcResponseBodyAdvice implements ResponseBodyAdvice<Object> {
 
