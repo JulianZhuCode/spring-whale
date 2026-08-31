@@ -9,7 +9,6 @@
     <description>spring-whale</description>
     <modules>
         <module>spring-whale-core</module>
-        <module>spring-whale-cloud</module>
         <module>spring-whale-webmvc</module>
         <module>spring-whale-database</module>
         <module>spring-whale-thymeleaf</module>
@@ -68,11 +67,6 @@
             <dependency>
                 <groupId>io.github.julianzhucode</groupId>
                 <artifactId>spring-whale-webmvc</artifactId>
-                <version>${my.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.github.julianzhucode</groupId>
-                <artifactId>spring-whale-cloud</artifactId>
                 <version>${my.version}</version>
             </dependency>
             <dependency>
