@@ -24,6 +24,10 @@ public abstract class BaseEntity {
     private Integer createBy;
 
     private Integer updateBy;
+
+    @Version
+    private Integer version;
+
     /**
      * 0 = normal, 1 = deleted
      */

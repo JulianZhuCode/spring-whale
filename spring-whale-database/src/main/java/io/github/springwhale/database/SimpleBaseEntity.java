@@ -18,6 +18,9 @@ public abstract class SimpleBaseEntity {
 
     private Integer createBy;
 
+    @Version
+    private Integer version;
+
     @PrePersist
     public void prePersist() {
         this.createBy = AuthUtil.getUserId();

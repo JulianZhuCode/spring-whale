@@ -9,7 +9,8 @@ public class JpaQueryWrapper<T> extends AbstractWrapper<T, JpaQueryWrapper<T>>
         Like<T, JpaQueryWrapper<T>>,
         Func<T, JpaQueryWrapper<T>>,
         Nested<T, JpaQueryWrapper<T>>,
-        OrderBy<T, JpaQueryWrapper<T>> {
+        OrderBy<T, JpaQueryWrapper<T>>,
+        Raw<T, JpaQueryWrapper<T>> {
 
     private JpaQueryWrapper(Class<T> entityClass) {
         super(entityClass);

@@ -190,4 +190,34 @@ class JpaQueryWrapperTest {
 
         assertNotNull(spec);
     }
+
+    @Test
+    void testRawCondition() {
+        Specification<TestEntity> spec = JpaQueryWrapper.of(TestEntity.class)
+                .raw((root, cb) -> cb.equal(root.get("username"), "test"))
+                .buildSpec();
+
+        assertNotNull(spec);
+    }
+
+    @Test
+    void testRawConditionWithJoin() {
+        Specification<TestEntity> spec = JpaQueryWrapper.of(TestEntity.class)
+                .raw((root, cb) -> {
+                    var join = root.join("department");
+                    return cb.equal(join.get("name"), "Engineering");
+                })
+                .buildSpec();
+
+        assertNotNull(spec);
+    }
+
+    @Test
+    void testRawConditionDisabled() {
+        Specification<TestEntity> spec = JpaQueryWrapper.of(TestEntity.class)
+                .raw(false, (root, cb) -> cb.equal(root.get("username"), "test"))
+                .buildSpec();
+
+        assertNotNull(spec);
+    }
 }
