@@ -10,7 +10,7 @@ public interface Raw<T, Children extends AbstractWrapper<T, Children>> extends W
 
     default Children raw(boolean condition, BiFunction<Root<T>, CriteriaBuilder, Predicate> predicateBuilder) {
         if (condition) {
-            getWrapper().addCondition((root, cb) -> predicateBuilder.apply(root, cb));
+            getWrapper().addCondition((root, cb, joinMap) -> predicateBuilder.apply(root, cb));
         }
         return getWrapper().self();
     }

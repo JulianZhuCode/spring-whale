@@ -7,9 +7,17 @@ import java.util.List;
 
 public interface Func<T, Children extends AbstractWrapper<T, Children>> extends Wrapper<T, Children> {
 
+    static boolean isEmptyList(Object[] arr) {
+        return arr == null || arr.length == 0;
+    }
+
+    static boolean isEmptyList(List<?> list) {
+        return list == null || list.isEmpty();
+    }
+
     default Children isNull(boolean condition, SerializableFunction<T, ?> field) {
         if (condition) {
-            getWrapper().addCondition((root, cb) -> cb.isNull(root.get(AbstractWrapper.getPropertyName(field))));
+            getWrapper().addCondition((root, cb, joinMap) -> cb.isNull(root.get(AbstractWrapper.getPropertyName(field))));
         }
         return getWrapper().self();
     }
@@ -20,7 +28,7 @@ public interface Func<T, Children extends AbstractWrapper<T, Children>> extends 
 
     default Children isNull(boolean condition, String field) {
         if (condition) {
-            getWrapper().addCondition((root, cb) -> cb.isNull(root.get(field)));
+            getWrapper().addCondition((root, cb, joinMap) -> cb.isNull(root.get(field)));
         }
         return getWrapper().self();
     }
@@ -31,7 +39,7 @@ public interface Func<T, Children extends AbstractWrapper<T, Children>> extends 
 
     default Children isNotNull(boolean condition, SerializableFunction<T, ?> field) {
         if (condition) {
-            getWrapper().addCondition((root, cb) -> cb.isNotNull(root.get(AbstractWrapper.getPropertyName(field))));
+            getWrapper().addCondition((root, cb, joinMap) -> cb.isNotNull(root.get(AbstractWrapper.getPropertyName(field))));
         }
         return getWrapper().self();
     }
@@ -42,7 +50,7 @@ public interface Func<T, Children extends AbstractWrapper<T, Children>> extends 
 
     default Children isNotNull(boolean condition, String field) {
         if (condition) {
-            getWrapper().addCondition((root, cb) -> cb.isNotNull(root.get(field)));
+            getWrapper().addCondition((root, cb, joinMap) -> cb.isNotNull(root.get(field)));
         }
         return getWrapper().self();
     }
@@ -52,8 +60,8 @@ public interface Func<T, Children extends AbstractWrapper<T, Children>> extends 
     }
 
     default Children in(boolean condition, SerializableFunction<T, ?> field, Object... values) {
-        if (condition) {
-            getWrapper().addCondition((root, cb) -> root.get(AbstractWrapper.getPropertyName(field)).in(Arrays.asList(values)));
+        if (condition && !isEmptyList(values)) {
+            getWrapper().addCondition((root, cb, joinMap) -> root.get(AbstractWrapper.getPropertyName(field)).in(Arrays.asList(values)));
         }
         return getWrapper().self();
     }
@@ -63,8 +71,8 @@ public interface Func<T, Children extends AbstractWrapper<T, Children>> extends 
     }
 
     default Children in(boolean condition, String field, Object... values) {
-        if (condition) {
-            getWrapper().addCondition((root, cb) -> root.get(field).in(Arrays.asList(values)));
+        if (condition && !isEmptyList(values)) {
+            getWrapper().addCondition((root, cb, joinMap) -> root.get(field).in(Arrays.asList(values)));
         }
         return getWrapper().self();
     }
@@ -74,8 +82,8 @@ public interface Func<T, Children extends AbstractWrapper<T, Children>> extends 
     }
 
     default Children in(boolean condition, SerializableFunction<T, ?> field, List<?> values) {
-        if (condition) {
-            getWrapper().addCondition((root, cb) -> root.get(AbstractWrapper.getPropertyName(field)).in(values));
+        if (condition && !isEmptyList(values)) {
+            getWrapper().addCondition((root, cb, joinMap) -> root.get(AbstractWrapper.getPropertyName(field)).in(values));
         }
         return getWrapper().self();
     }
@@ -85,14 +93,58 @@ public interface Func<T, Children extends AbstractWrapper<T, Children>> extends 
     }
 
     default Children in(boolean condition, String field, List<?> values) {
-        if (condition) {
-            getWrapper().addCondition((root, cb) -> root.get(field).in(values));
+        if (condition && !isEmptyList(values)) {
+            getWrapper().addCondition((root, cb, joinMap) -> root.get(field).in(values));
         }
         return getWrapper().self();
     }
 
     default Children in(String field, List<?> values) {
         return in(true, field, values);
+    }
+
+    default Children notIn(boolean condition, SerializableFunction<T, ?> field, Object... values) {
+        if (condition && !isEmptyList(values)) {
+            getWrapper().addCondition((root, cb, joinMap) -> cb.not(root.get(AbstractWrapper.getPropertyName(field)).in(Arrays.asList(values))));
+        }
+        return getWrapper().self();
+    }
+
+    default Children notIn(SerializableFunction<T, ?> field, Object... values) {
+        return notIn(true, field, values);
+    }
+
+    default Children notIn(boolean condition, String field, Object... values) {
+        if (condition && !isEmptyList(values)) {
+            getWrapper().addCondition((root, cb, joinMap) -> cb.not(root.get(field).in(Arrays.asList(values))));
+        }
+        return getWrapper().self();
+    }
+
+    default Children notIn(String field, Object... values) {
+        return notIn(true, field, values);
+    }
+
+    default Children notIn(boolean condition, SerializableFunction<T, ?> field, List<?> values) {
+        if (condition && !isEmptyList(values)) {
+            getWrapper().addCondition((root, cb, joinMap) -> cb.not(root.get(AbstractWrapper.getPropertyName(field)).in(values)));
+        }
+        return getWrapper().self();
+    }
+
+    default Children notIn(SerializableFunction<T, ?> field, List<?> values) {
+        return notIn(true, field, values);
+    }
+
+    default Children notIn(boolean condition, String field, List<?> values) {
+        if (condition && !isEmptyList(values)) {
+            getWrapper().addCondition((root, cb, joinMap) -> cb.not(root.get(field).in(values)));
+        }
+        return getWrapper().self();
+    }
+
+    default Children notIn(String field, List<?> values) {
+        return notIn(true, field, values);
     }
 
     default Children between(boolean condition, SerializableFunction<T, ?> field, Object start, Object end) {
@@ -117,5 +169,29 @@ public interface Func<T, Children extends AbstractWrapper<T, Children>> extends 
 
     default Children between(String field, Object start, Object end) {
         return between(true, field, start, end);
+    }
+
+    default Children notBetween(boolean condition, SerializableFunction<T, ?> field, Object start, Object end) {
+        if (condition) {
+            getWrapper().addCondition(new AbstractWrapper.RangeCondition<>(
+                    AbstractWrapper.getPropertyName(field), start, end, AbstractWrapper.RangeType.NOT_BETWEEN));
+        }
+        return getWrapper().self();
+    }
+
+    default Children notBetween(SerializableFunction<T, ?> field, Object start, Object end) {
+        return notBetween(true, field, start, end);
+    }
+
+    default Children notBetween(boolean condition, String field, Object start, Object end) {
+        if (condition) {
+            getWrapper().addCondition(new AbstractWrapper.RangeCondition<>(
+                    field, start, end, AbstractWrapper.RangeType.NOT_BETWEEN));
+        }
+        return getWrapper().self();
+    }
+
+    default Children notBetween(String field, Object start, Object end) {
+        return notBetween(true, field, start, end);
     }
 }

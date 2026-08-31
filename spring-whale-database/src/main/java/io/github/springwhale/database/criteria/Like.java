@@ -16,7 +16,7 @@ public interface Like<T, Children extends AbstractWrapper<T, Children>> extends 
         if (condition) {
             ensureValueNotNull("like()", AbstractWrapper.getPropertyName(field), value);
             String pattern = "%" + value + "%";
-            getWrapper().addCondition(new AbstractWrapper.LikeCondition<>(AbstractWrapper.getPropertyName(field), pattern, false));
+            getWrapper().addCondition(new AbstractWrapper.LikeCondition<>(AbstractWrapper.getPropertyName(field), pattern, false, false));
         }
         return getWrapper().self();
     }
@@ -29,7 +29,7 @@ public interface Like<T, Children extends AbstractWrapper<T, Children>> extends 
         if (condition) {
             ensureValueNotNull("like()", field, value);
             String pattern = "%" + value + "%";
-            getWrapper().addCondition(new AbstractWrapper.LikeCondition<>(field, pattern, false));
+            getWrapper().addCondition(new AbstractWrapper.LikeCondition<>(field, pattern, false, false));
         }
         return getWrapper().self();
     }
@@ -42,7 +42,7 @@ public interface Like<T, Children extends AbstractWrapper<T, Children>> extends 
         if (condition) {
             ensureValueNotNull("likeIgnoreCase()", AbstractWrapper.getPropertyName(field), value);
             String pattern = "%" + value.toLowerCase() + "%";
-            getWrapper().addCondition(new AbstractWrapper.LikeCondition<>(AbstractWrapper.getPropertyName(field), pattern, true));
+            getWrapper().addCondition(new AbstractWrapper.LikeCondition<>(AbstractWrapper.getPropertyName(field), pattern, true, false));
         }
         return getWrapper().self();
     }
@@ -55,7 +55,7 @@ public interface Like<T, Children extends AbstractWrapper<T, Children>> extends 
         if (condition) {
             ensureValueNotNull("likeIgnoreCase()", field, value);
             String pattern = "%" + value.toLowerCase() + "%";
-            getWrapper().addCondition(new AbstractWrapper.LikeCondition<>(field, pattern, true));
+            getWrapper().addCondition(new AbstractWrapper.LikeCondition<>(field, pattern, true, false));
         }
         return getWrapper().self();
     }
@@ -68,7 +68,7 @@ public interface Like<T, Children extends AbstractWrapper<T, Children>> extends 
         if (condition) {
             ensureValueNotNull("likeLeft()", AbstractWrapper.getPropertyName(field), value);
             String pattern = "%" + value;
-            getWrapper().addCondition(new AbstractWrapper.LikeCondition<>(AbstractWrapper.getPropertyName(field), pattern, false));
+            getWrapper().addCondition(new AbstractWrapper.LikeCondition<>(AbstractWrapper.getPropertyName(field), pattern, false, false));
         }
         return getWrapper().self();
     }
@@ -81,7 +81,7 @@ public interface Like<T, Children extends AbstractWrapper<T, Children>> extends 
         if (condition) {
             ensureValueNotNull("likeLeft()", field, value);
             String pattern = "%" + value;
-            getWrapper().addCondition(new AbstractWrapper.LikeCondition<>(field, pattern, false));
+            getWrapper().addCondition(new AbstractWrapper.LikeCondition<>(field, pattern, false, false));
         }
         return getWrapper().self();
     }
@@ -94,7 +94,7 @@ public interface Like<T, Children extends AbstractWrapper<T, Children>> extends 
         if (condition) {
             ensureValueNotNull("likeRight()", AbstractWrapper.getPropertyName(field), value);
             String pattern = value + "%";
-            getWrapper().addCondition(new AbstractWrapper.LikeCondition<>(AbstractWrapper.getPropertyName(field), pattern, false));
+            getWrapper().addCondition(new AbstractWrapper.LikeCondition<>(AbstractWrapper.getPropertyName(field), pattern, false, false));
         }
         return getWrapper().self();
     }
@@ -107,12 +107,116 @@ public interface Like<T, Children extends AbstractWrapper<T, Children>> extends 
         if (condition) {
             ensureValueNotNull("likeRight()", field, value);
             String pattern = value + "%";
-            getWrapper().addCondition(new AbstractWrapper.LikeCondition<>(field, pattern, false));
+            getWrapper().addCondition(new AbstractWrapper.LikeCondition<>(field, pattern, false, false));
         }
         return getWrapper().self();
     }
 
     default Children likeRight(String field, String value) {
         return likeRight(true, field, value);
+    }
+
+    default Children notLike(boolean condition, SerializableFunction<T, ?> field, String value) {
+        if (condition) {
+            ensureValueNotNull("notLike()", AbstractWrapper.getPropertyName(field), value);
+            String pattern = "%" + value + "%";
+            getWrapper().addCondition(new AbstractWrapper.LikeCondition<>(AbstractWrapper.getPropertyName(field), pattern, false, true));
+        }
+        return getWrapper().self();
+    }
+
+    default Children notLike(SerializableFunction<T, ?> field, String value) {
+        return notLike(true, field, value);
+    }
+
+    default Children notLike(boolean condition, String field, String value) {
+        if (condition) {
+            ensureValueNotNull("notLike()", field, value);
+            String pattern = "%" + value + "%";
+            getWrapper().addCondition(new AbstractWrapper.LikeCondition<>(field, pattern, false, true));
+        }
+        return getWrapper().self();
+    }
+
+    default Children notLike(String field, String value) {
+        return notLike(true, field, value);
+    }
+
+    default Children notLikeIgnoreCase(boolean condition, SerializableFunction<T, ?> field, String value) {
+        if (condition) {
+            ensureValueNotNull("notLikeIgnoreCase()", AbstractWrapper.getPropertyName(field), value);
+            String pattern = "%" + value.toLowerCase() + "%";
+            getWrapper().addCondition(new AbstractWrapper.LikeCondition<>(AbstractWrapper.getPropertyName(field), pattern, true, true));
+        }
+        return getWrapper().self();
+    }
+
+    default Children notLikeIgnoreCase(SerializableFunction<T, ?> field, String value) {
+        return notLikeIgnoreCase(true, field, value);
+    }
+
+    default Children notLikeIgnoreCase(boolean condition, String field, String value) {
+        if (condition) {
+            ensureValueNotNull("notLikeIgnoreCase()", field, value);
+            String pattern = "%" + value.toLowerCase() + "%";
+            getWrapper().addCondition(new AbstractWrapper.LikeCondition<>(field, pattern, true, true));
+        }
+        return getWrapper().self();
+    }
+
+    default Children notLikeIgnoreCase(String field, String value) {
+        return notLikeIgnoreCase(true, field, value);
+    }
+
+    default Children notLikeLeft(boolean condition, SerializableFunction<T, ?> field, String value) {
+        if (condition) {
+            ensureValueNotNull("notLikeLeft()", AbstractWrapper.getPropertyName(field), value);
+            String pattern = "%" + value;
+            getWrapper().addCondition(new AbstractWrapper.LikeCondition<>(AbstractWrapper.getPropertyName(field), pattern, false, true));
+        }
+        return getWrapper().self();
+    }
+
+    default Children notLikeLeft(SerializableFunction<T, ?> field, String value) {
+        return notLikeLeft(true, field, value);
+    }
+
+    default Children notLikeLeft(boolean condition, String field, String value) {
+        if (condition) {
+            ensureValueNotNull("notLikeLeft()", field, value);
+            String pattern = "%" + value;
+            getWrapper().addCondition(new AbstractWrapper.LikeCondition<>(field, pattern, false, true));
+        }
+        return getWrapper().self();
+    }
+
+    default Children notLikeLeft(String field, String value) {
+        return notLikeLeft(true, field, value);
+    }
+
+    default Children notLikeRight(boolean condition, SerializableFunction<T, ?> field, String value) {
+        if (condition) {
+            ensureValueNotNull("notLikeRight()", AbstractWrapper.getPropertyName(field), value);
+            String pattern = value + "%";
+            getWrapper().addCondition(new AbstractWrapper.LikeCondition<>(AbstractWrapper.getPropertyName(field), pattern, false, true));
+        }
+        return getWrapper().self();
+    }
+
+    default Children notLikeRight(SerializableFunction<T, ?> field, String value) {
+        return notLikeRight(true, field, value);
+    }
+
+    default Children notLikeRight(boolean condition, String field, String value) {
+        if (condition) {
+            ensureValueNotNull("notLikeRight()", field, value);
+            String pattern = value + "%";
+            getWrapper().addCondition(new AbstractWrapper.LikeCondition<>(field, pattern, false, true));
+        }
+        return getWrapper().self();
+    }
+
+    default Children notLikeRight(String field, String value) {
+        return notLikeRight(true, field, value);
     }
 }

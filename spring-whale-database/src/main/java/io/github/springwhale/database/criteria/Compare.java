@@ -6,7 +6,7 @@ public interface Compare<T, Children extends AbstractWrapper<T, Children>> exten
 
     default Children eq(boolean condition, SerializableFunction<T, ?> field, Object value) {
         if (condition) {
-            getWrapper().addCondition((root, cb) -> cb.equal(root.get(AbstractWrapper.getPropertyName(field)), value));
+            getWrapper().addCondition((root, cb, joinMap) -> cb.equal(root.get(AbstractWrapper.getPropertyName(field)), value));
         }
         return getWrapper().self();
     }
@@ -17,7 +17,7 @@ public interface Compare<T, Children extends AbstractWrapper<T, Children>> exten
 
     default Children eq(boolean condition, String field, Object value) {
         if (condition) {
-            getWrapper().addCondition((root, cb) -> cb.equal(root.get(field), value));
+            getWrapper().addCondition((root, cb, joinMap) -> cb.equal(root.get(field), value));
         }
         return getWrapper().self();
     }
@@ -28,7 +28,7 @@ public interface Compare<T, Children extends AbstractWrapper<T, Children>> exten
 
     default Children ne(boolean condition, SerializableFunction<T, ?> field, Object value) {
         if (condition) {
-            getWrapper().addCondition((root, cb) -> cb.notEqual(root.get(AbstractWrapper.getPropertyName(field)), value));
+            getWrapper().addCondition((root, cb, joinMap) -> cb.notEqual(root.get(AbstractWrapper.getPropertyName(field)), value));
         }
         return getWrapper().self();
     }
@@ -39,7 +39,7 @@ public interface Compare<T, Children extends AbstractWrapper<T, Children>> exten
 
     default Children ne(boolean condition, String field, Object value) {
         if (condition) {
-            getWrapper().addCondition((root, cb) -> cb.notEqual(root.get(field), value));
+            getWrapper().addCondition((root, cb, joinMap) -> cb.notEqual(root.get(field), value));
         }
         return getWrapper().self();
     }
@@ -142,5 +142,49 @@ public interface Compare<T, Children extends AbstractWrapper<T, Children>> exten
 
     default Children le(String field, Object value) {
         return le(true, field, value);
+    }
+
+    default Children eqIgnoreCase(boolean condition, SerializableFunction<T, ?> field, String value) {
+        if (condition) {
+            getWrapper().addCondition((root, cb, joinMap) -> cb.equal(cb.lower(root.get(AbstractWrapper.getPropertyName(field))), value.toLowerCase()));
+        }
+        return getWrapper().self();
+    }
+
+    default Children eqIgnoreCase(SerializableFunction<T, ?> field, String value) {
+        return eqIgnoreCase(true, field, value);
+    }
+
+    default Children eqIgnoreCase(boolean condition, String field, String value) {
+        if (condition) {
+            getWrapper().addCondition((root, cb, joinMap) -> cb.equal(cb.lower(root.get(field)), value.toLowerCase()));
+        }
+        return getWrapper().self();
+    }
+
+    default Children eqIgnoreCase(String field, String value) {
+        return eqIgnoreCase(true, field, value);
+    }
+
+    default Children neIgnoreCase(boolean condition, SerializableFunction<T, ?> field, String value) {
+        if (condition) {
+            getWrapper().addCondition((root, cb, joinMap) -> cb.notEqual(cb.lower(root.get(AbstractWrapper.getPropertyName(field))), value.toLowerCase()));
+        }
+        return getWrapper().self();
+    }
+
+    default Children neIgnoreCase(SerializableFunction<T, ?> field, String value) {
+        return neIgnoreCase(true, field, value);
+    }
+
+    default Children neIgnoreCase(boolean condition, String field, String value) {
+        if (condition) {
+            getWrapper().addCondition((root, cb, joinMap) -> cb.notEqual(cb.lower(root.get(field)), value.toLowerCase()));
+        }
+        return getWrapper().self();
+    }
+
+    default Children neIgnoreCase(String field, String value) {
+        return neIgnoreCase(true, field, value);
     }
 }

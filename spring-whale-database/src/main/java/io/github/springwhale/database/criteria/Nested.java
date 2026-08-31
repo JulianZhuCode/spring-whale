@@ -4,6 +4,11 @@ import java.util.function.Consumer;
 
 public interface Nested<T, Children extends AbstractWrapper<T, Children>> extends Wrapper<T, Children> {
 
+    default Children or() {
+        getWrapper().setTopLevelOr(true);
+        return getWrapper().self();
+    }
+
     default Children or(boolean condition, Consumer<Children> consumer) {
         if (condition) {
             Children subWrapper = getWrapper().createSubWrapper();
