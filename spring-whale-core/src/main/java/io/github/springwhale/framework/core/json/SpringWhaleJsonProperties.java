@@ -2,7 +2,6 @@ package io.github.springwhale.framework.core.json;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
 
 import java.math.RoundingMode;
 
@@ -10,7 +9,6 @@ import java.math.RoundingMode;
  * Configuration properties for JSON serialization features
  */
 @Data
-@Component
 @ConfigurationProperties(prefix = "spring.whale.json")
 public class SpringWhaleJsonProperties {
 

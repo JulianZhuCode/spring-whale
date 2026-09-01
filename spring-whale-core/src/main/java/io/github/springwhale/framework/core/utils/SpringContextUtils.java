@@ -5,12 +5,10 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.stereotype.Component;
 
 /**
  * Spring context utility class for obtaining beans in non-Spring managed classes
  */
-@Component
 public class SpringContextUtils implements ApplicationContextAware {
 
     @Getter

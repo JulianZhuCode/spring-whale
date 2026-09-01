@@ -2,8 +2,6 @@ package io.github.springwhale.framework.core.utils;
 
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -11,11 +9,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -37,7 +31,6 @@ import java.util.function.Consumer;
  * </ul>
  */
 @Slf4j
-@Component
 public class EdgeTtsUtil {
 
     private final String command;
@@ -46,22 +39,7 @@ public class EdgeTtsUtil {
     private final ExecutorService executor;
     private final AtomicInteger activeTasks = new AtomicInteger(0);
 
-    /**
-     * A TTS generation request.
-     */
-    public record TtsRequest(String id, String text, String voice, String outputPath) {
-    }
-
-    /**
-     * A TTS generation result.
-     */
-    public record TtsResult(String id, boolean success, String outputPath, String errorMessage) {
-    }
-
-    public EdgeTtsUtil(
-            @Value("${edge-tts.command:edge-tts}") String command,
-            @Value("${edge-tts.timeout-seconds:30}") int timeoutSeconds,
-            @Value("${edge-tts.concurrency:0}") int concurrency) {
+    public EdgeTtsUtil(String command, int timeoutSeconds, int concurrency) {
         this.command = command;
         this.timeoutSeconds = timeoutSeconds > 0 ? timeoutSeconds : 30;
         this.concurrency = concurrency > 0 ? concurrency : Math.max(2, Runtime.getRuntime().availableProcessors() / 2);
@@ -90,10 +68,10 @@ public class EdgeTtsUtil {
     /**
      * Convert text to an MP3 audio file with a configurable timeout.
      *
-     * @param text            the text content to convert to speech
-     * @param voice           the voice name
-     * @param outputPath      the target file path
-     * @param timeoutSeconds  max time in seconds before the process is killed
+     * @param text           the text content to convert to speech
+     * @param voice          the voice name
+     * @param outputPath     the target file path
+     * @param timeoutSeconds max time in seconds before the process is killed
      * @return {@code true} if successful
      */
     public boolean ttsToMp3(String text, String voice, String outputPath, int timeoutSeconds) {
@@ -154,8 +132,8 @@ public class EdgeTtsUtil {
     /**
      * Batch TTS generation with per-item callback for real-time progress reporting.
      *
-     * @param requests       list of TTS requests with unique IDs
-     * @param itemCallback   callback invoked immediately after each request completes
+     * @param requests     list of TTS requests with unique IDs
+     * @param itemCallback callback invoked immediately after each request completes
      * @return list of results in the same order as requests
      */
     public List<TtsResult> ttsToMp3Batch(List<TtsRequest> requests,
@@ -319,5 +297,17 @@ public class EdgeTtsUtil {
             readerThread.interrupt();
             return new TtsResult(req.id(), false, req.outputPath(), "Interrupted");
         }
+    }
+
+    /**
+     * A TTS generation request.
+     */
+    public record TtsRequest(String id, String text, String voice, String outputPath) {
+    }
+
+    /**
+     * A TTS generation result.
+     */
+    public record TtsResult(String id, boolean success, String outputPath, String errorMessage) {
     }
 }

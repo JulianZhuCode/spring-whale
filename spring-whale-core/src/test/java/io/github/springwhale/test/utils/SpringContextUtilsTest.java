@@ -29,10 +29,10 @@ class SpringContextUtilsTest {
     @Test
     @DisplayName("Should get bean by simple bean name")
     void testGetBeanBySimpleBeanName() {
-        Object bean = SpringContextUtils.getBean("springWhaleJsonProperties");
+        Object bean = SpringContextUtils.getBean("springContextUtils");
 
         assertNotNull(bean, "Bean should be found by simple name");
-        assertInstanceOf(SpringWhaleJsonProperties.class, bean, "Bean should be instance of SpringWhaleJsonConfig");
+        assertInstanceOf(SpringContextUtils.class, bean, "Bean should be instance of SpringContextUtils");
     }
 
     @Test
@@ -48,10 +48,10 @@ class SpringContextUtilsTest {
     @Test
     @DisplayName("Should get bean by name and type")
     void testGetBeanByNameAndType() {
-        SpringWhaleJsonProperties config = SpringContextUtils.getBean("springWhaleJsonProperties", SpringWhaleJsonProperties.class);
+        SpringContextUtils utils = SpringContextUtils.getBean("springContextUtils", SpringContextUtils.class);
 
-        assertNotNull(config, "Bean should be found by name and type");
-        assertInstanceOf(SpringWhaleJsonProperties.class, config, "Bean should be instance of SpringWhaleJsonConfig");
+        assertNotNull(utils, "Bean should be found by name and type");
+        assertInstanceOf(SpringContextUtils.class, utils, "Bean should be instance of SpringContextUtils");
     }
 
     @Test
