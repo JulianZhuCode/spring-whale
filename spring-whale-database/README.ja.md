@@ -1,6 +1,7 @@
 # spring-whale-database
 
-spring-whale データベース拡張フレームワーク。JPA エンティティ基底クラス、動的クエリラッパー、データスコープフィルタリング、マルチテナント分離、Flyway 耐障害性マイグレーション機能を提供します。
+spring-whale データベース拡張フレームワーク。JPA エンティティ基底クラス、動的クエリラッパー、データスコープフィルタリング、マルチテナント分離、Flyway
+耐障害性マイグレーション機能を提供します。
 
 ---
 
@@ -61,19 +62,26 @@ flowchart LR
     B -->|データスコープ/テナントコンテキスト有効| SQL[(SQL フィルタリング)]
 ```
 
-> **設計のポイント：** データスコープとテナント分離は SQL レベルで自動的に WHERE 句を注入し、ビジネスコードに対して透過的です。クロスサービス呼び出し時は、データスコープコンテキストが HTTP ヘッダー経由で自動伝播され、下流サービスでの再解決が不要です。
+> **設計のポイント：** データスコープとテナント分離は SQL レベルで自動的に WHERE
+> 句を注入し、ビジネスコードに対して透過的です。クロスサービス呼び出し時は、データスコープコンテキストが HTTP
+> ヘッダー経由で自動伝播され、下流サービスでの再解決が不要です。
 
 ---
 
 ## コア機能
 
-- **エンティティ基底クラス**：`BaseEntity` は自動監査（作成者/日時、更新者/日時）、楽観ロック（`@Version`）、論理削除（`@SQLDelete` + `@SQLRestriction`）を提供；`SimpleBaseEntity` は軽量版（ID + 作成者/日時 + 楽観ロックのみ）
-- **MyBatis-Plus スタイル動的クエリ**：`JpaQueryWrapper` は JPA Criteria API 上でチェーン可能な条件構築を提供し、eq、ne、like、in、between、groupBy、having、distinct、or、and などの全操作をサポート
+- **エンティティ基底クラス**：`BaseEntity` は自動監査（作成者/日時、更新者/日時）、楽観ロック（`@Version`）、論理削除（
+  `@SQLDelete` + `@SQLRestriction`）を提供；`SimpleBaseEntity` は軽量版（ID + 作成者/日時）
+- **MyBatis-Plus スタイル動的クエリ**：`JpaQueryWrapper` は JPA Criteria API
+  上でチェーン可能な条件構築を提供し、eq、ne、like、in、between、groupBy、having、distinct、or、and などの全操作をサポート
 - **型安全ソート**：`SortUtils` はカンマ区切り文字列から Spring Data `Sort` を構築し、フィールドホワイトリスト検証を内蔵
-- **宣言的データスコープ**：`@DataScope` アノテーションでエンドポイントのデータ可視範囲を宣言、SELF / DEPT / DEPT_AND_CHILD / CUSTOM / CALLER / AUTO の6レベルをサポート
-- **マルチテナント分離**：`@TenantIdField` でエンティティのテナントフィールドを指定、フレームワークが自動的にテナント WHERE 句を注入；`@NonTenant` で指定エンドポイントのテナントフィルタリングをスキップ
+- **宣言的データスコープ**：`@DataScope` アノテーションでエンドポイントのデータ可視範囲を宣言、SELF / DEPT /
+  DEPT_AND_CHILD / CUSTOM / CALLER / AUTO の6レベルをサポート
+- **マルチテナント分離**：`@TenantIdField` でエンティティのテナントフィールドを指定、フレームワークが自動的にテナント
+  WHERE 句を注入；`@NonTenant` で指定エンドポイントのテナントフィルタリングをスキップ
 - **クロスサービス伝播**：データスコープとテナントコンテキストが HTTP ヘッダー経由でマイクロサービス間を自動伝播、下流サービスでの再解決不要
-- **Flyway 耐障害性**：マイグレーション失敗時にエラーログを記録しアプリケーション起動をブロックせず、イベント駆動リトライをサポート；オプションで `spring-whale-event` フレームワークと統合し、イベント永続化・リトライ機構・分散シナリオに対応
+- **Flyway 耐障害性**：マイグレーション失敗時にエラーログを記録しアプリケーション起動をブロックせず、イベント駆動リトライをサポート；オプションで
+  `spring-whale-event` フレームワークと統合し、イベント永続化・リトライ機構・分散シナリオに対応
 
 ---
 
@@ -82,6 +90,7 @@ flowchart LR
 ### 1. Maven 依存関係
 
 ```xml
+
 <dependency>
     <groupId>io.github.julianzhucode</groupId>
     <artifactId>spring-whale-database</artifactId>
@@ -100,7 +109,7 @@ public class SysUser extends BaseEntity {
     private String email;
 }
 
-// 軽量版：ID + 作成者/日時 + 楽観ロックのみ
+// 軽量版：ID + 作成者/日時
 @Entity
 @Table(name = "sys_config")
 public class SysConfig extends SimpleBaseEntity {
@@ -109,7 +118,9 @@ public class SysConfig extends SimpleBaseEntity {
 }
 ```
 
-> **BaseEntity の自動動作：** `@PrePersist` で `createTime`、`updateTime`、`createBy`、`updateBy` を自動設定；`@PreUpdate` で `updateTime`、`updateBy` を自動更新；`@SQLDelete` で DELETE を `UPDATE SET del_flag = 1` に変換；`@SQLRestriction` で `del_flag = 0` のレコードを自動フィルタリング。
+> **BaseEntity の自動動作：** `@PrePersist` で `createTime`、`updateTime`、`createBy`、`updateBy` を自動設定；`@PreUpdate` で
+`updateTime`、`updateBy` を自動更新；`@SQLDelete` で DELETE を `UPDATE SET del_flag = 1` に変換；`@SQLRestriction` で
+`del_flag = 0` のレコードを自動フィルタリング。
 
 ### 3. 動的クエリ（JpaQueryWrapper）
 
@@ -210,17 +221,17 @@ public class OrderController {
     // 本人のデータのみ表示
     @DataScope(scopeType = DataScopeType.SELF, module = "order")
     @GetMapping("/my")
-    public List<Order> listMyOrders() { ... }
+    public List<Order> listMyOrders() { ...}
 
     // 部門および子部門のデータを表示
     @DataScope(scopeType = DataScopeType.DEPT_AND_CHILD, module = "order")
     @GetMapping("/dept")
-    public List<Order> listDeptOrders() { ... }
+    public List<Order> listDeptOrders() { ...}
 
     // 上流サービスのデータスコープに委譲（マイクロサービスシナリオ）
     @DataScope(scopeType = DataScopeType.CALLER, module = "order")
     @GetMapping("/all")
-    public List<Order> listAllOrders() { ... }
+    public List<Order> listAllOrders() { ...}
 }
 ```
 
@@ -272,11 +283,13 @@ public class GlobalConfigController {
 
     @NonTenant
     @GetMapping("/config")
-    public List<Config> listGlobalConfig() { ... }
+    public List<Config> listGlobalConfig() { ...}
 }
 ```
 
-> **テナントフィルタリングメカニズム：** フレームワークは SQL レベルで自動的に `tenant_id = ?` を注入します。同一エンティティに複数のテナントフィールド（例：`tenant_id` と `target_tenant_id`）を指定でき、条件は OR で結合されます。
+> **テナントフィルタリングメカニズム：** フレームワークは SQL レベルで自動的に `tenant_id = ?`
+> を注入します。同一エンティティに複数のテナントフィールド（例：`tenant_id` と `target_tenant_id`）を指定でき、条件は OR
+> で結合されます。
 
 ### 9. Flyway 耐障害性マイグレーション
 
@@ -303,6 +316,7 @@ CREATE TABLE flyway_error_log
 デフォルトでは Spring のネイティブイベント機構を使用します。`FlywayMigrationEvent` をリスンするだけです：
 
 ```java
+
 @Component
 public class FlywayAlertListener implements ApplicationListener<FlywayMigrationEvent> {
     @Override
@@ -316,9 +330,11 @@ public class FlywayAlertListener implements ApplicationListener<FlywayMigrationE
 
 #### オプション：spring-whale-event フレームワークとの統合
 
-プロジェクトに `spring-whale-event-core` が同時に導入されている場合、フレームワークは自動的に Flyway イベントをイベントフレームワークにブリッジします。追加設定は不要です：
+プロジェクトに `spring-whale-event-core` が同時に導入されている場合、フレームワークは自動的に Flyway
+イベントをイベントフレームワークにブリッジします。追加設定は不要です：
 
 ```xml
+
 <dependency>
     <groupId>io.github.julianzhucode</groupId>
     <artifactId>spring-whale-event-core</artifactId>
@@ -328,6 +344,7 @@ public class FlywayAlertListener implements ApplicationListener<FlywayMigrationE
 導入後は `ApplicationListener` の代わりに `AbstractEventListener` を使用してイベントを消費できます：
 
 ```java
+
 @Component
 public class FlywayAlertListener extends AbstractEventListener<FlywayMigrationEvent> {
     @Override
@@ -339,17 +356,18 @@ public class FlywayAlertListener extends AbstractEventListener<FlywayMigrationEv
 }
 ```
 
-> **注意：** イベントフレームワーク導入後、`ApplicationListener` 実装は無効になります。`AbstractEventListener` を統一的に使用してください。
+> **注意：** イベントフレームワーク導入後、`ApplicationListener` 実装は無効になります。`AbstractEventListener`
+> を統一的に使用してください。
 
 ---
 
 ## データスコープタイプ
 
-| タイプ               | 可視範囲                                   |
-|----------------------|--------------------------------------------|
-| `SELF`               | ユーザー本人のデータのみ                     |
-| `DEPT`               | ユーザー所属部門                             |
-| `DEPT_AND_CHILD`     | ユーザー所属部門およびすべての子部門           |
-| `CUSTOM`             | カスタム範囲                                |
-| `CALLER`             | 上流呼び出し元のデータスコープに委譲（クロスサービス） |
-| `AUTO`               | ユーザーコンテキストから自動推論               |
+| タイプ              | 可視範囲                        |
+|------------------|-----------------------------|
+| `SELF`           | ユーザー本人のデータのみ                |
+| `DEPT`           | ユーザー所属部門                    |
+| `DEPT_AND_CHILD` | ユーザー所属部門およびすべての子部門          |
+| `CUSTOM`         | カスタム範囲                      |
+| `CALLER`         | 上流呼び出し元のデータスコープに委譲（クロスサービス） |
+| `AUTO`           | ユーザーコンテキストから自動推論            |

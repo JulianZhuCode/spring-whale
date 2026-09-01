@@ -69,7 +69,7 @@ flowchart LR
 ## 核心能力
 
 - **实体基类**：`BaseEntity` 提供自动审计（创建人/时间、更新人/时间）、乐观锁（`@Version`）、逻辑删除（`@SQLDelete` +
-  `@SQLRestriction`）；`SimpleBaseEntity` 提供轻量版（仅 ID + 创建人/时间 + 乐观锁）
+  `@SQLRestriction`）；`SimpleBaseEntity` 提供轻量版（仅 ID + 创建人/时间）
 - **MyBatis-Plus 风格动态查询**：`JpaQueryWrapper` 在 JPA Criteria API 上提供链式条件构建，支持
   eq、ne、like、in、between、groupBy、having、distinct、or、and 等全套操作
 - **类型安全排序**：`SortUtils` 支持逗号分隔字符串构建 Spring Data `Sort`，内置字段白名单安全校验
@@ -87,6 +87,7 @@ flowchart LR
 ### 1. Maven 依赖
 
 ```xml
+
 <dependency>
     <groupId>io.github.julianzhucode</groupId>
     <artifactId>spring-whale-database</artifactId>
@@ -105,7 +106,7 @@ public class SysUser extends BaseEntity {
     private String email;
 }
 
-// 轻量版：仅 ID + 创建人/时间 + 乐观锁
+// 轻量版：仅 ID + 创建人/时间
 @Entity
 @Table(name = "sys_config")
 public class SysConfig extends SimpleBaseEntity {
@@ -217,17 +218,17 @@ public class OrderController {
     // 仅查看本人数据
     @DataScope(scopeType = DataScopeType.SELF, module = "order")
     @GetMapping("/my")
-    public List<Order> listMyOrders() { ... }
+    public List<Order> listMyOrders() { ...}
 
     // 查看本部门及子部门数据
     @DataScope(scopeType = DataScopeType.DEPT_AND_CHILD, module = "order")
     @GetMapping("/dept")
-    public List<Order> listDeptOrders() { ... }
+    public List<Order> listDeptOrders() { ...}
 
     // 委托给上游服务的数据权限（微服务场景）
     @DataScope(scopeType = DataScopeType.CALLER, module = "order")
     @GetMapping("/all")
-    public List<Order> listAllOrders() { ... }
+    public List<Order> listAllOrders() { ...}
 }
 ```
 
@@ -279,7 +280,7 @@ public class GlobalConfigController {
 
     @NonTenant
     @GetMapping("/config")
-    public List<Config> listGlobalConfig() { ... }
+    public List<Config> listGlobalConfig() { ...}
 }
 ```
 
@@ -311,6 +312,7 @@ CREATE TABLE flyway_error_log
 默认使用 Spring 原生事件机制，监听 `FlywayMigrationEvent` 即可：
 
 ```java
+
 @Component
 public class FlywayAlertListener implements ApplicationListener<FlywayMigrationEvent> {
     @Override
@@ -327,6 +329,7 @@ public class FlywayAlertListener implements ApplicationListener<FlywayMigrationE
 当项目中同时引入 `spring-whale-event-core` 时，框架自动将 Flyway 事件桥接到事件框架，无需额外配置：
 
 ```xml
+
 <dependency>
     <groupId>io.github.julianzhucode</groupId>
     <artifactId>spring-whale-event-core</artifactId>
@@ -336,6 +339,7 @@ public class FlywayAlertListener implements ApplicationListener<FlywayMigrationE
 引入后可使用 `AbstractEventListener` 替代 `ApplicationListener` 消费事件：
 
 ```java
+
 @Component
 public class FlywayAlertListener extends AbstractEventListener<FlywayMigrationEvent> {
     @Override

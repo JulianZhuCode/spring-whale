@@ -1,6 +1,7 @@
 # spring-whale-database
 
-The spring-whale database enhancement framework, providing JPA entity base classes, dynamic query wrappers, data scope filtering, multi-tenant isolation, and Flyway fault-tolerant migration.
+The spring-whale database enhancement framework, providing JPA entity base classes, dynamic query wrappers, data scope
+filtering, multi-tenant isolation, and Flyway fault-tolerant migration.
 
 ---
 
@@ -61,19 +62,30 @@ flowchart LR
     B -->|Data scope/tenant context active| SQL[(SQL Filtering)]
 ```
 
-> **Key Design:** Data scope and tenant isolation inject WHERE clauses at the SQL level, transparent to business code. During cross-service calls, data scope context is automatically propagated via HTTP headers, eliminating the need for downstream services to re-resolve it.
+> **Key Design:** Data scope and tenant isolation inject WHERE clauses at the SQL level, transparent to business code.
+> During cross-service calls, data scope context is automatically propagated via HTTP headers, eliminating the need for
+> downstream services to re-resolve it.
 
 ---
 
 ## Core Capabilities
 
-- **Entity Base Classes**: `BaseEntity` provides automatic auditing (created by/time, updated by/time), optimistic locking (`@Version`), and soft delete (`@SQLDelete` + `@SQLRestriction`); `SimpleBaseEntity` offers a lightweight version (ID + created by/time + optimistic locking only)
-- **MyBatis-Plus Style Dynamic Queries**: `JpaQueryWrapper` provides chainable condition building on top of JPA Criteria API, supporting eq, ne, like, in, between, groupBy, having, distinct, or, and and more
-- **Type-Safe Sorting**: `SortUtils` supports building Spring Data `Sort` from comma-separated strings, with built-in field whitelist validation
-- **Declarative Data Scope**: `@DataScope` annotation declares the data visibility scope of an endpoint, supporting SELF / DEPT / DEPT_AND_CHILD / CUSTOM / CALLER / AUTO six levels
-- **Multi-Tenant Isolation**: `@TenantIdField` marks entity tenant fields; the framework auto-injects tenant WHERE clauses; `@NonTenant` skips tenant filtering for specified endpoints
-- **Cross-Service Propagation**: Data scope and tenant context are automatically propagated between microservices via HTTP headers, no re-resolution needed downstream
-- **Flyway Fault Tolerance**: Migration failures are logged without blocking application startup, with event-driven retry support; optionally integrates with `spring-whale-event` framework for event persistence, retry mechanisms, and distributed scenarios
+- **Entity Base Classes**: `BaseEntity` provides automatic auditing (created by/time, updated by/time), optimistic
+  locking (`@Version`), and soft delete (`@SQLDelete` + `@SQLRestriction`); `SimpleBaseEntity` offers a lightweight
+  version (ID + created by/time)
+- **MyBatis-Plus Style Dynamic Queries**: `JpaQueryWrapper` provides chainable condition building on top of JPA Criteria
+  API, supporting eq, ne, like, in, between, groupBy, having, distinct, or, and and more
+- **Type-Safe Sorting**: `SortUtils` supports building Spring Data `Sort` from comma-separated strings, with built-in
+  field whitelist validation
+- **Declarative Data Scope**: `@DataScope` annotation declares the data visibility scope of an endpoint, supporting
+  SELF / DEPT / DEPT_AND_CHILD / CUSTOM / CALLER / AUTO six levels
+- **Multi-Tenant Isolation**: `@TenantIdField` marks entity tenant fields; the framework auto-injects tenant WHERE
+  clauses; `@NonTenant` skips tenant filtering for specified endpoints
+- **Cross-Service Propagation**: Data scope and tenant context are automatically propagated between microservices via
+  HTTP headers, no re-resolution needed downstream
+- **Flyway Fault Tolerance**: Migration failures are logged without blocking application startup, with event-driven
+  retry support; optionally integrates with `spring-whale-event` framework for event persistence, retry mechanisms, and
+  distributed scenarios
 
 ---
 
@@ -82,6 +94,7 @@ flowchart LR
 ### 1. Maven Dependency
 
 ```xml
+
 <dependency>
     <groupId>io.github.julianzhucode</groupId>
     <artifactId>spring-whale-database</artifactId>
@@ -100,7 +113,7 @@ public class SysUser extends BaseEntity {
     private String email;
 }
 
-// Lightweight version: ID + created by/time + optimistic locking only
+// Lightweight version: ID + created by/time
 @Entity
 @Table(name = "sys_config")
 public class SysConfig extends SimpleBaseEntity {
@@ -109,7 +122,9 @@ public class SysConfig extends SimpleBaseEntity {
 }
 ```
 
-> **BaseEntity automatic behaviors:** `@PrePersist` auto-fills `createTime`, `updateTime`, `createBy`, `updateBy`; `@PreUpdate` auto-updates `updateTime`, `updateBy`; `@SQLDelete` converts DELETE to `UPDATE SET del_flag = 1`; `@SQLRestriction` auto-filters `del_flag = 0` records.
+> **BaseEntity automatic behaviors:** `@PrePersist` auto-fills `createTime`, `updateTime`, `createBy`, `updateBy`;
+`@PreUpdate` auto-updates `updateTime`, `updateBy`; `@SQLDelete` converts DELETE to `UPDATE SET del_flag = 1`;
+`@SQLRestriction` auto-filters `del_flag = 0` records.
 
 ### 3. Dynamic Queries (JpaQueryWrapper)
 
@@ -210,17 +225,17 @@ public class OrderController {
     // View only own data
     @DataScope(scopeType = DataScopeType.SELF, module = "order")
     @GetMapping("/my")
-    public List<Order> listMyOrders() { ... }
+    public List<Order> listMyOrders() { ...}
 
     // View department and sub-department data
     @DataScope(scopeType = DataScopeType.DEPT_AND_CHILD, module = "order")
     @GetMapping("/dept")
-    public List<Order> listDeptOrders() { ... }
+    public List<Order> listDeptOrders() { ...}
 
     // Delegate to upstream service's data scope (microservice scenario)
     @DataScope(scopeType = DataScopeType.CALLER, module = "order")
     @GetMapping("/all")
-    public List<Order> listAllOrders() { ... }
+    public List<Order> listAllOrders() { ...}
 }
 ```
 
@@ -272,21 +287,24 @@ public class GlobalConfigController {
 
     @NonTenant
     @GetMapping("/config")
-    public List<Config> listGlobalConfig() { ... }
+    public List<Config> listGlobalConfig() { ...}
 }
 ```
 
-> **Tenant Filtering Mechanism:** The framework auto-injects `tenant_id = ?` at the SQL level, supporting multiple tenant fields on a single entity (e.g., `tenant_id` and `target_tenant_id`), joined by OR.
+> **Tenant Filtering Mechanism:** The framework auto-injects `tenant_id = ?` at the SQL level, supporting multiple
+> tenant fields on a single entity (e.g., `tenant_id` and `target_tenant_id`), joined by OR.
 
 ### 9. Flyway Fault-Tolerant Migration
 
-Automatically enabled upon module inclusion, no extra configuration required. On migration failure, the framework automatically:
+Automatically enabled upon module inclusion, no extra configuration required. On migration failure, the framework
+automatically:
 
 1. Writes error logs to the `flyway_error_log` table
 2. Publishes a `FlywayMigrationEvent` (listeners can be attached for alerting)
 3. Allows the application to start normally without blocking on migration failures
 
-> **Table Suggestion:** The `flyway_error_log` table records migration failure logs; it is recommended to create it in the first migration script.
+> **Table Suggestion:** The `flyway_error_log` table records migration failure logs; it is recommended to create it in
+> the first migration script.
 
 ```sql
 CREATE TABLE flyway_error_log
@@ -303,6 +321,7 @@ CREATE TABLE flyway_error_log
 By default, Spring's native event mechanism is used. Simply listen for `FlywayMigrationEvent`:
 
 ```java
+
 @Component
 public class FlywayAlertListener implements ApplicationListener<FlywayMigrationEvent> {
     @Override
@@ -316,9 +335,11 @@ public class FlywayAlertListener implements ApplicationListener<FlywayMigrationE
 
 #### Optional: Integrate spring-whale-event Framework
 
-When `spring-whale-event-core` is also present in the project, the framework automatically bridges Flyway events to the event framework, no extra configuration required:
+When `spring-whale-event-core` is also present in the project, the framework automatically bridges Flyway events to the
+event framework, no extra configuration required:
 
 ```xml
+
 <dependency>
     <groupId>io.github.julianzhucode</groupId>
     <artifactId>spring-whale-event-core</artifactId>
@@ -328,6 +349,7 @@ When `spring-whale-event-core` is also present in the project, the framework aut
 Once included, you can use `AbstractEventListener` instead of `ApplicationListener` to consume events:
 
 ```java
+
 @Component
 public class FlywayAlertListener extends AbstractEventListener<FlywayMigrationEvent> {
     @Override
@@ -339,17 +361,18 @@ public class FlywayAlertListener extends AbstractEventListener<FlywayMigrationEv
 }
 ```
 
-> **Note:** After introducing the event framework, `ApplicationListener` implementations will no longer take effect. Use `AbstractEventListener` uniformly.
+> **Note:** After introducing the event framework, `ApplicationListener` implementations will no longer take effect. Use
+`AbstractEventListener` uniformly.
 
 ---
 
 ## Data Scope Types
 
-| Type               | Visibility Scope                                      |
-|--------------------|-------------------------------------------------------|
-| `SELF`             | User's own data only                                  |
-| `DEPT`             | User's department                                     |
-| `DEPT_AND_CHILD`   | User's department and all sub-departments             |
-| `CUSTOM`           | Custom scope                                          |
-| `CALLER`           | Delegated to upstream caller's data scope (cross-service) |
-| `AUTO`             | Auto-inferred from user context                       |
+| Type             | Visibility Scope                                          |
+|------------------|-----------------------------------------------------------|
+| `SELF`           | User's own data only                                      |
+| `DEPT`           | User's department                                         |
+| `DEPT_AND_CHILD` | User's department and all sub-departments                 |
+| `CUSTOM`         | Custom scope                                              |
+| `CALLER`         | Delegated to upstream caller's data scope (cross-service) |
+| `AUTO`           | Auto-inferred from user context                           |
