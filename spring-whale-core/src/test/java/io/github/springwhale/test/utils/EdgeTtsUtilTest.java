@@ -1,6 +1,8 @@
 package io.github.springwhale.test.utils;
 
-import io.github.springwhale.framework.core.utils.EdgeTtsUtil;
+import io.github.springwhale.framework.core.utils.EdgeTtsEngine;
+import io.github.springwhale.framework.core.model.TtsRequest;
+import io.github.springwhale.framework.core.model.TtsResult;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -10,7 +12,7 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Integration tests for EdgeTtsUtil.
+ * Integration tests for EdgeTtsEngine.
  * Requires edge-tts to be installed on the system PATH.
  */
 class EdgeTtsUtilTest {
@@ -18,17 +20,17 @@ class EdgeTtsUtilTest {
     @TempDir
     Path tempDir;
 
-    private EdgeTtsUtil edgeTtsUtil;
+    private EdgeTtsEngine engine;
 
     @BeforeEach
     void setUp() {
-        edgeTtsUtil = new EdgeTtsUtil("edge-tts", 30, 2);
+        engine = new EdgeTtsEngine("edge-tts", 30, 2);
     }
 
     @AfterEach
     void tearDown() {
-        if (edgeTtsUtil != null) {
-            edgeTtsUtil.shutdown();
+        if (engine != null) {
+            engine.shutdown();
         }
     }
 
@@ -37,13 +39,13 @@ class EdgeTtsUtilTest {
     void testTtsToMp3Success() {
         String outputPath = tempDir.resolve("output.mp3").toString();
 
-        boolean result = edgeTtsUtil.ttsToMp3(
+        TtsResult result = engine.ttsToMp3(
                 "Hello world, this is a test",
                 "zh-CN-XiaoxiaoNeural",
                 outputPath
         );
 
-        assertTrue(result, "ttsToMp3 should return true for valid input");
+        assertTrue(result.success(), "ttsToMp3 should return true for valid input");
         File outputFile = new File(outputPath);
         assertTrue(outputFile.exists(), "Output file should exist");
         assertTrue(outputFile.length() > 0, "Output file should not be empty");
@@ -55,13 +57,13 @@ class EdgeTtsUtilTest {
         Path newDir = tempDir.resolve("nested").resolve("output");
         String outputPath = newDir.resolve("speech.mp3").toString();
 
-        boolean result = edgeTtsUtil.ttsToMp3(
+        TtsResult result = engine.ttsToMp3(
                 "Directory creation test",
                 "zh-CN-XiaoxiaoNeural",
                 outputPath
         );
 
-        assertTrue(result, "ttsToMp3 should create directories and succeed");
+        assertTrue(result.success(), "ttsToMp3 should create directories and succeed");
         File outputFile = new File(outputPath);
         assertTrue(outputFile.exists(), "Output file should exist in newly created directory");
     }
@@ -71,13 +73,13 @@ class EdgeTtsUtilTest {
     void testTtsToMp3WithInvalidVoice() {
         String outputPath = tempDir.resolve("invalid-voice.mp3").toString();
 
-        boolean result = edgeTtsUtil.ttsToMp3(
+        TtsResult result = engine.ttsToMp3(
                 "Test with invalid voice",
                 "zh-CN-NonExistentVoice",
                 outputPath
         );
 
-        assertFalse(result, "ttsToMp3 should return false for invalid voice");
+        assertFalse(result.success(), "ttsToMp3 should return false for invalid voice");
     }
 
     @Test
@@ -85,13 +87,13 @@ class EdgeTtsUtilTest {
     void testTtsToMp3WithEmptyText() {
         String outputPath = tempDir.resolve("empty.mp3").toString();
 
-        boolean result = edgeTtsUtil.ttsToMp3(
+        TtsResult result = engine.ttsToMp3(
                 "",
                 "zh-CN-XiaoxiaoNeural",
                 outputPath
         );
 
-        assertFalse(result, "ttsToMp3 should return false for empty text");
+        assertFalse(result.success(), "ttsToMp3 should return false for empty text");
     }
 
     @Test
@@ -99,13 +101,13 @@ class EdgeTtsUtilTest {
     void testTtsToMp3WithDifferentVoice() {
         String outputPath = tempDir.resolve("en-us-voice.mp3").toString();
 
-        boolean result = edgeTtsUtil.ttsToMp3(
+        TtsResult result = engine.ttsToMp3(
                 "This is a test with a different voice",
                 "en-US-AriaNeural",
                 outputPath
         );
 
-        assertTrue(result, "ttsToMp3 should succeed with en-US voice");
+        assertTrue(result.success(), "ttsToMp3 should succeed with en-US voice");
         File outputFile = new File(outputPath);
         assertTrue(outputFile.exists(), "Output file should exist");
         assertTrue(outputFile.length() > 0, "Output file should not be empty");
@@ -116,14 +118,14 @@ class EdgeTtsUtilTest {
     void testTtsToMp3WithTimeout() {
         String outputPath = tempDir.resolve("timeout.mp3").toString();
 
-        boolean result = edgeTtsUtil.ttsToMp3(
+        TtsResult result = engine.ttsToMp3(
                 "Testing configurable timeout",
                 "zh-CN-XiaoxiaoNeural",
                 outputPath,
                 60
         );
 
-        assertTrue(result, "ttsToMp3 with custom timeout should succeed");
+        assertTrue(result.success(), "ttsToMp3 with custom timeout should succeed");
         File outputFile = new File(outputPath);
         assertTrue(outputFile.exists(), "Output file should exist");
     }
@@ -131,12 +133,12 @@ class EdgeTtsUtilTest {
     @Test
     @DisplayName("Should track active task count")
     void testActiveTaskCount() {
-        assertEquals(0, edgeTtsUtil.getActiveTaskCount(), "Initial active task count should be 0");
+        assertEquals(0, engine.getActiveTaskCount(), "Initial active task count should be 0");
 
         String outputPath = tempDir.resolve("active-count.mp3").toString();
-        edgeTtsUtil.ttsToMp3("Active count test", "zh-CN-XiaoxiaoNeural", outputPath);
+        engine.ttsToMp3("Active count test", "zh-CN-XiaoxiaoNeural", outputPath);
 
-        assertTrue(edgeTtsUtil.getActiveTaskCount() >= 0, "Active task count should be non-negative after completion");
+        assertTrue(engine.getActiveTaskCount() >= 0, "Active task count should be non-negative after completion");
     }
 
     @Test
@@ -144,11 +146,11 @@ class EdgeTtsUtilTest {
     void testBatchGeneration() {
         String baseDir = tempDir.resolve("batch").toString();
 
-        EdgeTtsUtil.TtsRequest req1 = new EdgeTtsUtil.TtsRequest("1", "First test", "zh-CN-XiaoxiaoNeural", baseDir + "/1.mp3");
-        EdgeTtsUtil.TtsRequest req2 = new EdgeTtsUtil.TtsRequest("2", "Second test", "zh-CN-XiaoxiaoNeural", baseDir + "/2.mp3");
-        EdgeTtsUtil.TtsRequest req3 = new EdgeTtsUtil.TtsRequest("3", "", "zh-CN-XiaoxiaoNeural", baseDir + "/3.mp3");
+        TtsRequest req1 = new TtsRequest("1", "First test", "zh-CN-XiaoxiaoNeural", baseDir + "/1.mp3");
+        TtsRequest req2 = new TtsRequest("2", "Second test", "zh-CN-XiaoxiaoNeural", baseDir + "/2.mp3");
+        TtsRequest req3 = new TtsRequest("3", "", "zh-CN-XiaoxiaoNeural", baseDir + "/3.mp3");
 
-        var results = edgeTtsUtil.ttsToMp3Batch(java.util.List.of(req1, req2, req3));
+        var results = engine.ttsToMp3Batch(java.util.List.of(req1, req2, req3));
 
         assertEquals(3, results.size(), "Should return result for each request");
         assertTrue(results.get(0).success(), "First request should succeed");

@@ -2,7 +2,7 @@ package io.github.springwhale.framework.core.autoconfigure;
 
 import io.github.springwhale.framework.core.json.*;
 import io.github.springwhale.framework.core.json.serializer.I18nSerializer;
-import io.github.springwhale.framework.core.utils.EdgeTtsUtil;
+import io.github.springwhale.framework.core.utils.EdgeTtsEngine;
 import io.github.springwhale.framework.core.utils.SpringContextUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -30,11 +30,11 @@ public class SpringWhaleCoreConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public EdgeTtsUtil edgeTtsUtil(
+    public EdgeTtsEngine edgeTtsEngine(
             @Value("${edge-tts.command:edge-tts}") String command,
             @Value("${edge-tts.timeout-seconds:30}") int timeoutSeconds,
             @Value("${edge-tts.concurrency:0}") int concurrency) {
-        return new EdgeTtsUtil(command, timeoutSeconds, concurrency);
+        return new EdgeTtsEngine(command, timeoutSeconds, concurrency);
     }
 
     @Bean
