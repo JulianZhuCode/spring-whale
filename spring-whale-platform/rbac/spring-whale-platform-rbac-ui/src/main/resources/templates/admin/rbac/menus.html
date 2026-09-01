@@ -88,11 +88,19 @@
                 <span class="badge bg-danger" th:if="${item.status == 0}" th:text="#{status.disabled}">Disabled</span>
             </td>
             <td>
-                <button class="btn btn-outline-primary btn-sm"
-                        data-modal="menu-modal" th:attr="data-edit-id=${item.id}"
-                        th:if="${#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:menu:update')}"
-                        th:text="#{action.edit}">Edit
-                </button>
+                <div class="d-flex gap-1">
+                    <button class="btn btn-outline-primary btn-sm"
+                            data-modal="menu-modal" th:attr="data-edit-id=${item.id}"
+                            th:if="${#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:menu:update')}"
+                            th:text="#{action.edit}">Edit
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm"
+                            data-delete-api="/api/rbac/menus"
+                            th:attr="data-delete-id=${item.id},data-delete-name=${item.name}"
+                            th:if="${#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:menu:delete')}"
+                            th:text="#{action.delete}">Delete
+                    </button>
+                </div>
             </td>
         </th:block>
     </th:block>
