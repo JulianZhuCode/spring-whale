@@ -1,6 +1,6 @@
 package io.github.springwhale.framework.thymeleaf.autoconfigure;
 
-import io.github.springwhale.framework.thymeleaf.config.AdminProperties;
+import io.github.springwhale.framework.thymeleaf.autoconfigure.AdminProperties;
 import io.github.springwhale.framework.thymeleaf.controller.AdminConsoleController;
 import io.github.springwhale.framework.thymeleaf.controller.AdminControllerAdvice;
 import io.github.springwhale.framework.thymeleaf.controller.AdminErrorController;
@@ -10,6 +10,7 @@ import io.github.springwhale.framework.thymeleaf.security.ThymeleafSecurityConfi
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.MessageSource;
@@ -29,6 +30,7 @@ import java.util.List;
  * </p>
  */
 @AutoConfiguration
+@ConditionalOnClass(name = "org.thymeleaf.spring6.SpringTemplateEngine")
 @EnableConfigurationProperties(AdminProperties.class)
 public class SpringWhaleThymeleafAutoConfiguration {
 
@@ -38,8 +40,9 @@ public class SpringWhaleThymeleafAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public ThymeleafSecurityConfigProvider thymeleafSecurityConfigProvider() {
-        return new ThymeleafSecurityConfigProvider();
+    public ThymeleafSecurityConfigProvider thymeleafSecurityConfigProvider(
+            AuthenticationEntryPoint adminConsoleEntryPoint) {
+        return new ThymeleafSecurityConfigProvider(adminConsoleEntryPoint);
     }
 
     @Bean

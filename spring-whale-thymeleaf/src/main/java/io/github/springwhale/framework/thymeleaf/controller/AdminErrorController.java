@@ -1,6 +1,6 @@
 package io.github.springwhale.framework.thymeleaf.controller;
 
-import io.github.springwhale.framework.thymeleaf.config.AdminProperties;
+import io.github.springwhale.framework.thymeleaf.autoconfigure.AdminProperties;
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

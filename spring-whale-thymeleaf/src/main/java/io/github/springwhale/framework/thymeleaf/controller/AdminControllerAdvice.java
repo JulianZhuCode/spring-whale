@@ -1,6 +1,6 @@
 package io.github.springwhale.framework.thymeleaf.controller;
 
-import io.github.springwhale.framework.thymeleaf.config.AdminProperties;
+import io.github.springwhale.framework.thymeleaf.autoconfigure.AdminProperties;
 import io.github.springwhale.framework.thymeleaf.menu.AdminMenuProvider;
 import io.github.springwhale.framework.thymeleaf.menu.MenuItem;
 import jakarta.servlet.http.HttpServletRequest;

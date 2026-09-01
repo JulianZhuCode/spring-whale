@@ -1,6 +1,6 @@
 package io.github.springwhale.framework.thymeleaf.controller;
 
-import io.github.springwhale.framework.thymeleaf.config.AdminProperties;
+import io.github.springwhale.framework.thymeleaf.autoconfigure.AdminProperties;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -62,7 +62,9 @@ public class AdminLoginController {
         response.addCookie(cookie);
         log.info("Set cookie sw_token, maxAge={}, path=/", COOKIE_MAX_AGE);
 
-        if (redirect != null && !redirect.isBlank() && !redirect.equals("/admin/login")) {
+        if (redirect != null && !redirect.isBlank()
+                && redirect.startsWith("/") && !redirect.startsWith("//")
+                && !redirect.equals("/admin/login")) {
             log.info("Redirecting to: {}", redirect);
             return "redirect:" + redirect;
         }

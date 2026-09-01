@@ -269,14 +269,16 @@ function initModalSystem() {
 }
 
 function loadGroupOptions(form) {
-    const groupSelects = form.querySelectorAll('select[name="groupId"]');
+    var groupApi = form.getAttribute('data-group-api');
+    if (!groupApi) return;
+    var groupSelects = form.querySelectorAll('select[name="groupId"]');
     groupSelects.forEach(select => {
         if (select.options.length > 1) return;
-        apiCall('/api/rbac/groups?page=0&size=1000')
+        apiCall(groupApi)
             .then(page => {
-                const groups = page.content || page;
+                var groups = page.content || page;
                 groups.forEach(g => {
-                    const option = document.createElement('option');
+                    var option = document.createElement('option');
                     option.value = g.id;
                     option.textContent = g.name;
                     select.appendChild(option);
@@ -289,7 +291,7 @@ function loadGroupOptions(form) {
 
 function fillFormFields(form, data) {
     // Ensure any tag selectors in this form are initialized before populating
-    const modalEl = form.closest('.modal');
+    var modalEl = form.closest('.modal');
     if (modalEl) {
         modalEl.querySelectorAll('.tag-selector').forEach(function (ts) {
             if (!ts._inited && typeof window.initTagSelectors === 'function') {
@@ -299,19 +301,19 @@ function fillFormFields(form, data) {
     }
 
     form.querySelectorAll('[name]').forEach(field => {
-        const name = field.name;
+        var name = field.name;
         if (!data.hasOwnProperty(name)) return;
-        const value = data[name];
+        var value = data[name];
 
         if (field.tagName === 'SELECT') {
-            const setVal = () => {
+            var setVal = function () {
                 if (value != null) field.value = value;
             };
             if (field.options.length > 1) {
                 setVal();
             } else {
-                let retries = 0;
-                const timer = setInterval(() => {
+                var retries = 0;
+                var timer = setInterval(function () {
                     retries++;
                     if (field.options.length > 1 || retries > 20) {
                         clearInterval(timer);
@@ -319,11 +321,12 @@ function fillFormFields(form, data) {
                     }
                 }, 100);
             }
-        } else if (name === 'relatedWords' || name === 'relatedGrammars') {
+        } else if (field.hasAttribute('data-tag-field')) {
             // Tag selector: populate via component API
-            const tagSelector = form.querySelector('.tag-selector[data-field="' + name + '"]');
-            const itemsKey = name === 'relatedWords' ? 'relatedWordItems' : 'relatedGrammarItems';
-            if (tagSelector && typeof tagSelector.setTagData === 'function') {
+            var tagField = field.getAttribute('data-tag-field');
+            var itemsKey = field.getAttribute('data-tag-items-key');
+            var tagSelector = form.querySelector('.tag-selector[data-field="' + tagField + '"]');
+            if (tagSelector && typeof tagSelector.setTagData === 'function' && itemsKey) {
                 tagSelector.setTagData(data[itemsKey]);
                 field.value = value ? value.join(',') : '';
             } else if (Array.isArray(value)) {
@@ -340,26 +343,22 @@ function fillFormFields(form, data) {
 }
 
 function submitDictForm(form, modalEl) {
-    const id = form.getAttribute('data-edit-id');
-    const method = id ? 'PUT' : 'POST';
-    const url = form.getAttribute('action');
-    const submitBtn = modalEl.querySelector('.modal-submit');
+    var id = form.getAttribute('data-edit-id');
+    var method = id ? 'PUT' : 'POST';
+    var url = form.getAttribute('action');
+    var submitBtn = modalEl.querySelector('.modal-submit');
 
-    // Fields that should be sent as string arrays (comma-separated input)
-    const stringArrayFields = ['meaning', 'notes'];
-    // Fields that should be sent as integer arrays (comma-separated IDs)
-    const intArrayFields = ['relatedWords', 'relatedGrammars'];
-
-    const body = {};
+    var body = {};
     form.querySelectorAll('[name]').forEach(field => {
-        const value = field.value;
+        var value = field.value;
         if (field.name === 'password' && method === 'PUT' && !value) return;
-        if (['status', 'groupId', 'sort', 'parentId', 'type', 'visible'].includes(field.name) && value !== '') {
+        var arrayType = field.getAttribute('data-array-type');
+        if (field.hasAttribute('data-int-field') && value !== '') {
             body[field.name] = parseInt(value, 10);
-        } else if (stringArrayFields.includes(field.name)) {
-            body[field.name] = value ? value.split(',').map(s => s.trim()).filter(s => s) : [];
-        } else if (intArrayFields.includes(field.name)) {
-            body[field.name] = value ? value.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n)) : [];
+        } else if (arrayType === 'string') {
+            body[field.name] = value ? value.split(',').map(function (s) { return s.trim(); }).filter(function (s) { return s; }) : [];
+        } else if (arrayType === 'int') {
+            body[field.name] = value ? value.split(',').map(function (s) { return parseInt(s.trim(), 10); }).filter(function (n) { return !isNaN(n); }) : [];
         } else {
             body[field.name] = value;
         }
@@ -511,7 +510,8 @@ function apiCall(url, options = {}) {
         btn.disabled = true;
         btn.textContent = 'Signing in...';
 
-        fetch('/api/rbac/auth/login', {
+        var loginApi = form.getAttribute('data-login-api') || '/api/rbac/auth/login';
+        fetch(loginApi, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({username, password})

@@ -110,7 +110,7 @@
                         <div class="mb-3">
                             <label class="form-label" for="menu-parentId" th:text="#{rbac.menus.parent_id}">Parent
                                 ID</label>
-                            <input class="form-control" id="menu-parentId" name="parentId" type="number">
+                            <input class="form-control" id="menu-parentId" name="parentId" type="number" data-int-field>
                             <div class="invalid-feedback" data-field="parentId"></div>
                         </div>
                         <div class="mb-3">
@@ -131,7 +131,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="menu-type" th:text="#{rbac.menus.type}">Type</label>
-                            <select class="form-select" id="menu-type" name="type">
+                            <select class="form-select" id="menu-type" name="type" data-int-field>
                                 <option th:text="#{rbac.menus.type.directory}" value="1">Directory</option>
                                 <option th:text="#{rbac.menus.type.menu}" value="2">Menu</option>
                                 <option th:text="#{rbac.menus.type.button}" value="3">Button</option>
@@ -161,12 +161,12 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="menu-sort" th:text="#{rbac.menus.sort}">Sort</label>
-                            <input class="form-control" id="menu-sort" name="sort" type="number">
+                            <input class="form-control" id="menu-sort" name="sort" type="number" data-int-field>
                             <div class="invalid-feedback" data-field="sort"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="menu-visible" th:text="#{rbac.menus.visible}">Visible</label>
-                            <select class="form-select" id="menu-visible" name="visible">
+                            <select class="form-select" id="menu-visible" name="visible" data-int-field>
                                 <option th:text="#{rbac.menus.visible.visible}" value="1">Visible</option>
                                 <option th:text="#{rbac.menus.visible.hidden}" value="0">Hidden</option>
                             </select>
@@ -174,7 +174,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="menu-status" th:text="#{rbac.menus.status}">Status</label>
-                            <select class="form-select" id="menu-status" name="status">
+                            <select class="form-select" id="menu-status" name="status" data-int-field>
                                 <option th:text="#{status.active}" value="1">Active</option>
                                 <option th:text="#{status.disabled}" value="0">Disabled</option>
                             </select>
