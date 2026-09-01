@@ -1,8 +1,6 @@
 package io.github.springwhale.framework.webmvc.autoconfigure;
 
 import io.github.springwhale.framework.webmvc.security.*;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
@@ -20,15 +18,14 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -41,8 +38,6 @@ import java.util.List;
  *   <li>JWT extraction via {@link JwtAuthenticationFilter} (header or cookie)</li>
  *   <li>BCrypt password encoding</li>
  *   <li>DAO-based authentication against the configured {@link UserDetailsService}</li>
- *   <li>Admin console support: unauthenticated browser requests to {@code /admin/**}
- *       are redirected to the login page; REST API requests receive 401</li>
  *   <li>SPI-based extension via {@link SecurityConfigProvider} for downstream modules
  *       to declare permit-all URLs and custom {@link HttpSecurity} configuration</li>
  *   <li>Feign interceptor ({@link SecurityFeignInterceptor}) for propagating JWT
@@ -106,9 +101,7 @@ public class SecurityAutoConfiguration {
                 })
                 .cors(cors -> corsConfigurationSource.ifAvailable(cors::configurationSource))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .exceptionHandling(exceptions -> exceptions
-                        .authenticationEntryPoint(adminConsoleEntryPoint())
-                )
+                .exceptionHandling(exceptions -> {})
                 .authorizeHttpRequests(auth -> {
                     for (String url : permitAllUrls) {
                         auth.requestMatchers(url).permitAll();
@@ -122,51 +115,12 @@ public class SecurityAutoConfiguration {
         return http.build();
     }
 
-    /**
-     * Entry point that redirects unauthenticated browser requests under
-     * {@code /admin/**} to the login page, while REST API requests still
-     * receive a 401 status.
-     * <p>
-     * Avoids redirect loops by not redirecting the login page itself.
-     * </p>
-     */
-    @Bean
-    @ConditionalOnMissingBean
-    public AuthenticationEntryPoint adminConsoleEntryPoint() {
-        return (HttpServletRequest request, HttpServletResponse response,
-                AuthenticationException authException) -> {
-            String path = request.getRequestURI();
-            if (path.startsWith("/admin") && !path.equals("/admin/login")) {
-                // Add reason parameter so the login page can show diagnostic info
-                String reason;
-                // Check if there was a cookie but validation failed
-                jakarta.servlet.http.Cookie[] cookies = request.getCookies();
-                boolean hasSwToken = false;
-                if (cookies != null) {
-                    for (jakarta.servlet.http.Cookie c : cookies) {
-                        if (securityProperties.getTokenCookieName().equals(c.getName()) && c.getValue() != null && !c.getValue().isEmpty()) {
-                            hasSwToken = true;
-                            break;
-                        }
-                    }
-                }
-                reason = hasSwToken ? "token_invalid" : "no_token";
-                log.warn("Auth entry point: path={}, reason={}", path, reason);
-                String redirectUrl = "/admin/login?redirect=" +
-                        java.net.URLEncoder.encode(path, java.nio.charset.StandardCharsets.UTF_8) +
-                        "&reason=" + reason;
-                response.sendRedirect(redirectUrl);
-            } else {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
-            }
-        };
-    }
-
     private List<String> collectPermitAllUrls() {
-        return configProviders.stream()
-                .sorted(Comparator.comparingInt(SecurityConfigProvider::getOrder))
+        List<String> urls = new ArrayList<>(securityProperties.getPermitAllUrls());
+        configProviders.stream()
                 .flatMap(provider -> provider.getPermitAllUrls().stream())
-                .toList();
+                .forEach(urls::add);
+        return urls;
     }
 
     private void applyCustomConfigurations(HttpSecurity http) {

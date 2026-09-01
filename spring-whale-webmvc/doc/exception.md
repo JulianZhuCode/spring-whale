@@ -24,18 +24,18 @@ Spring Whale framework provides powerful global exception handling capabilities 
 - ✅ **Extended Data Support** - Business exceptions can carry extended data
 - ✅ **Auto Registration** - Automatically configured via Spring Boot, no manual registration needed
 
-### HTTP Status Code Mapping
+### Error Code Mapping
 
-| Exception Type                           | HTTP Status | Description                                           |
-|------------------------------------------|-------------|-------------------------------------------------------|
-| `Exception`                              | 500         | Server internal error                                 |
-| `BusinessException`                      | Dynamic     | Business exception, error code determined by business |
-| `IllegalArgumentException`               | 400         | Illegal argument exception                            |
-| `ValidationException`                    | 400         | JSR-303 validation exception                          |
-| `MethodArgumentNotValidException`        | 400         | @Validated parameter validation failed                |
-| `BindException`                          | 400         | Parameter binding failed                              |
-| `HttpRequestMethodNotSupportedException` | 405         | HTTP method not supported                             |
-| `DuplicateKeyException`                  | 409         | Duplicate key (unique constraint conflict)            |
+| Exception Type                           | Error Code | Description                                           |
+|------------------------------------------|------------|-------------------------------------------------------|
+| `Exception`                              | 500        | Server internal error                                 |
+| `BusinessException`                      | Dynamic    | Business exception, error code determined by business |
+| `IllegalArgumentException`               | 400        | Illegal argument exception                            |
+| `ValidationException`                    | 400        | JSR-303 validation exception                          |
+| `MethodArgumentNotValidException`        | 400        | @Validated parameter validation failed                |
+| `BindException`                          | 400        | Parameter binding failed                              |
+| `HttpRequestMethodNotSupportedException` | 405        | HTTP method not supported                             |
+| `NoResourceFoundException`               | 404        | Resource not found                                    |
 
 ## Supported Exception Types
 
@@ -138,26 +138,26 @@ public ApiResult<Boolean> handleHttpRequestMethodNotSupportedException(
 
 **Log Level:** WARN
 
-### 5. Duplicate Key Exception
+### 5. Resource Not Found Exception
 
-Handles database unique constraint conflicts, etc.:
+Handles cases where the requested resource does not exist:
 
 ```java
-@ExceptionHandler(value = DuplicateKeyException.class)
-public ApiResult<Boolean> handleDuplicateKeyException(DuplicateKeyException e)
+@ExceptionHandler(value = NoResourceFoundException.class)
+public ApiResult<Boolean> handleNoResourceFoundException(NoResourceFoundException e)
 ```
 
 **Response Example:**
 
 ```json
 {
-  "code": "409",
-  "message": "Duplicate records!",
+  "code": "404",
+  "message": "Resource not found!",
   "data": false
 }
 ```
 
-**Log Level:** WARN
+**Log Level:** DEBUG
 
 ## Configuration
 
@@ -181,9 +181,9 @@ spring:
         # 405 error message
         message-405: Method not allowed!
         code-405: http.error.405
-        # 409 error message
-        message-409: Duplicate records!
-        code-409: http.error.409
+        # 404 error message
+        message-404: Resource not found!
+        code-404: http.error.404
 ```
 
 ### Configuration Items
@@ -197,8 +197,8 @@ spring:
 | `code-400`    | String  | http.error.400      | I18n key for 400 errors           |
 | `message-405` | String  | Method not allowed! | Default message for 405 errors    |
 | `code-405`    | String  | http.error.405      | I18n key for 405 errors           |
-| `message-409` | String  | Duplicate records!  | Default message for 409 errors    |
-| `code-409`    | String  | http.error.409      | I18n key for 409 errors           |
+| `message-404` | String  | Resource not found! | Default message for 404 errors    |
+| `code-404`    | String  | http.error.404      | I18n key for 404 errors           |
 
 ### Internationalization Configuration
 
@@ -210,7 +210,7 @@ spring:
 http.error.500=Server abnormal, please try again later!
 http.error.400=Invalid request parameters!
 http.error.405=Method not allowed!
-http.error.409=Duplicate records!
+http.error.404=Resource not found!
 USER_NOT_FOUND=User not found
 ```
 
@@ -220,7 +220,7 @@ USER_NOT_FOUND=User not found
 http.error.500=服务器异常，请稍后重试！
 http.error.400=无效请求参数！
 http.error.405=方法不允许！
-http.error.409=重复记录！
+http.error.404=资源不存在！
 USER_NOT_FOUND=用户不存在
 ORDER_NOT_FOUND=Order not found
 ```
@@ -231,7 +231,7 @@ ORDER_NOT_FOUND=Order not found
 http.error.500=サーバーエラーが発生しました
 http.error.400=無効なリクエストパラメータ！
 http.error.405=メソッドが許可されていません！
-http.error.409=重複レコード！
+http.error.404=リソースが見つかりません！
 USER_NOT_FOUND=ユーザーが存在しません
 ```
 
@@ -510,23 +510,15 @@ fetch('/api/users', {
   }
 });
 
-// Catch duplicate record exception
-fetch('/api/users', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ 
-    username: 'existing_user',
-    email: 'existing@example.com',
-    password: 'password123'
-  })
-})
-.then(response => response.json())
-.then(data => {
-  // data structure: { code: '409', message: 'Duplicate records!', data: false }
-  if (data.code === '409') {
-    alert(data.message);
-  }
-});
+// Catch resource not found
+fetch('/api/users/99999')
+  .then(response => response.json())
+  .then(data => {
+    // data structure: { code: '404', message: 'Resource not found!', data: false }
+    if (data.code === '404') {
+      alert(data.message);
+    }
+  });
 ```
 
 **Unified Response Format:**

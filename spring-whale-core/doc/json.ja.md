@@ -1,6 +1,6 @@
 # Spring Whale JSON 直列化
 
-Spring Whale フレームワークは、Spring Boot と Tools Jackson をベースにした強力な JSON
+Spring Whale フレームワークは、Spring Boot と Jackson をベースにした強力な JSON
 直列化・逆直列化機能を提供し、カスタム時間形式、列挙型処理、国際化などの機能をサポートしています。
 
 ## 目次
@@ -9,8 +9,11 @@ Spring Whale フレームワークは、Spring Boot と Tools Jackson をベー�
 - [設定](#設定)
 - [時間型の処理](#時間型の処理)
 - [列挙型の処理](#列挙型の処理)
+- [BigDecimal の処理](#bigdecimal-の処理)
+- [数値型の処理](#数値型の処理)
 - [使用例](#使用例)
 - [ベストプラクティス](#ベストプラクティス)
+- [注意事項](#注意事項)
 
 ## 機能概要
 
@@ -55,8 +58,6 @@ Spring Whale フレームワークは、Spring Boot と Tools Jackson をベー�
 - **タイムゾーン形式**: `HH:mm:ss Z`, `HH:mm:ssXXX`
 
 ## 設定
-
-### 設定ファイル
 
 ### 設定ファイル
 
@@ -226,7 +227,7 @@ spring:
 {"localTime": "14:30:45.123"}
 ```
 
-逆直列化ロジックは、サポートされているすべての形式を自動的に試し、一致する形式を見つけますまで続けます。
+逆直列化ロジックは、サポートされているすべての形式を自動的に試し、一致する形式を見つけるまで続けます。
 
 ## 列挙型の処理
 
@@ -413,6 +414,73 @@ public class PriceDTO {
 }
 ```
 
+#### 2. 異なる精度設定
+
+設定：
+
+```yaml
+spring:
+  whale:
+    json:
+      big-decimal-scale: 4
+      big-decimal-rounding-mode: HALF_DOWN
+```
+
+コード：
+
+```java
+BigDecimal value = new BigDecimal("123.456789");
+```
+
+出力：
+
+```json
+{
+  "value": "123.4568"
+}
+```
+
+#### 3. 数値形式の直列化
+
+設定：
+
+```yaml
+spring:
+  whale:
+    json:
+      big-decimal-as-string: false
+```
+
+出力：
+
+```json
+{
+  "price": 99.99,
+  "discount": 0.15
+}
+```
+
+**注意**: 数値形式を使用するとフロントエンドの JavaScript で精度が失われる可能性があります。文字列形式を推奨します。
+
+#### 4. グローバルカスタマイズの無効化
+
+設定：
+
+```yaml
+spring:
+  whale:
+    json:
+      big-decimal-enabled: false
+```
+
+出力（元の精度を維持）：
+
+```json
+{
+  "price": 99.99123456789
+}
+```
+
 #### 5. Double/Float 精度制御
 
 設定：
@@ -443,6 +511,67 @@ public class MeasurementDTO {
 ```
 
 **注意**: Float と Double は設定された精度に応じて自動的に四捨五入され、浮動小数点の精度の問題を回避します。
+
+### 逆直列化
+
+3 つの逆直列化方法をサポート：
+
+#### 1. 文字列形式（推奨）
+
+```json
+{"price": "99.99"}
+```
+
+#### 2. 数値形式
+
+```json
+{"price": 99.99}
+```
+
+#### 3. 指数表記
+
+```json
+{"price": "1.23E+2"}
+```
+
+### 丸めモードの説明
+
+サポートされている丸めモード（`RoundingMode` 列挙型）：
+
+| 丸めモード         | 説明                                  | 例 (2.5) | 例 (2.6) |
+|---------------|-------------------------------------|---------|---------|
+| `HALF_UP`     | 最も近い値に丸める。両方が等距離の場合は大きい方に丸める        | 3       | 3       |
+| `HALF_DOWN`   | 最も近い値に丸める。両方が等距離の場合は小さい方に丸める        | 2       | 3       |
+| `HALF_EVEN`   | 最も近い値に丸める。両方が等距離の場合は偶数の方に丸める（銀行家丸め） | 2       | 3       |
+| `UP`          | ゼロから遠ざかる方向に丸める                      | 3       | 3       |
+| `DOWN`        | ゼロに近づく方向に丸める                        | 2       | 2       |
+| `CEILING`     | 正の無限大方向に丸める                         | 3       | 3       |
+| `FLOOR`       | 負の無限大方向に丸める                         | 2       | 2       |
+| `UNNECESSARY` | 丸め不要。必要な場合は例外をスロー                   | 例外      | 例外      |
+
+### ベストプラクティス
+
+#### 1. 金額フィールドの扱い
+
+金額フィールドの場合、以下を推奨：
+
+- `big-decimal-as-string: true` を使用してフロントエンドでの精度低下を防止
+- 適切な精度（通常 2 桁）を設定
+- 商業慣習に合わせて `HALF_UP` 丸めモードを使用
+
+#### 2. 高精度計算
+
+高精度が必要な科学計算の場合：
+
+- `big-decimal-scale` を適切な値（例：10）に増やす
+- 累積誤差を減らすために `HALF_EVEN` 銀行家丸めを検討
+
+#### 3. データベース連携
+
+データベースの精度が設定と一致することを確認：
+
+- MySQL: `DECIMAL(10,2)` は `big-decimal-scale: 2` に対応
+- Oracle: `NUMBER(10,4)` は `big-decimal-scale: 4` に対応
 
 ## 数値型の処理
 
@@ -552,146 +681,13 @@ Float value = 0.123456789f;
 
 #### 1. エンティティクラスの定義
 
-#### 2. 異なる精度設定
-
-設定：
-
-```yaml
-spring:
-  whale:
-    json:
-      big-decimal-scale: 4
-      big-decimal-rounding-mode: HALF_DOWN
-```
-
-コード：
-
-```java
-BigDecimal value = new BigDecimal("123.456789");
-```
-
-出力：
-
-```json
-{
-  "value": "123.4568"
-}
-```
-
-#### 3. 数値形式の直列化
-
-設定：
-
-```yaml
-spring:
-  whale:
-    json:
-      big-decimal-as-string: false
-```
-
-出力：
-
-```json
-{
-  "price": 99.99,
-  "discount": 0.15
-}
-```
-
-**注意**: 数値形式を使用するとフロントエンドの JavaScript で精度が失われる可能性があります。文字列形式を推奨します。
-
-#### 4. グローバルカスタマイズの無効化
-
-設定：
-
-```yaml
-spring:
-  whale:
-    json:
-      big-decimal-enabled: false
-```
-
-出力（元の精度を維持）：
-
-```json
-{
-  "price": 99.99123456789
-}
-```
-
-### 逆直列化
-
-3 つの逆直列化方法をサポート：
-
-#### 1. 文字列形式（推奨）
-
-```json
-{"price": "99.99"}
-```
-
-#### 2. 数値形式
-
-```json
-{"price": 99.99}
-```
-
-#### 3. 指数表記
-
-```json
-{"price": "1.23E+2"}
-```
-
-### 丸めモードの説明
-
-サポートされている丸めモード（`RoundingMode` 列挙型）：
-
-| 丸めモード         | 説明                                  | 例 (2.5) | 例 (2.6) |
-|---------------|-------------------------------------|---------|---------|
-| `HALF_UP`     | 最も近い値に丸める。両方が等距離の場合は大きい方に丸める        | 3       | 3       |
-| `HALF_DOWN`   | 最も近い値に丸める。両方が等距離の場合は小さい方に丸める        | 2       | 3       |
-| `HALF_EVEN`   | 最も近い値に丸める。両方が等距離の場合は偶数の方に丸める（銀行家丸め） | 2       | 3       |
-| `UP`          | ゼロから遠ざかる方向に丸める                      | 3       | 3       |
-| `DOWN`        | ゼロに近づく方向に丸める                        | 2       | 2       |
-| `CEILING`     | 正の無限大方向に丸める                         | 3       | 3       |
-| `FLOOR`       | 負の無限大方向に丸める                         | 2       | 2       |
-| `UNNECESSARY` | 丸め不要。必要な場合は例外をスロー                   | 例外      | 例外      |
-
-### ベストプラクティス
-
-#### 1. 金額フィールドの扱い
-
-金額フィールドの場合、以下を推奨：
-
-- `big-decimal-as-string: true` を使用してフロントエンドでの精度低下を防止
-- 適切な精度（通常 2 桁）を設定
-- 商業慣習に合わせて `HALF_UP` 丸めモードを使用
-
-#### 2. 高精度計算
-
-高精度が必要な科学計算の場合：
-
-- `big-decimal-scale` を適切な値（例：10）に増やす
-- 累積誤差を減らすために `HALF_EVEN` 銀行家丸めを検討
-
-#### 3. データベース連携
-
-データベースの精度が設定と一致することを確認：
-
-- MySQL: `DECIMAL(10,2)` は `big-decimal-scale: 2` に対応
-- Oracle: `NUMBER(10,4)` は `big-decimal-scale: 4` に対応
-
-## BigDecimal の処理
-
-### 直列化
-
-#### 1. デフォルト設定の直列化
-
 ```java
 import io.github.springwhale.framework.core.enums.BaseEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;

@@ -1,7 +1,7 @@
 # Spring Whale JSON Serialization
 
 Spring Whale framework provides powerful JSON serialization and deserialization capabilities, based on Spring Boot and
-Tools Jackson, supporting custom time formats, enum handling, and internationalization features.
+Jackson, supporting custom time formats, enum handling, and internationalization features.
 
 ## Table of Contents
 
@@ -9,8 +9,11 @@ Tools Jackson, supporting custom time formats, enum handling, and internationali
 - [Configuration](#configuration)
 - [Time Type Handling](#time-type-handling)
 - [Enum Type Handling](#enum-type-handling)
+- [BigDecimal Handling](#bigdecimal-handling)
+- [Numeric Type Handling](#numeric-type-handling)
 - [Usage Examples](#usage-examples)
 - [Best Practices](#best-practices)
+- [Notes](#notes)
 
 ## Features
 
@@ -56,8 +59,6 @@ Tools Jackson, supporting custom time formats, enum handling, and internationali
 - **Timezone formats**: `HH:mm:ss Z`, `HH:mm:ssXXX`
 
 ## Configuration
-
-### Configuration File
 
 ### Configuration File
 
@@ -456,6 +457,73 @@ Output:
 }
 ```
 
+#### 2. Different Precision Configuration
+
+Configuration:
+
+```yaml
+spring:
+  whale:
+    json:
+      big-decimal-scale: 4
+      big-decimal-rounding-mode: HALF_DOWN
+```
+
+Code:
+
+```java
+BigDecimal value = new BigDecimal("123.456789");
+```
+
+Output:
+
+```json
+{
+  "value": "123.4568"
+}
+```
+
+#### 3. Numeric Format Serialization
+
+Configuration:
+
+```yaml
+spring:
+  whale:
+    json:
+      big-decimal-as-string: false
+```
+
+Output:
+
+```json
+{
+  "price": 99.99,
+  "discount": 0.15
+}
+```
+
+**Note**: Using numeric format may cause precision loss in frontend JavaScript. String format is recommended.
+
+#### 4. Disable Global Customization
+
+Configuration:
+
+```yaml
+spring:
+  whale:
+    json:
+      big-decimal-enabled: false
+```
+
+Output (keeps original precision):
+
+```json
+{
+  "price": 99.99123456789
+}
+```
+
 #### 5. Double/Float Precision Control
 
 Configuration:
@@ -487,6 +555,73 @@ Output:
 
 **Note**: Float and Double will be automatically rounded according to the configured precision to avoid floating-point
 precision issues.
+
+### Deserialization
+
+Supports three deserialization methods:
+
+#### 1. String Format (Recommended)
+
+```json
+{
+  "price": "99.99"
+}
+```
+
+#### 2. Numeric Format
+
+```json
+{
+  "price": 99.99
+}
+```
+
+#### 3. Scientific Notation
+
+```json
+{
+  "price": "1.23E+2"
+}
+```
+
+### Rounding Mode Description
+
+Supported rounding modes (`RoundingMode` enum):
+
+| Rounding Mode | Description                                                                                             | Example (2.5) | Example (2.6) |
+|---------------|---------------------------------------------------------------------------------------------------------|---------------|---------------|
+| `HALF_UP`     | Round towards nearest neighbor, unless both neighbors are equidistant, then round up                    | 3             | 3             |
+| `HALF_DOWN`   | Round towards nearest neighbor, unless both neighbors are equidistant, then round down                  | 2             | 3             |
+| `HALF_EVEN`   | Round towards nearest neighbor, unless both neighbors are equidistant, then round towards even neighbor | 2             | 3             |
+| `UP`          | Round away from zero                                                                                    | 3             | 3             |
+| `DOWN`        | Round towards zero                                                                                      | 2             | 2             |
+| `CEILING`     | Round towards positive infinity                                                                         | 3             | 3             |
+| `FLOOR`       | Round towards negative infinity                                                                         | 2             | 2             |
+| `UNNECESSARY` | Do not round, throw exception if rounding is necessary                                                  | Exception     | Exception     |
+
+### Best Practices
+
+#### 1. Monetary Amount Handling
+
+For monetary amount fields, it is recommended to:
+
+- Use `big-decimal-as-string: true` to avoid precision loss in frontend
+- Set appropriate precision (usually 2 decimal places)
+- Use `HALF_UP` rounding mode to conform to business practices
+
+#### 2. High-Precision Calculations
+
+For scientific calculations requiring high precision:
+
+- Increase `big-decimal-scale` to an appropriate value (e.g., 10)
+- Consider using `HALF_EVEN` banker's rounding to reduce cumulative errors
+
+#### 3. Database Integration
+
+Ensure database precision matches configuration:
+
+- MySQL: `DECIMAL(10,2)` corresponds to `big-decimal-scale: 2`
+- Oracle: `NUMBER(10,4)` corresponds to `big-decimal-scale: 4`
 
 ## Numeric Type Handling
 
@@ -608,152 +743,13 @@ Output:
 
 #### 1. Entity Class Definition
 
-#### 2. Different Precision Configuration
-
-Configuration:
-
-```yaml
-spring:
-  whale:
-    json:
-      big-decimal-scale: 4
-      big-decimal-rounding-mode: HALF_DOWN
-```
-
-Code:
-
-```java
-BigDecimal value = new BigDecimal("123.456789");
-```
-
-Output:
-
-```json
-{
-  "value": "123.4568"
-}
-```
-
-#### 3. Numeric Format Serialization
-
-Configuration:
-
-```yaml
-spring:
-  whale:
-    json:
-      big-decimal-as-string: false
-```
-
-Output:
-
-```json
-{
-  "price": 99.99,
-  "discount": 0.15
-}
-```
-
-**Note**: Using numeric format may cause precision loss in frontend JavaScript. String format is recommended.
-
-#### 4. Disable Global Customization
-
-Configuration:
-
-```yaml
-spring:
-  whale:
-    json:
-      big-decimal-enabled: false
-```
-
-Output (keeps original precision):
-
-```json
-{
-  "price": 99.99123456789
-}
-```
-
-### Deserialization
-
-Supports three deserialization methods:
-
-#### 1. String Format (Recommended)
-
-```json
-{
-  "price": "99.99"
-}
-```
-
-#### 2. Numeric Format
-
-```json
-{
-  "price": 99.99
-}
-```
-
-#### 3. Scientific Notation
-
-```json
-{
-  "price": "1.23E+2"
-}
-```
-
-### Rounding Mode Description
-
-Supported rounding modes (`RoundingMode` enum):
-
-| Rounding Mode | Description                                                                                             | Example (2.5) | Example (2.6) |
-|---------------|---------------------------------------------------------------------------------------------------------|---------------|---------------|
-| `HALF_UP`     | Round towards nearest neighbor, unless both neighbors are equidistant, then round up                    | 3             | 3             |
-| `HALF_DOWN`   | Round towards nearest neighbor, unless both neighbors are equidistant, then round down                  | 2             | 3             |
-| `HALF_EVEN`   | Round towards nearest neighbor, unless both neighbors are equidistant, then round towards even neighbor | 2             | 3             |
-| `UP`          | Round away from zero                                                                                    | 3             | 3             |
-| `DOWN`        | Round towards zero                                                                                      | 2             | 2             |
-| `CEILING`     | Round towards positive infinity                                                                         | 3             | 3             |
-| `FLOOR`       | Round towards negative infinity                                                                         | 2             | 2             |
-| `UNNECESSARY` | Do not round, throw exception if rounding is necessary                                                  | Exception     | Exception     |
-
-### Best Practices
-
-#### 1. Monetary Amount Handling
-
-For monetary amount fields, it is recommended to:
-
-- Use `big-decimal-as-string: true` to avoid precision loss in frontend
-- Set appropriate precision (usually 2 decimal places)
-- Use `HALF_UP` rounding mode to conform to business practices
-
-#### 2. High-Precision Calculations
-
-For scientific calculations requiring high precision:
-
-- Increase `big-decimal-scale` to an appropriate value (e.g., 10)
-- Consider using `HALF_EVEN` banker's rounding to reduce cumulative errors
-
-#### 3. Database Integration
-
-Ensure database precision matches configuration:
-
-- MySQL: `DECIMAL(10,2)` corresponds to `big-decimal-scale: 2`
-- Oracle: `NUMBER(10,4)` corresponds to `big-decimal-scale: 4`
-
-## BigDecimal Handling
-
-### Serialization
-
-#### 1. Default Configuration Serialization
-
 ```java
 import io.github.springwhale.framework.core.enums.BaseEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;

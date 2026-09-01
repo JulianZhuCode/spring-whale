@@ -22,18 +22,18 @@ Spring Whale 框架提供了强大的全局异常处理功能，基于 Spring Bo
 - ✅ **扩展数据支持** - 业务异常可以携带扩展数据
 - ✅ **自动注册** - 通过 Spring Boot 自动配置，无需手动注册
 
-### HTTP 状态码映射
+### 错误码映射
 
-| 异常类型                                     | HTTP 状态码 | 说明                |
-|------------------------------------------|----------|-------------------|
-| `Exception`                              | 500      | 服务器内部错误           |
-| `BusinessException`                      | 动态       | 业务异常，错误码由业务决定     |
-| `IllegalArgumentException`               | 400      | 非法参数异常            |
-| `ValidationException`                    | 400      | JSR-303 验证异常      |
-| `MethodArgumentNotValidException`        | 400      | @Validated 参数验证失败 |
-| `BindException`                          | 400      | 参数绑定失败            |
-| `HttpRequestMethodNotSupportedException` | 405      | HTTP 方法不支持        |
-| `DuplicateKeyException`                  | 409      | 重复键（唯一约束冲突）       |
+| 异常类型                                     | 错误码 | 说明                |
+|------------------------------------------|------|-------------------|
+| `Exception`                              | 500  | 服务器内部错误           |
+| `BusinessException`                      | 动态   | 业务异常，错误码由业务决定     |
+| `IllegalArgumentException`               | 400  | 非法参数异常            |
+| `ValidationException`                    | 400  | JSR-303 验证异常      |
+| `MethodArgumentNotValidException`        | 400  | @Validated 参数验证失败 |
+| `BindException`                          | 400  | 参数绑定失败            |
+| `HttpRequestMethodNotSupportedException` | 405  | HTTP 方法不支持        |
+| `NoResourceFoundException`               | 404  | 资源不存在             |
 
 ## 支持的异常类型
 
@@ -136,26 +136,26 @@ public ApiResult<Boolean> handleHttpRequestMethodNotSupportedException(
 
 **日志级别：** WARN
 
-### 5. 重复键异常
+### 5. 资源不存在异常
 
-处理数据库唯一约束冲突等情况：
+处理请求的资源不存在的情况：
 
 ```java
-@ExceptionHandler(value = DuplicateKeyException.class)
-public ApiResult<Boolean> handleDuplicateKeyException(DuplicateKeyException e)
+@ExceptionHandler(value = NoResourceFoundException.class)
+public ApiResult<Boolean> handleNoResourceFoundException(NoResourceFoundException e)
 ```
 
 **响应示例：**
 
 ```json
 {
-  "code": "409",
-  "message": "重复记录！",
+  "code": "404",
+  "message": "资源不存在！",
   "data": false
 }
 ```
 
-**日志级别：** WARN
+**日志级别：** DEBUG
 
 ## 配置说明
 
@@ -179,9 +179,9 @@ spring:
         # 405 错误消息
         message-405: 方法不允许！
         code-405: http.error.405
-        # 409 错误消息
-        message-409: 重复记录！
-        code-409: http.error.409
+        # 404 错误消息
+        message-404: 资源不存在！
+        code-404: http.error.404
 ```
 
 ### 配置项说明
@@ -195,8 +195,8 @@ spring:
 | `code-400`    | String  | http.error.400 | 400 错误的国际化 key |
 | `message-405` | String  | 方法不允许！         | 405 错误的默认消息    |
 | `code-405`    | String  | http.error.405 | 405 错误的国际化 key |
-| `message-409` | String  | 重复记录！          | 409 错误的默认消息    |
-| `code-409`    | String  | http.error.409 | 409 错误的国际化 key |
+| `message-404` | String  | 资源不存在！         | 404 错误的默认消息    |
+| `code-404`    | String  | http.error.404 | 404 错误的国际化 key |
 
 ### 国际化配置
 
@@ -208,7 +208,7 @@ spring:
 http.error.500=Server abnormal, please try again later!
 http.error.400=Invalid request parameters!
 http.error.405=Method not allowed!
-http.error.409=Duplicate records!
+http.error.404=Resource not found!
 USER_NOT_FOUND=User not found
 ```
 
@@ -218,7 +218,7 @@ USER_NOT_FOUND=User not found
 http.error.500=服务器异常，请稍后重试！
 http.error.400=无效请求参数！
 http.error.405=方法不允许！
-http.error.409=重复记录！
+http.error.404=资源不存在！
 USER_NOT_FOUND=用户不存在
 ORDER_NOT_FOUND=订单不存在
 ```
@@ -229,7 +229,7 @@ ORDER_NOT_FOUND=订单不存在
 http.error.500=サーバーエラーが発生しました
 http.error.400=無効なリクエストパラメータ！
 http.error.405=メソッドが許可されていません！
-http.error.409=重複レコード！
+http.error.404=リソースが見つかりません！
 USER_NOT_FOUND=ユーザーが存在しません
 ```
 
@@ -508,23 +508,15 @@ fetch('/api/users', {
   }
 });
 
-// 捕获重复记录异常
-fetch('/api/users', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ 
-    username: 'existing_user',
-    email: 'existing@example.com',
-    password: 'password123'
-  })
-})
-.then(response => response.json())
-.then(data => {
-  // data 结构：{ code: '409', message: '重复记录！', data: false }
-  if (data.code === '409') {
-    alert(data.message);
-  }
-});
+// 捕获资源不存在
+fetch('/api/users/99999')
+  .then(response => response.json())
+  .then(data => {
+    // data 结构：{ code: '404', message: '资源不存在！', data: false }
+    if (data.code === '404') {
+      alert(data.message);
+    }
+  });
 ```
 
 **响应格式统一说明：**

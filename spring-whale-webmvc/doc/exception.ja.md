@@ -23,18 +23,18 @@ Spring Whale フレームワークは、Spring Boot の `@RestControllerAdvice`
 - ✅ **拡張データサポート** - ビジネス例外は拡張データを携带できます
 - ✅ **自動登録** - Spring Boot 経由で自動設定され、手動登録は不要です
 
-### HTTP ステータスコードマッピング
+### エラーコードマッピング
 
-| 例外タイプ                                    | HTTP ステータス | 説明                       |
-|------------------------------------------|------------|--------------------------|
-| `Exception`                              | 500        | サーバー内部エラー                |
-| `BusinessException`                      | 動的         | ビジネス例外、エラーコードはビジネスによって決定 |
-| `IllegalArgumentException`               | 400        | 違法引数例外                   |
-| `ValidationException`                    | 400        | JSR-303 検証例外             |
-| `MethodArgumentNotValidException`        | 400        | @Validated パラメータ検証失敗     |
-| `BindException`                          | 400        | パラメータバインド失敗              |
-| `HttpRequestMethodNotSupportedException` | 405        | HTTP メソッド未サポート           |
-| `DuplicateKeyException`                  | 409        | 重複キー（一意制約競合）             |
+| 例外タイプ                                    | エラーコード | 説明                       |
+|------------------------------------------|--------|--------------------------|
+| `Exception`                              | 500    | サーバー内部エラー                |
+| `BusinessException`                      | 動的     | ビジネス例外、エラーコードはビジネスによって決定 |
+| `IllegalArgumentException`               | 400    | 違法引数例外                   |
+| `ValidationException`                    | 400    | JSR-303 検証例外             |
+| `MethodArgumentNotValidException`        | 400    | @Validated パラメータ検証失敗     |
+| `BindException`                          | 400    | パラメータバインド失敗              |
+| `HttpRequestMethodNotSupportedException` | 405    | HTTP メソッド未サポート           |
+| `NoResourceFoundException`               | 404    | リソースが見つからない              |
 
 ## サポートされている例外タイプ
 
@@ -137,26 +137,26 @@ public ApiResult<Boolean> handleHttpRequestMethodNotSupportedException(
 
 **ログレベル：** WARN
 
-### 5. 重複キー例外
+### 5. リソース未検出例外
 
-データベースの一意制約競合などを処理します：
+リクエストされたリソースが存在しない場合を処理します：
 
 ```java
-@ExceptionHandler(value = DuplicateKeyException.class)
-public ApiResult<Boolean> handleDuplicateKeyException(DuplicateKeyException e)
+@ExceptionHandler(value = NoResourceFoundException.class)
+public ApiResult<Boolean> handleNoResourceFoundException(NoResourceFoundException e)
 ```
 
 **レスポンス例：**
 
 ```json
 {
-  "code": "409",
-  "message": "重複レコード！",
+  "code": "404",
+  "message": "リソースが見つかりません！",
   "data": false
 }
 ```
 
-**ログレベル：** WARN
+**ログレベル：** DEBUG
 
 ## 設定
 
@@ -180,9 +180,9 @@ spring:
         # 405 エラーメッセージ
         message-405: メソッドが許可されていません！
         code-405: http.error.405
-        # 409 エラーメッセージ
-        message-409: 重複レコード！
-        code-409: http.error.409
+        # 404 エラーメッセージ
+        message-404: リソースが見つかりません！
+        code-404: http.error.404
 ```
 
 ### 設定項目
@@ -196,8 +196,8 @@ spring:
 | `code-400`    | String  | http.error.400 | 400 エラーの国際化キー      |
 | `message-405` | String  | メソッドが許可...     | 405 エラーのデフォルトメッセージ |
 | `code-405`    | String  | http.error.405 | 405 エラーの国際化キー      |
-| `message-409` | String  | 重複レコード！        | 409 エラーのデフォルトメッセージ |
-| `code-409`    | String  | http.error.409 | 409 エラーの国際化キー      |
+| `message-404` | String  | リソースが見つかりません！   | 404 エラーのデフォルトメッセージ |
+| `code-404`    | String  | http.error.404 | 404 エラーの国際化キー      |
 
 ### 国際化設定
 
@@ -209,7 +209,7 @@ spring:
 http.error.500=Server abnormal, please try again later!
 http.error.400=Invalid request parameters!
 http.error.405=Method not allowed!
-http.error.409=Duplicate records!
+http.error.404=Resource not found!
 USER_NOT_FOUND=User not found
 ```
 
@@ -219,7 +219,7 @@ USER_NOT_FOUND=User not found
 http.error.500=服务器异常，请稍后重试！
 http.error.400=无效请求参数！
 http.error.405=方法不允许！
-http.error.409=重复记录！
+http.error.404=资源不存在！
 USER_NOT_FOUND=用户不存在
 ORDER_NOT_FOUND=订单不存在
 ```
@@ -230,7 +230,7 @@ ORDER_NOT_FOUND=订单不存在
 http.error.500=サーバーエラーが発生しました
 http.error.400=無効なリクエストパラメータ！
 http.error.405=メソッドが許可されていません！
-http.error.409=重複レコード！
+http.error.404=リソースが見つかりません！
 USER_NOT_FOUND=ユーザーが存在しません
 ```
 
@@ -509,23 +509,15 @@ fetch('/api/users', {
   }
 });
 
-// 重複レコード例外をキャッチ
-fetch('/api/users', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ 
-    username: 'existing_user',
-    email: 'existing@example.com',
-    password: 'password123'
-  })
-})
-.then(response => response.json())
-.then(data => {
-  // data 構造：{ code: '409', message: '重複レコード！', data: false }
-  if (data.code === '409') {
-    alert(data.message);
-  }
-});
+// リソース未検出をキャッチ
+fetch('/api/users/99999')
+  .then(response => response.json())
+  .then(data => {
+    // data 構造：{ code: '404', message: 'リソースが見つかりません！', data: false }
+    if (data.code === '404') {
+      alert(data.message);
+    }
+  });
 ```
 
 **統一レスポンス形式：**

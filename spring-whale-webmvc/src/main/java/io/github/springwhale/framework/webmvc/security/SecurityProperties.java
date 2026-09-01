@@ -26,4 +26,5 @@ public class SecurityProperties {
     private String jwtSecret = "SpringWhaleSecretKey2024ForJWTTokenGeneration";
 
     private long jwtExpiration = 86400000;
+
 }

@@ -1,6 +1,6 @@
 # Spring Whale JSON 序列化
 
-Spring Whale 框架提供了强大的 JSON 序列化和反序列化功能，基于 Spring Boot 和 Tools Jackson 实现，支持自定义时间格式、枚举处理和国际化等功能。
+Spring Whale 框架提供了强大的 JSON 序列化和反序列化功能，基于 Spring Boot 和 Jackson 实现，支持自定义时间格式、枚举处理和国际化等功能。
 
 ## 目录
 
@@ -8,8 +8,11 @@ Spring Whale 框架提供了强大的 JSON 序列化和反序列化功能，基�
 - [配置说明](#配置说明)
 - [时间类型处理](#时间类型处理)
 - [枚举类型处理](#枚举类型处理)
+- [BigDecimal 处理](#bigdecimal-处理)
+- [数值类型处理](#数值类型处理)
 - [使用示例](#使用示例)
 - [最佳实践](#最佳实践)
+- [注意事项](#注意事项)
 
 ## 功能特性
 
@@ -52,8 +55,6 @@ Spring Whale 框架提供了强大的 JSON 序列化和反序列化功能，基�
 - **标准格式**: `HH:mm:ss`, `HH:mm:ss.SSS`, `HH:mm:ss.SSSSSS`, `HH:mm:ss.SSSSSSSSS`
 - **无秒格式**: `HH:mm`, `H:mm`, `hh:mm a`, `hh:mm:ss a`
 - **时区格式**: `HH:mm:ss Z`, `HH:mm:ssXXX`
-
-## 配置说明
 
 ## 配置说明
 
@@ -454,6 +455,73 @@ public class PriceDTO {
 }
 ```
 
+#### 2. 不同精度配置
+
+配置：
+
+```yaml
+spring:
+  whale:
+    json:
+      big-decimal-scale: 4
+      big-decimal-rounding-mode: HALF_DOWN
+```
+
+代码：
+
+```java
+BigDecimal value = new BigDecimal("123.456789");
+```
+
+输出：
+
+```json
+{
+  "value": "123.4568"
+}
+```
+
+#### 3. 数字格式序列化
+
+配置：
+
+```yaml
+spring:
+  whale:
+    json:
+      big-decimal-as-string: false
+```
+
+输出：
+
+```json
+{
+  "price": 99.99,
+  "discount": 0.15
+}
+```
+
+**注意**：使用数字格式可能导致前端 JavaScript 精度丢失，建议使用字符串格式。
+
+#### 4. 禁用全局定制
+
+配置：
+
+```yaml
+spring:
+  whale:
+    json:
+      big-decimal-enabled: false
+```
+
+输出（保持原始精度）：
+
+```json
+{
+  "price": 99.99123456789
+}
+```
+
 #### 5. Double/Float 精度控制
 
 配置：
@@ -483,7 +551,74 @@ public class MeasurementDTO {
 }
 ```
 
-**注意**：Float 和 Double 会根据配置的精度自动四舍五入，避免浮点数精度问题。
+**说明**：Float 和 Double 会根据配置的精度自动四舍五入，避免浮点数精度问题。
+
+### 反序列化
+
+支持三种反序列化方式：
+
+#### 1. 字符串格式（推荐）
+
+```json
+{
+  "price": "99.99"
+}
+```
+
+#### 2. 数字格式
+
+```json
+{
+  "price": 99.99
+}
+```
+
+#### 3. 科学计数法
+
+```json
+{
+  "price": "1.23E+2"
+}
+```
+
+### 舍入模式说明
+
+支持的舍入模式（`RoundingMode` 枚举）：
+
+| 舍入模式          | 说明          | 示例 (2.5) | 示例 (2.6) |
+|---------------|-------------|----------|----------|
+| `HALF_UP`     | 四舍五入        | 3        | 3        |
+| `HALF_DOWN`   | 五舍六入        | 2        | 3        |
+| `HALF_EVEN`   | 银行家舍入法      | 2        | 3        |
+| `UP`          | 远离零方向舍入     | 3        | 3        |
+| `DOWN`        | 向零方向舍入      | 2        | 2        |
+| `CEILING`     | 向正无穷方向舍入    | 3        | 3        |
+| `FLOOR`       | 向负无穷方向舍入    | 2        | 2        |
+| `UNNECESSARY` | 不需要舍入，否则抛异常 | 异常       | 异常       |
+
+### 最佳实践
+
+#### 1. 金额字段处理
+
+对于金额字段，建议：
+
+- 使用 `big-decimal-as-string: true` 避免前端精度丢失
+- 设置合适的精度（通常 2 位小数）
+- 使用 `HALF_UP` 舍入模式符合商业习惯
+
+#### 2. 高精度计算
+
+对于需要高精度的科学计算：
+
+- 增加 `big-decimal-scale` 到合适的值（如 10）
+- 考虑使用 `HALF_EVEN` 银行家舍入法减少累积误差
+
+#### 3. 数据库对接
+
+确保数据库精度与配置一致：
+
+- MySQL: `DECIMAL(10,2)` 对应 `big-decimal-scale: 2`
+- Oracle: `NUMBER(10,4)` 对应 `big-decimal-scale: 4`
 
 ## 数值类型处理
 
@@ -605,152 +740,13 @@ Float value = 0.123456789f;
 
 #### 1. 实体类定义
 
-#### 2. 不同精度配置
-
-配置：
-
-```yaml
-spring:
-  whale:
-    json:
-      big-decimal-scale: 4
-      big-decimal-rounding-mode: HALF_DOWN
-```
-
-代码：
-
-```java
-BigDecimal value = new BigDecimal("123.456789");
-```
-
-输出：
-
-```json
-{
-  "value": "123.4568"
-}
-```
-
-#### 3. 数字格式序列化
-
-配置：
-
-```yaml
-spring:
-  whale:
-    json:
-      big-decimal-as-string: false
-```
-
-输出：
-
-```json
-{
-  "price": 99.99,
-  "discount": 0.15
-}
-```
-
-**注意**：使用数字格式可能导致前端 JavaScript 精度丢失，建议使用字符串格式。
-
-#### 4. 禁用全局定制
-
-配置：
-
-```yaml
-spring:
-  whale:
-    json:
-      big-decimal-enabled: false
-```
-
-输出（保持原始精度）：
-
-```json
-{
-  "price": 99.99123456789
-}
-```
-
-### 反序列化
-
-支持三种反序列化方式：
-
-#### 1. 字符串格式（推荐）
-
-```json
-{
-  "price": "99.99"
-}
-```
-
-#### 2. 数字格式
-
-```json
-{
-  "price": 99.99
-}
-```
-
-#### 3. 科学计数法
-
-```json
-{
-  "price": "1.23E+2"
-}
-```
-
-### 舍入模式说明
-
-支持的舍入模式（`RoundingMode` 枚举）：
-
-| 舍入模式          | 说明          | 示例 (2.5) | 示例 (2.6) |
-|---------------|-------------|----------|----------|
-| `HALF_UP`     | 四舍五入        | 3        | 3        |
-| `HALF_DOWN`   | 五舍六入        | 2        | 3        |
-| `HALF_EVEN`   | 银行家舍入法      | 2        | 3        |
-| `UP`          | 远离零方向舍入     | 3        | 3        |
-| `DOWN`        | 向零方向舍入      | 2        | 2        |
-| `CEILING`     | 向正无穷方向舍入    | 3        | 3        |
-| `FLOOR`       | 向负无穷方向舍入    | 2        | 2        |
-| `UNNECESSARY` | 不需要舍入，否则抛异常 | 异常       | 异常       |
-
-### 最佳实践
-
-#### 1. 金额字段处理
-
-对于金额字段，建议：
-
-- 使用 `big-decimal-as-string: true` 避免前端精度丢失
-- 设置合适的精度（通常 2 位小数）
-- 使用 `HALF_UP` 舍入模式符合商业习惯
-
-#### 2. 高精度计算
-
-对于需要高精度的科学计算：
-
-- 增加 `big-decimal-scale` 到合适的值（如 10）
-- 考虑使用 `HALF_EVEN` 银行家舍入法减少累积误差
-
-#### 3. 数据库对接
-
-确保数据库精度与配置一致：
-
-- MySQL: `DECIMAL(10,2)` 对应 `big-decimal-scale: 2`
-- Oracle: `NUMBER(10,4)` 对应 `big-decimal-scale: 4`
-
-## BigDecimal 处理
-
-### 序列化
-
-#### 1. 默认配置序列化
-
 ```java
 import io.github.springwhale.framework.core.enums.BaseEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
