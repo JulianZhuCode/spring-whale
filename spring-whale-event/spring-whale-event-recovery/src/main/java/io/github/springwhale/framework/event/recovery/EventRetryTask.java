@@ -14,7 +14,10 @@ import tools.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class EventRetryTask {
@@ -35,13 +38,7 @@ public class EventRetryTask {
         this.eventPublisher = eventPublisher;
         this.jsonMapper = jsonMapper;
         this.metricsCollectors = metricsCollectors != null ? metricsCollectors : Collections.emptyList();
-        this.retryExecutor = new ThreadPoolExecutor(
-                eventProperties.getRetryThreadPoolSize(),
-                eventProperties.getRetryThreadPoolSize(),
-                60L, TimeUnit.SECONDS,
-                new LinkedBlockingQueue<>(),
-                Thread.ofVirtual().name("event-retry-", 0).factory()
-        );
+        this.retryExecutor = Executors.newVirtualThreadPerTaskExecutor();
     }
 
     @PreDestroy
@@ -90,7 +87,8 @@ public class EventRetryTask {
      * but only one succeeds in the CAS transition from PENDING_RETRY to RETRYING.
      * The other sees 0 affected rows and the record is safely skipped from DB update.</p>
      * <p>Each record is handled in its own try-catch, so one record's failure does not
-     * interrupt others. A thread pool is used for parallel processing.</p>
+     * interrupt others. Virtual threads are used for parallel processing,
+     * with concurrency naturally bounded by {@code retryBatchSize}.</p>
      */
     @Scheduled(fixedDelayString = "${spring.whale.event.retryScheduleInterval:" + EventProperties.DEFAULT_RETRY_SCHEDULE_INTERVAL + "}")
     public void retry() {

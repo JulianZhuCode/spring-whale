@@ -9,7 +9,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -19,9 +24,9 @@ import java.util.function.Consumer;
  * Requires edge-tts (https://github.com/rany2/edge-tts) to be installed and available on the system PATH.
  * Supports edge-tts v7.x+ with the {@code --write-media} parameter.
  * <p>
- * Supports concurrent TTS generation via a bounded thread pool. Each edge-tts invocation spawns
- * an independent OS process connecting to Microsoft's online TTS service, which naturally supports
- * concurrent usage.
+ * Supports concurrent TTS generation via virtual threads with a semaphore for
+ * concurrency bounding. Each edge-tts invocation spawns an independent OS process
+ * connecting to Microsoft's online TTS service, which naturally supports concurrent usage.
  * <p>
  * Configurable via {@code edge-tts.*} application properties / environment variables:
  * <ul>
@@ -37,17 +42,15 @@ public class EdgeTtsUtil {
     private final int timeoutSeconds;
     private final int concurrency;
     private final ExecutorService executor;
+    private final Semaphore semaphore;
     private final AtomicInteger activeTasks = new AtomicInteger(0);
 
     public EdgeTtsUtil(String command, int timeoutSeconds, int concurrency) {
         this.command = command;
         this.timeoutSeconds = timeoutSeconds > 0 ? timeoutSeconds : 30;
         this.concurrency = concurrency > 0 ? concurrency : Math.max(2, Runtime.getRuntime().availableProcessors() / 2);
-        this.executor = Executors.newFixedThreadPool(this.concurrency, r -> {
-            Thread t = new Thread(r, "edge-tts-worker");
-            t.setDaemon(true);
-            return t;
-        });
+        this.executor = Executors.newVirtualThreadPerTaskExecutor();
+        this.semaphore = new Semaphore(this.concurrency);
         log.info("EdgeTtsUtil initialized: command={}, timeout={}s, concurrency={}",
                 this.command, this.timeoutSeconds, this.concurrency);
     }
@@ -97,6 +100,13 @@ public class EdgeTtsUtil {
     public CompletableFuture<Boolean> ttsToMp3Async(String text, String voice, String outputPath, int timeoutSeconds) {
         CompletableFuture<Boolean> future = new CompletableFuture<>();
         executor.submit(() -> {
+            try {
+                semaphore.acquire();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                future.complete(false);
+                return;
+            }
             activeTasks.incrementAndGet();
             try {
                 TtsResult result = ttsToMp3Internal(new TtsRequest(outputPath, text, voice, outputPath), timeoutSeconds);
@@ -106,6 +116,7 @@ public class EdgeTtsUtil {
                 future.complete(false);
             } finally {
                 activeTasks.decrementAndGet();
+                semaphore.release();
             }
         });
         return future;
@@ -159,6 +170,14 @@ public class EdgeTtsUtil {
 
         for (TtsRequest req : requests) {
             CompletableFuture<Void> f = CompletableFuture.runAsync(() -> {
+                try {
+                    semaphore.acquire();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    TtsResult errResult = new TtsResult(req.id(), false, req.outputPath(), "Interrupted");
+                    resultMap.put(req.id(), errResult);
+                    return;
+                }
                 activeTasks.incrementAndGet();
                 try {
                     TtsResult result = ttsToMp3Internal(req, timeoutSeconds);
@@ -183,6 +202,7 @@ public class EdgeTtsUtil {
                     }
                 } finally {
                     activeTasks.decrementAndGet();
+                    semaphore.release();
                 }
             }, executor);
             futures.add(f);
@@ -211,7 +231,7 @@ public class EdgeTtsUtil {
     }
 
     /**
-     * Shutdown the thread pool on application context destroy.
+     * Shutdown the executor on application context destroy.
      */
     @PreDestroy
     public void shutdown() {

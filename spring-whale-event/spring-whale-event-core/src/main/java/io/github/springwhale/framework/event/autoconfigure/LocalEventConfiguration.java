@@ -11,12 +11,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 @AutoConfiguration
 @EnableAsync
@@ -27,16 +27,8 @@ public class LocalEventConfiguration {
 
     @Bean(name = LOCAL_EVENT_EXECUTOR)
     @ConditionalOnMissingBean(name = LOCAL_EVENT_EXECUTOR)
-    public Executor localEventExecutor(EventProperties properties) {
-        int concurrency = properties.getConcurrency();
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(concurrency);
-        executor.setMaxPoolSize(concurrency);
-        executor.setQueueCapacity(Integer.MAX_VALUE);
-        executor.setThreadNamePrefix("local-event-");
-        executor.setRejectedExecutionHandler(new java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy());
-        executor.initialize();
-        return executor;
+    public Executor localEventExecutor() {
+        return Executors.newVirtualThreadPerTaskExecutor();
     }
 
     @Bean

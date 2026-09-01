@@ -32,8 +32,18 @@ import org.springframework.util.StringUtils;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -48,7 +58,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 @RequiredArgsConstructor
 public class TaskService {
 
-    private static final int DEFAULT_CONCURRENCY = Math.max(2, Runtime.getRuntime().availableProcessors() / 2);
     private static final int STATUS_CHECK_INTERVAL = 100;
     private final TaskBatchRepository taskRepository;
     private final TaskBatchItemRepository itemRepository;
@@ -68,25 +77,14 @@ public class TaskService {
         for (TaskHandler h : handlers) {
             this.handlerMap.put(h.getTaskType(), h);
         }
-        this.taskExecutor = new ThreadPoolExecutor(
-                DEFAULT_CONCURRENCY,
-                DEFAULT_CONCURRENCY,
-                60L, TimeUnit.SECONDS,
-                new LinkedBlockingQueue<>(),
-                r -> {
-                    Thread t = new Thread(r, "task-executor");
-                    t.setDaemon(true);
-                    return t;
-                },
-                new ThreadPoolExecutor.CallerRunsPolicy()
-        );
-        log.info("TaskService initialized: {} task threads", DEFAULT_CONCURRENCY);
+        this.taskExecutor = Executors.newVirtualThreadPerTaskExecutor();
+        log.info("TaskService initialized with virtual threads");
     }
 
     @PreDestroy
     public void destroy() {
         if (taskExecutor != null) {
-            taskExecutor.shutdownNow();
+            taskExecutor.shutdown();
         }
     }
 
