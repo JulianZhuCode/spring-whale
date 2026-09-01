@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 public class AdminControllerAdvice {
 
     private static final String WILDCARD = "*";
+    private static final String ROLE_ANONYMOUS = "ROLE_ANONYMOUS";
 
     private final List<AdminMenuProvider> menuProviders;
     private final AdminProperties adminProperties;
@@ -44,6 +45,7 @@ public class AdminControllerAdvice {
         }
         return auth.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
+                .filter(a -> !ROLE_ANONYMOUS.equals(a))
                 .collect(Collectors.toSet());
     }
 

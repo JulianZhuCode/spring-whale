@@ -1,6 +1,5 @@
 package io.github.springwhale.framework.thymeleaf.autoconfigure;
 
-import io.github.springwhale.framework.thymeleaf.autoconfigure.AdminProperties;
 import io.github.springwhale.framework.thymeleaf.controller.AdminConsoleController;
 import io.github.springwhale.framework.thymeleaf.controller.AdminControllerAdvice;
 import io.github.springwhale.framework.thymeleaf.controller.AdminErrorController;
@@ -10,9 +9,11 @@ import io.github.springwhale.framework.thymeleaf.security.ThymeleafSecurityConfi
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.webmvc.autoconfigure.error.ErrorMvcAutoConfiguration;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.core.AuthenticationException;
@@ -30,6 +31,7 @@ import java.util.List;
  * </p>
  */
 @AutoConfiguration
+@AutoConfigureBefore(ErrorMvcAutoConfiguration.class)
 @ConditionalOnClass(name = "org.thymeleaf.spring6.SpringTemplateEngine")
 @EnableConfigurationProperties(AdminProperties.class)
 public class SpringWhaleThymeleafAutoConfiguration {

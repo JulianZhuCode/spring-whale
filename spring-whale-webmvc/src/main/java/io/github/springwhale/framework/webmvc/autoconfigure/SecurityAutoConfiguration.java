@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -136,10 +135,4 @@ public class SecurityAutoConfiguration {
                 });
     }
 
-    @Bean
-    @ConditionalOnMissingBean
-    @ConditionalOnClass(feign.RequestInterceptor.class)
-    public SecurityFeignInterceptor securityFeignInterceptor(SecurityProperties props, JwtUtil jwtUtil) {
-        return new SecurityFeignInterceptor(props, jwtUtil);
     }
-}

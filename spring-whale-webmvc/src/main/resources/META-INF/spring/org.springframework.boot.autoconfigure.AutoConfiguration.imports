@@ -2,3 +2,4 @@ io.github.springwhale.framework.webmvc.autoconfigure.SpringWhaleWebMvcAutoConfig
 io.github.springwhale.framework.webmvc.autoconfigure.SpringWhaleMessageSourceAutoConfiguration
 io.github.springwhale.framework.webmvc.autoconfigure.SpringWhaleI18nAutoConfiguration
 io.github.springwhale.framework.webmvc.autoconfigure.SecurityAutoConfiguration
+io.github.springwhale.framework.webmvc.autoconfigure.SecurityFeignAutoConfiguration
