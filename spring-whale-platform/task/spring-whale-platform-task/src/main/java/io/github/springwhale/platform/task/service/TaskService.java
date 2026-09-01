@@ -23,7 +23,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -45,7 +44,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * pause, resume (breakpoint), cancel, and progress tracking.
  * </p>
  */
-@Service
 @Slf4j
 @RequiredArgsConstructor
 public class TaskService {

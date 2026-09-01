@@ -12,7 +12,7 @@ import io.github.springwhale.platform.rbac.repository.RoleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
+
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
@@ -24,7 +24,6 @@ import java.util.stream.Collectors;
 /**
  * Role service
  */
-@Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class RoleService {

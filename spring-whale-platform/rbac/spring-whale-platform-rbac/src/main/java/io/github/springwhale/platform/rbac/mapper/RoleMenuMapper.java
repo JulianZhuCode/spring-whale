@@ -3,7 +3,7 @@ package io.github.springwhale.platform.rbac.mapper;
 import io.github.springwhale.platform.rbac.dto.vo.RoleMenuVO;
 import io.github.springwhale.platform.rbac.entity.RoleMenuEntity;
 import org.springframework.beans.BeanUtils;
-import org.springframework.stereotype.Component;
+
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 /**
  * RoleMenu entity/VO converter
  */
-@Component
 public class RoleMenuMapper {
 
     /**

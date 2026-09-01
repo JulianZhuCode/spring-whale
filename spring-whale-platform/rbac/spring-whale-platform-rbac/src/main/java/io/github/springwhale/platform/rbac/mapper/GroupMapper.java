@@ -3,7 +3,7 @@ package io.github.springwhale.platform.rbac.mapper;
 import io.github.springwhale.platform.rbac.dto.vo.GroupVO;
 import io.github.springwhale.platform.rbac.entity.GroupEntity;
 import org.springframework.beans.BeanUtils;
-import org.springframework.stereotype.Component;
+
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 /**
  * Group entity/VO converter
  */
-@Component
 public class GroupMapper {
 
     /**

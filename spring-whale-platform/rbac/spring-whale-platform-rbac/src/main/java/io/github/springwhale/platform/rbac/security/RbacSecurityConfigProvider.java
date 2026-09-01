@@ -2,15 +2,11 @@ package io.github.springwhale.platform.rbac.security;
 
 import io.github.springwhale.framework.webmvc.security.SecurityConfigProvider;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 
 /**
  * Default security configuration provider for RBAC module
  */
-@Component
-@RequiredArgsConstructor
 public class RbacSecurityConfigProvider implements SecurityConfigProvider {
 
     @Override

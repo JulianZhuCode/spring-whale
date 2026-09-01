@@ -3,7 +3,6 @@ package io.github.springwhale.platform.rbac.mapper;
 import io.github.springwhale.platform.rbac.dto.vo.UserVO;
 import io.github.springwhale.platform.rbac.entity.UserEntity;
 import org.springframework.beans.BeanUtils;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -11,7 +10,6 @@ import java.util.stream.Collectors;
 /**
  * User entity/VO converter
  */
-@Component
 public class UserMapper {
 
     /**

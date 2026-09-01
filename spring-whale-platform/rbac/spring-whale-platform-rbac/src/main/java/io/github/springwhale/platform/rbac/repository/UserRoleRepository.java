@@ -2,7 +2,7 @@ package io.github.springwhale.platform.rbac.repository;
 
 import io.github.springwhale.platform.rbac.entity.UserRoleEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+
 
 import java.util.List;
 import java.util.Optional;
@@ -10,7 +10,6 @@ import java.util.Optional;
 /**
  * User-role association repository
  */
-@Repository
 public interface UserRoleRepository extends JpaRepository<UserRoleEntity, Integer> {
 
     /**

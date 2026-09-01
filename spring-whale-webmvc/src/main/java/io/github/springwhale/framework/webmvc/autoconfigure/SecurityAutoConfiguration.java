@@ -1,10 +1,10 @@
 package io.github.springwhale.framework.webmvc.autoconfigure;
 
 import io.github.springwhale.framework.webmvc.security.*;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -49,17 +49,12 @@ import java.util.List;
  */
 @AutoConfiguration
 @ConditionalOnWebApplication
+@AutoConfigureAfter(SpringWhaleWebMvcAutoConfiguration.class)
 @EnableWebSecurity
 @EnableMethodSecurity
 @EnableConfigurationProperties(SecurityProperties.class)
-@RequiredArgsConstructor
 @Slf4j
 public class SecurityAutoConfiguration {
-
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final UserDetailsService userDetailsService;
-    private final SecurityProperties securityProperties;
-    private final List<SecurityConfigProvider> configProviders;
 
     @Bean
     @ConditionalOnMissingBean
@@ -69,26 +64,33 @@ public class SecurityAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public AuthenticationProvider authenticationProvider() {
+    public AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService,
+                                                          PasswordEncoder passwordEncoder) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder());
+        provider.setPasswordEncoder(passwordEncoder);
         return provider;
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+    public AuthenticationManager authenticationManager(HttpSecurity http,
+                                                        AuthenticationProvider authenticationProvider) throws Exception {
         AuthenticationManagerBuilder authBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
-        authBuilder.authenticationProvider(authenticationProvider());
+        authBuilder.authenticationProvider(authenticationProvider);
         return authBuilder.build();
     }
 
     @Bean
     @ConditionalOnMissingBean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   JwtAuthenticationFilter jwtAuthenticationFilter,
+                                                   SecurityProperties securityProperties,
+                                                   List<SecurityConfigProvider> configProviders,
                                                    ObjectProvider<CorsConfigurationSource> corsConfigurationSource) throws Exception {
-        // Collect all URLs that permit anonymous access
-        List<String> permitAllUrls = collectPermitAllUrls();
+        List<String> permitAllUrls = new ArrayList<>(securityProperties.getPermitAllUrls());
+        configProviders.stream()
+                .flatMap(provider -> provider.getPermitAllUrls().stream())
+                .forEach(permitAllUrls::add);
 
         log.info("Permit all URLs: {}", permitAllUrls);
 
@@ -109,20 +111,6 @@ public class SecurityAutoConfiguration {
                 })
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-        applyCustomConfigurations(http);
-
-        return http.build();
-    }
-
-    private List<String> collectPermitAllUrls() {
-        List<String> urls = new ArrayList<>(securityProperties.getPermitAllUrls());
-        configProviders.stream()
-                .flatMap(provider -> provider.getPermitAllUrls().stream())
-                .forEach(urls::add);
-        return urls;
-    }
-
-    private void applyCustomConfigurations(HttpSecurity http) {
         configProviders.stream()
                 .sorted(Comparator.comparingInt(SecurityConfigProvider::getOrder))
                 .forEach(provider -> {
@@ -133,6 +121,7 @@ public class SecurityAutoConfiguration {
                                 provider.getClass().getName(), e);
                     }
                 });
-    }
 
+        return http.build();
     }
+}

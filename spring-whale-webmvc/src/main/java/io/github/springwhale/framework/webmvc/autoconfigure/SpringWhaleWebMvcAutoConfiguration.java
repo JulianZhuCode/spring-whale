@@ -7,7 +7,6 @@ import io.github.springwhale.framework.webmvc.security.JwtAuthenticationFilter;
 import io.github.springwhale.framework.webmvc.security.JwtUtil;
 import io.github.springwhale.framework.webmvc.security.SecurityProperties;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -53,7 +52,6 @@ public class SpringWhaleWebMvcAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnBean(UserDetailsService.class)
     public JwtAuthenticationFilter jwtAuthenticationFilter(
             JwtUtil jwtUtil,
             UserDetailsService userDetailsService) {

@@ -2,8 +2,6 @@ package io.github.springwhale.platform.rbac.ui.menu;
 
 import io.github.springwhale.framework.thymeleaf.menu.AdminMenuProvider;
 import io.github.springwhale.framework.thymeleaf.menu.MenuItem;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 
 /**
@@ -14,7 +12,6 @@ import java.util.List;
  * the current user is authorized to access.
  * </p>
  */
-@Component
 public class RbacMenuProvider implements AdminMenuProvider {
 
     @Override

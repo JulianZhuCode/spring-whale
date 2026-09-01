@@ -6,7 +6,7 @@ import io.github.springwhale.platform.rbac.entity.RoleMenuEntity;
 import io.github.springwhale.platform.rbac.mapper.RoleMenuMapper;
 import io.github.springwhale.platform.rbac.repository.RoleMenuRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -14,7 +14,6 @@ import java.util.List;
 /**
  * Role-menu association service
  */
-@Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class RoleMenuService {

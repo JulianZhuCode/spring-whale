@@ -2,8 +2,6 @@ package io.github.springwhale.platform.task.mapper;
 
 import io.github.springwhale.platform.task.dto.vo.TaskVO;
 import io.github.springwhale.platform.task.entity.TaskBatchEntity;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -14,7 +12,6 @@ import java.util.stream.Collectors;
  * (progress, estimatedRemainingSeconds, labels) should
  * be populated by the service layer via {@code enrichVO}.
  */
-@Component
 public class TaskMapper {
 
     public TaskVO toVO(TaskBatchEntity entity) {

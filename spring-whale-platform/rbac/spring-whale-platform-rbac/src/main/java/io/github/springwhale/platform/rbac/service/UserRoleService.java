@@ -6,7 +6,7 @@ import io.github.springwhale.platform.rbac.entity.UserRoleEntity;
 import io.github.springwhale.platform.rbac.mapper.UserRoleMapper;
 import io.github.springwhale.platform.rbac.repository.UserRoleRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -14,7 +14,6 @@ import java.util.List;
 /**
  * User-role association service
  */
-@Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class UserRoleService {
