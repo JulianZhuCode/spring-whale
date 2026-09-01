@@ -2,7 +2,6 @@ package io.github.springwhale.framework.thymeleaf.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
 
 /**
  * Admin console configuration properties.
@@ -19,7 +18,6 @@ import org.springframework.stereotype.Component;
  * }</pre>
  */
 @Data
-@Component
 @ConfigurationProperties(prefix = "spring.whale.thymeleaf.admin")
 public class AdminProperties {
 

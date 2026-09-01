@@ -1,7 +1,6 @@
 package io.github.springwhale.framework.thymeleaf.security;
 
 import io.github.springwhale.framework.webmvc.security.SecurityConfigProvider;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -13,7 +12,6 @@ import java.util.List;
  * annotations ({@code @PreAuthorize}) or URL rules.
  * </p>
  */
-@Component
 public class ThymeleafSecurityConfigProvider implements SecurityConfigProvider {
 
     @Override
