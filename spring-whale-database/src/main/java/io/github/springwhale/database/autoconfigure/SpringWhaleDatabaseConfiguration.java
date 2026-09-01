@@ -153,11 +153,4 @@ public class SpringWhaleDatabaseConfiguration {
             }
         };
     }
-
-    @Bean
-    @ConditionalOnMissingBean
-    @ConditionalOnClass(feign.RequestInterceptor.class)
-    public DataScopeFeignInterceptor dataScopeFeignInterceptor(DataScopeProperties properties) {
-        return new DataScopeFeignInterceptor(properties);
-    }
 }
