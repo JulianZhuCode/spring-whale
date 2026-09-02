@@ -16,8 +16,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         MapperConfiguration.class,
         ServiceConfiguration.class,
         SecurityConfiguration.class,
-        ControllerConfiguration.class,
-        InitializerConfiguration.class
+        ControllerConfiguration.class
 })
 @Slf4j
 public class SpringWhalePlatformRBACConfiguration {
