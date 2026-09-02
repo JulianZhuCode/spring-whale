@@ -1,13 +1,8 @@
-package io.github.springwhale.platform.rbac.entity;
+package io.github.springwhale.platform.rbac.dao.entity;
 
 import io.github.springwhale.database.BaseEntity;
 import io.github.springwhale.platform.rbac.enums.MenuType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Index;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

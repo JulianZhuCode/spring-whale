@@ -1,7 +1,7 @@
-package io.github.springwhale.platform.rbac.mapper;
+package io.github.springwhale.platform.rbac.dao.mapper;
 
+import io.github.springwhale.platform.rbac.dao.entity.UserEntity;
 import io.github.springwhale.platform.rbac.dto.vo.UserVO;
-import io.github.springwhale.platform.rbac.entity.UserEntity;
 import org.springframework.beans.BeanUtils;
 
 import java.util.List;

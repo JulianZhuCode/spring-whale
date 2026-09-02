@@ -1,4 +1,4 @@
-package io.github.springwhale.platform.rbac.entity;
+package io.github.springwhale.platform.rbac.dao.entity;
 
 import io.github.springwhale.database.SimpleBaseEntity;
 import jakarta.persistence.Column;

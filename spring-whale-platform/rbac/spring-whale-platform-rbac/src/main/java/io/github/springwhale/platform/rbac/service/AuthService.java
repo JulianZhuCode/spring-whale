@@ -2,13 +2,13 @@ package io.github.springwhale.platform.rbac.service;
 
 import io.github.springwhale.framework.core.exception.BusinessException;
 import io.github.springwhale.framework.webmvc.security.JwtUtil;
+import io.github.springwhale.platform.rbac.dao.entity.UserEntity;
+import io.github.springwhale.platform.rbac.dao.mapper.UserMapper;
 import io.github.springwhale.platform.rbac.dto.request.ChangePasswordRequest;
 import io.github.springwhale.platform.rbac.dto.request.LoginRequest;
 import io.github.springwhale.platform.rbac.dto.request.RegisterRequest;
 import io.github.springwhale.platform.rbac.dto.response.LoginResponse;
 import io.github.springwhale.platform.rbac.dto.vo.UserVO;
-import io.github.springwhale.platform.rbac.entity.UserEntity;
-import io.github.springwhale.platform.rbac.mapper.UserMapper;
 import io.github.springwhale.platform.rbac.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

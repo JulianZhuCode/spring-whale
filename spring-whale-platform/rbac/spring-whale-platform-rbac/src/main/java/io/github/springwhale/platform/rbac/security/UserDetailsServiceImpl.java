@@ -1,7 +1,7 @@
 package io.github.springwhale.platform.rbac.security;
 
 import io.github.springwhale.platform.rbac.constant.RbacConstants;
-import io.github.springwhale.platform.rbac.entity.*;
+import io.github.springwhale.platform.rbac.dao.entity.*;
 import io.github.springwhale.platform.rbac.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

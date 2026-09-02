@@ -1,26 +1,25 @@
-package io.github.springwhale.platform.rbac.mapper;
+package io.github.springwhale.platform.rbac.dao.mapper;
 
-import io.github.springwhale.platform.rbac.dto.vo.RoleVO;
-import io.github.springwhale.platform.rbac.entity.RoleEntity;
+import io.github.springwhale.platform.rbac.dao.entity.GroupEntity;
+import io.github.springwhale.platform.rbac.dto.vo.GroupVO;
 import org.springframework.beans.BeanUtils;
-
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Role entity/VO converter
+ * Group entity/VO converter
  */
-public class RoleMapper {
+public class GroupMapper {
 
     /**
      * Entity to VO
      */
-    public RoleVO toVO(RoleEntity entity) {
+    public GroupVO toVO(GroupEntity entity) {
         if (entity == null) {
             return null;
         }
-        RoleVO vo = new RoleVO();
+        GroupVO vo = new GroupVO();
         BeanUtils.copyProperties(entity, vo);
         return vo;
     }
@@ -28,11 +27,11 @@ public class RoleMapper {
     /**
      * VO to Entity
      */
-    public RoleEntity toEntity(RoleVO vo) {
+    public GroupEntity toEntity(GroupVO vo) {
         if (vo == null) {
             return null;
         }
-        RoleEntity entity = new RoleEntity();
+        GroupEntity entity = new GroupEntity();
         BeanUtils.copyProperties(vo, entity);
         return entity;
     }
@@ -40,7 +39,7 @@ public class RoleMapper {
     /**
      * Entity list to VO list
      */
-    public List<RoleVO> toVOList(List<RoleEntity> entities) {
+    public List<GroupVO> toVOList(List<GroupEntity> entities) {
         if (entities == null) {
             return null;
         }

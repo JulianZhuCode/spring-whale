@@ -1,9 +1,9 @@
 package io.github.springwhale.platform.rbac.autoconfigure;
 
-import io.github.springwhale.platform.rbac.mapper.GroupMapper;
-import io.github.springwhale.platform.rbac.mapper.MenuMapper;
-import io.github.springwhale.platform.rbac.mapper.RoleMapper;
-import io.github.springwhale.platform.rbac.mapper.UserMapper;
+import io.github.springwhale.platform.rbac.dao.mapper.GroupMapper;
+import io.github.springwhale.platform.rbac.dao.mapper.MenuMapper;
+import io.github.springwhale.platform.rbac.dao.mapper.RoleMapper;
+import io.github.springwhale.platform.rbac.dao.mapper.UserMapper;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

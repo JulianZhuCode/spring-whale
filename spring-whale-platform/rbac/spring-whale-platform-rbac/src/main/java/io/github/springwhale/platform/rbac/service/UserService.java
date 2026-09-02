@@ -2,17 +2,16 @@ package io.github.springwhale.platform.rbac.service;
 
 import io.github.springwhale.database.JpaQueryWrapper;
 import io.github.springwhale.framework.core.exception.BusinessException;
+import io.github.springwhale.platform.rbac.dao.entity.GroupEntity;
+import io.github.springwhale.platform.rbac.dao.entity.UserEntity;
+import io.github.springwhale.platform.rbac.dao.mapper.UserMapper;
 import io.github.springwhale.platform.rbac.dto.request.UserRequest;
 import io.github.springwhale.platform.rbac.dto.vo.UserVO;
-import io.github.springwhale.platform.rbac.entity.GroupEntity;
-import io.github.springwhale.platform.rbac.entity.UserEntity;
-import io.github.springwhale.platform.rbac.mapper.UserMapper;
 import io.github.springwhale.platform.rbac.repository.GroupRepository;
 import io.github.springwhale.platform.rbac.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 

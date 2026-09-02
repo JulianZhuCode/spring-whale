@@ -1,6 +1,6 @@
 package io.github.springwhale.platform.rbac.repository;
 
-import io.github.springwhale.platform.rbac.entity.RoleEntity;
+import io.github.springwhale.platform.rbac.dao.entity.RoleEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
