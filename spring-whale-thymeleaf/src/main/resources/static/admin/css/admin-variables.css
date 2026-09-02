@@ -1,0 +1,12 @@
+/* ===== CSS Variables ===== */
+
+:root {
+    --sidebar-width: 230px;
+    --sidebar-collapsed-width: 52px;
+    --sidebar-bg: #1a2332;
+    --sidebar-hover: rgba(255, 255, 255, .1);
+    --sidebar-text: #a8b8c8;
+    --sidebar-text-active: #f0f4f8;
+    --header-height: 48px;
+    --content-bg: #f0f2f5;
+}

@@ -1,0 +1,238 @@
+/* ===== Table ===== */
+
+.table-wrapper {
+    border: none;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .05);
+}
+
+.table-wrapper .table {
+    font-size: .85rem;
+}
+
+.table-wrapper thead th {
+    font-weight: 700;
+    border-bottom: 2px solid #d8dde6;
+    white-space: nowrap;
+    padding: 12px 16px;
+}
+
+.table-wrapper thead th:first-child {
+    padding-left: 22px;
+}
+
+.table-wrapper tbody td {
+    padding: 12px 16px;
+    vertical-align: middle;
+}
+
+.table-wrapper tbody td:first-child {
+    padding-left: 22px;
+}
+
+/* ===== Dashboard ===== */
+
+.stat-card-primary {
+    background: linear-gradient(135deg, #4a90d9, #3a7bc8);
+}
+
+.stat-card-primary .stat-card-label {
+    color: rgba(255, 255, 255, .75);
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    font-weight: 600;
+}
+
+.stat-card-primary .stat-card-value {
+    color: #fff;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.stat-card {
+    background: #fff;
+}
+
+.stat-card .stat-card-label {
+    font-size: .7rem;
+    color: #8e99aa;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.stat-card .stat-card-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1a2332;
+}
+
+.dashboard-card {
+    border-radius: 10px;
+    transition: all .2s ease;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, .08) !important;
+}
+
+.dashboard-card-icon {
+    font-size: 1.3rem;
+    margin-bottom: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: #e8f0fa;
+    border-radius: 8px;
+}
+
+.quick-link-card {
+    border-radius: 10px;
+    transition: all .2s ease;
+}
+
+.quick-link-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, .08);
+    background: #fff !important;
+}
+
+/* ===== Badge ===== */
+
+.badge-purple {
+    background: #f0e8f8;
+    color: #6b4c8a;
+}
+
+/* ===== Modal ===== */
+
+.modal-content {
+    border: 1px solid #e4e8ee;
+    border-radius: 10px;
+}
+
+.modal-body .invalid-feedback {
+    display: block;
+}
+
+/* ===== Toast ===== */
+
+.modal-toast {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 1100;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: .85rem;
+    font-weight: 550;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, .12);
+    transform: translateX(120%);
+    transition: transform .3s ease;
+    border: none;
+}
+
+.modal-toast.show {
+    transform: translateX(0);
+}
+
+.modal-toast.success {
+    background: #d1e7dd;
+    color: #0f5132;
+}
+
+.modal-toast.error {
+    background: #f8d7da;
+    color: #842029;
+}
+
+/* ===== Page Error Banner ===== */
+
+.page-error-banner {
+    position: sticky;
+    top: 0;
+    z-index: 1050;
+    width: 100%;
+    padding: 12px 20px;
+    font-size: .85rem;
+    font-weight: 550;
+    text-align: center;
+    transform: translateY(-100%);
+    opacity: 0;
+    transition: transform .3s ease, opacity .3s ease;
+    pointer-events: auto;
+    cursor: pointer;
+    border: none;
+    border-bottom: 1px solid rgba(0, 0, 0, .06);
+}
+
+.page-error-banner.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.page-error-banner.error {
+    background: #f8d7da;
+    color: #842029;
+}
+
+.page-error-banner.warning {
+    background: #fff3cd;
+    color: #664d03;
+}
+
+.page-error-banner.info {
+    background: #cff4fc;
+    color: #055160;
+}
+
+.page-error-banner.success {
+    background: #d1e7dd;
+    color: #0f5132;
+}
+
+/* ===== Global Confirm Dialog ===== */
+
+#global-confirm-modal .modal-dialog {
+    animation: gc-pop-in .2s ease-out;
+}
+
+@keyframes gc-pop-in {
+    from { transform: scale(.95); opacity: 0; }
+    to   { transform: scale(1);    opacity: 1; }
+}
+
+#global-confirm-modal .gc-icon {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+}
+
+#global-confirm-modal .modal-footer button {
+    min-width: 90px;
+    font-weight: 550;
+    transition: transform .15s ease, box-shadow .2s ease;
+}
+
+#global-confirm-modal .modal-footer button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, .12);
+}
+
+#global-confirm-modal .modal-footer button:active {
+    transform: translateY(0);
+}
+
+#global-confirm-modal .fs-sm {
+    font-size: .92rem;
+    line-height: 1.5;
+}
+
+#global-confirm-modal .modal-backdrop.show {
+    opacity: .4;
+}

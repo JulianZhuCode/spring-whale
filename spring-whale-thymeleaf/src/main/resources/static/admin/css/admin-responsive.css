@@ -1,0 +1,18 @@
+/* ===== Responsive ===== */
+
+@media (max-width: 768px) {
+    .admin-sidebar {
+        width: var(--sidebar-collapsed-width);
+        min-width: var(--sidebar-collapsed-width);
+    }
+
+    .admin-content {
+        padding: 16px 12px;
+    }
+
+    .login-card,
+    .error-card {
+        margin: 16px;
+        padding: 28px 20px;
+    }
+}

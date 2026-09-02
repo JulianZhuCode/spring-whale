@@ -10,7 +10,10 @@
     <link rel="icon" th:href="@{/admin/favicon.svg}" type="image/svg+xml">
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/webjars/bootstrap-icons/1.11.3/font/bootstrap-icons.css}">
-    <link rel="stylesheet" th:href="@{/admin/css/admin.css}">
+    <link rel="stylesheet" th:href="@{/admin/css/admin-variables.css}">
+    <link rel="stylesheet" th:href="@{/admin/css/admin-layout.css}">
+    <link rel="stylesheet" th:href="@{/admin/css/admin-components.css}">
+    <link rel="stylesheet" th:href="@{/admin/css/admin-responsive.css}">
 </head>
 <body class="admin-body">
 
@@ -33,7 +36,12 @@
 </div>
 
 <script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
-<script th:src="@{/admin/js/admin.js}"></script>
+<script th:src="@{/admin/js/admin-core.js}"></script>
+<script th:src="@{/admin/js/admin-sidebar.js}"></script>
+<script th:src="@{/admin/js/admin-confirm.js}"></script>
+<script th:src="@{/admin/js/admin-modal.js}"></script>
+<script th:src="@{/admin/js/admin-table.js}"></script>
+<script th:src="@{/admin/js/admin-main.js}"></script>
 
 <!-- ========== Global Confirm Dialog ========== -->
 <div class="modal fade" id="global-confirm-modal" data-bs-backdrop="static" data-bs-keyboard="false"
