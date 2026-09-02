@@ -107,9 +107,7 @@ public class SpringWhaleDatabaseConfiguration {
     @ConditionalOnProperty(prefix = "spring.whale.database.datascope", name = "enabled", havingValue = "true", matchIfMissing = true)
     @ConditionalOnProperty(prefix = "spring.whale.database.datascope", name = "tenant-enabled", havingValue = "false")
     public HibernatePropertiesCustomizer dataScopeOnlyHibernateCustomizer(DataScopeInterceptor dataScopeInterceptor) {
-        return properties -> {
-            properties.put("hibernate.session_factory.statement_inspector", dataScopeInterceptor);
-        };
+        return properties -> properties.put("hibernate.session_factory.statement_inspector", dataScopeInterceptor);
     }
 
     @Bean
@@ -117,9 +115,7 @@ public class SpringWhaleDatabaseConfiguration {
     @ConditionalOnProperty(prefix = "spring.whale.database.datascope", name = "tenant-enabled", havingValue = "true", matchIfMissing = true)
     @ConditionalOnProperty(prefix = "spring.whale.database.datascope", name = "enabled", havingValue = "false")
     public HibernatePropertiesCustomizer tenantOnlyHibernateCustomizer(TenantSqlInspector tenantSqlInspector) {
-        return properties -> {
-            properties.put("hibernate.session_factory.statement_inspector", tenantSqlInspector);
-        };
+        return properties -> properties.put("hibernate.session_factory.statement_inspector", tenantSqlInspector);
     }
 
     @Bean
