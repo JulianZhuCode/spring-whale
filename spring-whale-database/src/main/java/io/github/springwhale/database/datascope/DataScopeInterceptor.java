@@ -5,13 +5,17 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 
 /**
- * Hibernate {@link StatementInspector} that injects data scope WHERE conditions
+ * Hibernate {@link org.hibernate.resource.jdbc.spi.StatementInspector} that injects data scope WHERE conditions
  * into SQL based on the current {@link DataScopeContext}.
  *
  * <p>Reads the scope, entity class, and field mappings from {@link DataScopeContext}
  * and appends conditions like {@code (dept_id IN (1,2,3) OR user_id = 5)}.
  * Supports multiple dept/user fields on the same entity via {@code @DeptIdField}
  * and {@code @UserIdField} annotations.</p>
+ *
+ * <p>If {@link DataScopeResult#isDenied()} is {@code true}, the interceptor injects
+ * {@code WHERE 1=0} to return an empty result set, indicating the user has no data
+ * permission at all for the current scope.</p>
  */
 @Slf4j
 public class DataScopeInterceptor extends SqlInspectorSupport {
@@ -23,7 +27,7 @@ public class DataScopeInterceptor extends SqlInspectorSupport {
         List<String> deptFields = DataScopeContext.getDeptFields();
         List<String> userFields = DataScopeContext.getUserFields();
 
-        if (scope == null || scope.isEmpty() || entityClass == null) {
+        if (scope == null || entityClass == null) {
             return sql;
         }
 
@@ -33,6 +37,17 @@ public class DataScopeInterceptor extends SqlInspectorSupport {
         }
 
         if (!isTargetQuery(sql, tableName)) {
+            return sql;
+        }
+
+        if (scope.isDenied()) {
+            String modifiedSql = applyCondition(sql, "1=0");
+            log.debug("Data scope denied: entity={}, table={}, returning empty result",
+                    entityClass.getSimpleName(), tableName);
+            return modifiedSql;
+        }
+
+        if (scope.isEmpty()) {
             return sql;
         }
 

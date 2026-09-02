@@ -249,6 +249,26 @@ public class MyDataScopeHandler implements DataScopeHandler {
     @Autowired
     private DeptService deptService;
 
+    /**
+     * Whether to skip department/user data scope filtering entirely.
+     * When true, no WHERE clause is injected for @DeptIdField / @UserIdField.
+     * Typical usage: platform super administrator who can see all data.
+     */
+    @Override
+    public boolean skipDataScope() {
+        return AuthUtil.hasAuthority("super_admin");
+    }
+
+    /**
+     * Whether to skip tenant filtering entirely.
+     * When true, no WHERE clause is injected for @TenantIdField.
+     * Typical usage: platform super administrator who can see all tenants' data.
+     */
+    @Override
+    public boolean skipTenantScope() {
+        return AuthUtil.hasAuthority("super_admin");
+    }
+
     @Override
     public List<Object> resolveDeptIds(DataScopeType scopeType, String module) {
         return switch (scopeType) {
@@ -256,7 +276,7 @@ public class MyDataScopeHandler implements DataScopeHandler {
             case DEPT -> List.of(getCurrentDeptId());
             case DEPT_AND_CHILD -> deptService.getChildDeptIds(getCurrentDeptId());
             case CUSTOM -> resolveCustomDeptIds(module);  // custom logic
-            default -> List.of();
+            default -> null;  // null = no permission, SQL interceptor injects WHERE 1=0
         };
     }
 
@@ -265,6 +285,17 @@ public class MyDataScopeHandler implements DataScopeHandler {
     }
 }
 ```
+
+> **Key Design Decisions:**
+>
+> - `skipDataScope()` / `skipTenantScope()`: Two independent switches for data scope and tenant isolation. A tenant admin
+>   can `skipDataScope=true` (see all data within the tenant) while `skipTenantScope=false` (still isolated to their
+>   tenant).
+> - `resolveDeptIds()` returns `null` or empty list → the user has no permission for any department. The SQL
+>   interceptor injects `WHERE 1=0`, returning an empty result set.
+> - `resolveDeptIds()` returns a non-empty list → the SQL interceptor injects `WHERE dept_field IN (1, 2, 3)`.
+> - `DefaultDataScopeHandler` returns `null` from `resolveDeptIds()` (no permission). Override by registering a custom
+>   `DataScopeHandler` bean.
 
 ### 8. Multi-Tenant Isolation
 

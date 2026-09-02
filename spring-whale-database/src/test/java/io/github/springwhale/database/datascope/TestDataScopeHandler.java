@@ -9,6 +9,38 @@ import java.util.List;
 
 public class TestDataScopeHandler implements DataScopeHandler {
 
+    private static volatile boolean skipDataScope = false;
+    private static volatile boolean skipTenantScope = false;
+    private static volatile boolean returnNullDeptIds = false;
+
+    public static void setSkipDataScope(boolean skip) {
+        skipDataScope = skip;
+    }
+
+    public static void setSkipTenantScope(boolean skip) {
+        skipTenantScope = skip;
+    }
+
+    public static void setReturnNullDeptIds(boolean returnNull) {
+        returnNullDeptIds = returnNull;
+    }
+
+    public static void reset() {
+        skipDataScope = false;
+        skipTenantScope = false;
+        returnNullDeptIds = false;
+    }
+
+    @Override
+    public boolean skipDataScope() {
+        return skipDataScope;
+    }
+
+    @Override
+    public boolean skipTenantScope() {
+        return skipTenantScope;
+    }
+
     @Override
     public Object resolveUserId() {
         AuthenticationContext ctx = AuthenticationContextHolder.getContext();
@@ -17,6 +49,10 @@ public class TestDataScopeHandler implements DataScopeHandler {
 
     @Override
     public List<Object> resolveDeptIds(DataScopeType scopeType, String module) {
+        if (returnNullDeptIds) {
+            return null;
+        }
+
         AuthenticationContext ctx = AuthenticationContextHolder.getContext();
         if (ctx == null || ctx.getUserId() == null) {
             return Collections.emptyList();

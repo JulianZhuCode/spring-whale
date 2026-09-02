@@ -16,6 +16,17 @@ import java.lang.reflect.Method;
  *
  * <p>Execution order: {@code @Order(1)} — runs before repository-level aspects.</p>
  *
+ * <h3>Skip Data Scope</h3>
+ * If {@link DataScopeHandler#skipDataScope()} returns {@code true}, the aspect
+ * skips all processing. This is typically used for platform super administrators
+ * who can see all data without any filtering.
+ *
+ * <h3>Denied Scope</h3>
+ * After resolving department IDs and user ID via {@link DataScopeHandler}, if
+ * the scope is still empty (no dept IDs and no user ID), the result is marked
+ * as {@link DataScopeResult#setDenied(boolean) denied}, and the SQL interceptor
+ * injects {@code WHERE 1=0} to return an empty result set.
+ *
  * <h3>{@code CALLER} delegation</h3>
  * When {@code @DataScope(scopeType = CALLER)}, the aspect reads the scope from
  * {@link DataScopeContext} (typically set by {@link DataScopeServerInterceptor}
@@ -34,6 +45,10 @@ public class DataScopeAspect {
     @Around("@annotation(io.github.springwhale.database.datascope.DataScope)")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
         if (!properties.isEnabled()) {
+            return joinPoint.proceed();
+        }
+
+        if (dataScopeHandler.skipDataScope()) {
             return joinPoint.proceed();
         }
 
@@ -59,9 +74,13 @@ public class DataScopeAspect {
             result.setUserId(dataScopeHandler.resolveUserId());
         }
 
+        if (result.isEmpty()) {
+            result.setDenied(true);
+        }
+
         DataScopeContext.pushScope(result);
-        log.debug("DataScope pushed: type={}, module={}, userId={}, deptIds={}",
-                effectiveType, effectiveModule, result.getUserId(), result.getDeptIds());
+        log.debug("DataScope pushed: type={}, module={}, userId={}, deptIds={}, denied={}",
+                effectiveType, effectiveModule, result.getUserId(), result.getDeptIds(), result.isDenied());
 
         try {
             return joinPoint.proceed();

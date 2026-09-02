@@ -242,6 +242,26 @@ public class MyDataScopeHandler implements DataScopeHandler {
     @Autowired
     private DeptService deptService;
 
+    /**
+     * 是否跳过部门/用户数据权限过滤。
+     * 返回 true 时，不会为 @DeptIdField / @UserIdField 注入 WHERE 条件。
+     * 典型场景：平台超级管理员，可查看全部数据。
+     */
+    @Override
+    public boolean skipDataScope() {
+        return AuthUtil.hasAuthority("super_admin");
+    }
+
+    /**
+     * 是否跳过租户过滤。
+     * 返回 true 时，不会为 @TenantIdField 注入 WHERE 条件。
+     * 典型场景：平台超级管理员，可查看所有租户的数据。
+     */
+    @Override
+    public boolean skipTenantScope() {
+        return AuthUtil.hasAuthority("super_admin");
+    }
+
     @Override
     public List<Object> resolveDeptIds(DataScopeType scopeType, String module) {
         return switch (scopeType) {
@@ -249,7 +269,7 @@ public class MyDataScopeHandler implements DataScopeHandler {
             case DEPT -> List.of(getCurrentDeptId());
             case DEPT_AND_CHILD -> deptService.getChildDeptIds(getCurrentDeptId());
             case CUSTOM -> resolveCustomDeptIds(module);  // 自定义逻辑
-            default -> List.of();
+            default -> null;  // null = 无权限，SQL 拦截器注入 WHERE 1=0
         };
     }
 
@@ -258,6 +278,14 @@ public class MyDataScopeHandler implements DataScopeHandler {
     }
 }
 ```
+
+> **关键设计决策：**
+>
+> - `skipDataScope()` / `skipTenantScope()`：数据权限和租户隔离两个独立开关。租户管理员可以
+>   `skipDataScope=true`（查看租户内全部数据）同时 `skipTenantScope=false`（仍受租户隔离限制）。
+> - `resolveDeptIds()` 返回 `null` 或空列表 → 用户无任何部门权限，SQL 拦截器注入 `WHERE 1=0`，返回空结果集。
+> - `resolveDeptIds()` 返回非空列表 → SQL 拦截器注入 `WHERE dept_field IN (1, 2, 3)`。
+> - `DefaultDataScopeHandler` 的 `resolveDeptIds()` 返回 `null`（无权限），需注册自定义 `DataScopeHandler` Bean 覆盖。
 
 ### 8. 多租户隔离
 

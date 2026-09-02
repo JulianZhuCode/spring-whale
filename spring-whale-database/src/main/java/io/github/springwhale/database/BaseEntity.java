@@ -1,5 +1,6 @@
 package io.github.springwhale.database;
 
+import io.github.springwhale.database.datascope.UserIdField;
 import io.github.springwhale.framework.core.utils.AuthUtil;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -33,6 +34,7 @@ public abstract class BaseEntity {
 
     private LocalDateTime updateTime;
 
+    @UserIdField
     private Integer createBy;
 
     private Integer updateBy;

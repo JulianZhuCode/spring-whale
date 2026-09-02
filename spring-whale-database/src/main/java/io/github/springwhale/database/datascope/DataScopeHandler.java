@@ -23,6 +23,27 @@ import java.util.List;
  */
 public interface DataScopeHandler {
 
+    /**
+     * Whether to skip department/user data scope filtering entirely.
+     * When {@code true}, neither {@link #resolveDeptIds} nor {@link #resolveUserId}
+     * is called, and no WHERE clause is injected for {@code @DeptIdField} / {@code @UserIdField}.
+     *
+     * <p>Typical usage: platform super administrator who can see all data.</p>
+     */
+    default boolean skipDataScope() {
+        return false;
+    }
+
+    /**
+     * Whether to skip tenant filtering entirely.
+     * When {@code true}, no WHERE clause is injected for {@code @TenantIdField}.
+     *
+     * <p>Typical usage: platform super administrator who can see all tenants' data.</p>
+     */
+    default boolean skipTenantScope() {
+        return false;
+    }
+
     default Object resolveUserId() {
         return AuthUtil.getUserId();
     }

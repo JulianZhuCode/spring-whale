@@ -14,6 +14,10 @@ import java.util.List;
  * <p>{@link #isEmpty()} returns {@code true} when neither department IDs nor
  * user ID is set, indicating that the scope needs to be resolved by the
  * {@link DataScopeHandler}.</p>
+ *
+ * <p>When {@link #denied} is {@code true}, the SQL interceptor injects
+ * {@code WHERE 1=0} to return an empty result set, indicating the user has
+ * no data permission at all for the current scope.</p>
  */
 @Data
 @NoArgsConstructor
@@ -27,6 +31,12 @@ public class DataScopeResult {
     private List<Object> deptIds = new ArrayList<>();
 
     private Object userId;
+
+    /**
+     * When {@code true}, the user has no data permission at all for the current scope.
+     * The SQL interceptor will inject {@code WHERE 1=0} to return an empty result set.
+     */
+    private boolean denied;
 
     public boolean hasDeptIds() {
         return deptIds != null && !deptIds.isEmpty();

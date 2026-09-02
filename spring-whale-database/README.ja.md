@@ -245,6 +245,26 @@ public class MyDataScopeHandler implements DataScopeHandler {
     @Autowired
     private DeptService deptService;
 
+    /**
+     * 部門/ユーザーデータスコープフィルタリングをスキップするかどうか。
+     * true の場合、@DeptIdField / @UserIdField に WHERE 句が注入されません。
+     * 典型的な使用例：全データを閲覧できるプラットフォームスーパー管理者。
+     */
+    @Override
+    public boolean skipDataScope() {
+        return AuthUtil.hasAuthority("super_admin");
+    }
+
+    /**
+     * テナントフィルタリングをスキップするかどうか。
+     * true の場合、@TenantIdField に WHERE 句が注入されません。
+     * 典型的な使用例：全テナントのデータを閲覧できるプラットフォームスーパー管理者。
+     */
+    @Override
+    public boolean skipTenantScope() {
+        return AuthUtil.hasAuthority("super_admin");
+    }
+
     @Override
     public List<Object> resolveDeptIds(DataScopeType scopeType, String module) {
         return switch (scopeType) {
@@ -252,7 +272,7 @@ public class MyDataScopeHandler implements DataScopeHandler {
             case DEPT -> List.of(getCurrentDeptId());
             case DEPT_AND_CHILD -> deptService.getChildDeptIds(getCurrentDeptId());
             case CUSTOM -> resolveCustomDeptIds(module);  // カスタムロジック
-            default -> List.of();
+            default -> null;  // null = 権限なし、SQLインターセプターが WHERE 1=0 を注入
         };
     }
 
@@ -261,6 +281,16 @@ public class MyDataScopeHandler implements DataScopeHandler {
     }
 }
 ```
+
+> **主要な設計決定：**
+>
+> - `skipDataScope()` / `skipTenantScope()`：データスコープとテナント分離の2つの独立したスイッチ。テナント管理者は
+>   `skipDataScope=true`（テナント内の全データを閲覧）かつ `skipTenantScope=false`（テナント分離は維持）と設定できます。
+> - `resolveDeptIds()` が `null` または空リストを返す → ユーザーに部門権限がなく、SQLインターセプターが
+>   `WHERE 1=0` を注入し、空の結果セットを返します。
+> - `resolveDeptIds()` が空でないリストを返す → SQLインターセプターが `WHERE dept_field IN (1, 2, 3)` を注入します。
+> - `DefaultDataScopeHandler` の `resolveDeptIds()` は `null`（権限なし）を返します。カスタム
+>   `DataScopeHandler` Bean を登録してオーバーライドしてください。
 
 ### 8. マルチテナント分離
 

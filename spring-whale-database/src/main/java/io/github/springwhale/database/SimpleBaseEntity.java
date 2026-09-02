@@ -1,5 +1,6 @@
 package io.github.springwhale.database;
 
+import io.github.springwhale.database.datascope.UserIdField;
 import io.github.springwhale.framework.core.utils.AuthUtil;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -21,6 +22,7 @@ public abstract class SimpleBaseEntity {
 
     private LocalDateTime createTime;
 
+    @UserIdField
     private Integer createBy;
 
     @PrePersist

@@ -85,8 +85,8 @@ public class SpringWhaleDatabaseConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "spring.whale.database.datascope", name = "tenant-enabled", havingValue = "true", matchIfMissing = true)
-    public TenantSqlInspector tenantSqlInspector(DataScopeProperties properties) {
-        return new TenantSqlInspector(properties);
+    public TenantSqlInspector tenantSqlInspector(DataScopeProperties properties, DataScopeHandler dataScopeHandler) {
+        return new TenantSqlInspector(properties, dataScopeHandler);
     }
 
     @Bean

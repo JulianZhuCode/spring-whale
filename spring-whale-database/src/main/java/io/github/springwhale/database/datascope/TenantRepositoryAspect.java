@@ -17,7 +17,11 @@ import java.util.List;
  * ({@code @Order(3)}).</p>
  *
  * <p>The tenant ID is resolved via {@link DataScopeHandler#resolveTenantId()},
- * which defaults to {@link AuthUtil#getTenantId()}.</p>
+ * which defaults to {@link io.github.springwhale.framework.core.utils.AuthUtil#getTenantId()}.</p>
+ *
+ * <p>If {@link DataScopeHandler#skipTenantScope()} returns {@code true}, the
+ * aspect skips all processing. This is typically used for platform super
+ * administrators who can see data across all tenants.</p>
  */
 @Slf4j
 @Aspect
@@ -39,6 +43,10 @@ public class TenantRepositoryAspect {
     @Around("execution(* org.springframework.data.jpa.repository.JpaRepository.*(..))")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
         if (!properties.isTenantEnabled()) {
+            return joinPoint.proceed();
+        }
+
+        if (dataScopeHandler.skipTenantScope()) {
             return joinPoint.proceed();
         }
 

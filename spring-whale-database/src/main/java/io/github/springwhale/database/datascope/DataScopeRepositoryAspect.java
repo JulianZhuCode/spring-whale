@@ -17,7 +17,13 @@ import java.util.List;
  *
  * <p>When the current scope is empty (no dept/user IDs), it delegates to
  * {@link DataScopeHandler#resolveDeptIds} and {@link DataScopeHandler#resolveUserId}
- * to resolve the scope from the current authentication context.</p>
+ * to resolve the scope from the current authentication context. If the resolved
+ * scope is still empty, {@link DataScopeResult#setDenied(boolean)} is set to
+ * {@code true}, and the SQL interceptor injects {@code WHERE 1=0} to return an
+ * empty result set.</p>
+ *
+ * <p>If {@link DataScopeHandler#skipDataScope()} returns {@code true}, the aspect
+ * skips all processing and proceeds without data scope filtering.</p>
  */
 @Slf4j
 @Aspect
@@ -43,6 +49,10 @@ public class DataScopeRepositoryAspect {
             return joinPoint.proceed();
         }
 
+        if (dataScopeHandler.skipDataScope()) {
+            return joinPoint.proceed();
+        }
+
         Class<?> entityClass = dataScopeHelper.resolveEntityClass(joinPoint.getTarget());
         if (entityClass == null) {
             return joinPoint.proceed();
@@ -53,13 +63,12 @@ public class DataScopeRepositoryAspect {
         if (scope.isEmpty()) {
             resolvedScope = resolveScope(scope);
             if (resolvedScope.isEmpty()) {
-                log.debug("Data scope resolved but still empty, skip filtering");
-                return joinPoint.proceed();
+                resolvedScope.setDenied(true);
             }
             DataScopeContext.pushScope(resolvedScope);
             pushedResolved = true;
-            log.debug("Resolved scope pushed: userId={}, deptIds={}",
-                    resolvedScope.getUserId(), resolvedScope.getDeptIds());
+            log.debug("Resolved scope pushed: userId={}, deptIds={}, denied={}",
+                    resolvedScope.getUserId(), resolvedScope.getDeptIds(), resolvedScope.isDenied());
         }
 
         DataScopeContext.setEntityClass(entityClass);

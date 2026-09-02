@@ -49,6 +49,7 @@ class DataScopeIntegrationTest {
     @AfterEach
     void tearDown() {
         AuthenticationContextHolder.clearContext();
+        TestDataScopeHandler.reset();
     }
 
     private void loginAs(Integer userId) {
@@ -185,12 +186,11 @@ class DataScopeIntegrationTest {
     }
 
     @Test
-    @DisplayName("Unauthenticated user: scope is empty, no filtering applied, all data visible")
+    @DisplayName("Unauthenticated user: scope is empty, denied=true, should return empty result")
     void testUnauthenticatedUser() {
         List<TestUser> result = testUserService.listByDept();
 
-        assertThat(result).extracting(TestUser::getName)
-                .containsExactlyInAnyOrder("Alice", "Bob", "Charlie", "David", "Eve");
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -282,5 +282,77 @@ class DataScopeIntegrationTest {
         } finally {
             DataScopeContext.popScope();
         }
+    }
+
+    @Test
+    @DisplayName("skipDataScope=true: should see all data regardless of scope type")
+    void testSkipDataScope() {
+        TestDataScopeHandler.setSkipDataScope(true);
+        loginAs(1);
+
+        List<TestUser> result = testUserService.listByDept();
+
+        assertThat(result).extracting(TestUser::getName)
+                .containsExactlyInAnyOrder("Alice", "Bob", "Charlie", "David", "Eve");
+    }
+
+    @Test
+    @DisplayName("skipDataScope=true with SELF: should still see all data")
+    void testSkipDataScopeWithSelf() {
+        TestDataScopeHandler.setSkipDataScope(true);
+        loginAs(1);
+
+        List<TestUser> result = testUserService.listSelf();
+
+        assertThat(result).extracting(TestUser::getName)
+                .containsExactlyInAnyOrder("Alice", "Bob", "Charlie", "David", "Eve");
+    }
+
+    @Test
+    @DisplayName("skipDataScope=true without @DataScope: should see all data (no change)")
+    void testSkipDataScopeWithoutAnnotation() {
+        TestDataScopeHandler.setSkipDataScope(true);
+        loginAs(1);
+
+        List<TestUser> result = testUserService.listAll();
+
+        assertThat(result).extracting(TestUser::getName)
+                .containsExactlyInAnyOrder("Alice", "Bob", "Charlie", "David", "Eve");
+    }
+
+    @Test
+    @DisplayName("denied: resolveDeptIds returns null, falls back to userId filter")
+    void testDeniedScope() {
+        TestDataScopeHandler.setReturnNullDeptIds(true);
+        loginAs(1);
+
+        List<TestUser> result = testUserService.listByDept();
+
+        assertThat(result).extracting(TestUser::getName)
+                .containsExactlyInAnyOrder("Alice", "David");
+    }
+
+    @Test
+    @DisplayName("denied with SELF: resolveDeptIds returns null, falls back to userId filter")
+    void testDeniedWithSelfScope() {
+        TestDataScopeHandler.setReturnNullDeptIds(true);
+        loginAs(1);
+
+        List<TestUser> result = testUserService.listSelf();
+
+        assertThat(result).extracting(TestUser::getName)
+                .containsExactlyInAnyOrder("Alice", "David");
+    }
+
+    @Test
+    @DisplayName("denied does not affect methods without @DataScope")
+    void testDeniedWithoutDataScope() {
+        TestDataScopeHandler.setReturnNullDeptIds(true);
+        loginAs(1);
+
+        List<TestUser> result = testUserService.listAll();
+
+        assertThat(result).extracting(TestUser::getName)
+                .containsExactlyInAnyOrder("Alice", "Bob", "Charlie", "David", "Eve");
     }
 }

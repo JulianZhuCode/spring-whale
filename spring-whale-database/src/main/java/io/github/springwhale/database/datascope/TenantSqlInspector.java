@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 
 /**
- * Hibernate {@link StatementInspector} that injects tenant isolation WHERE
+ * Hibernate {@link org.hibernate.resource.jdbc.spi.StatementInspector} that injects tenant isolation WHERE
  * conditions into SQL.
  *
  * <p>Supports multiple tenant fields per entity via {@code @TenantIdField},
@@ -18,14 +18,16 @@ import java.util.List;
 public class TenantSqlInspector extends SqlInspectorSupport {
 
     private final DataScopeProperties properties;
+    private final DataScopeHandler dataScopeHandler;
 
-    public TenantSqlInspector(DataScopeProperties properties) {
+    public TenantSqlInspector(DataScopeProperties properties, DataScopeHandler dataScopeHandler) {
         this.properties = properties;
+        this.dataScopeHandler = dataScopeHandler;
     }
 
     @Override
     public String inspect(String sql) {
-        if (!properties.isTenantEnabled() || DataScopeContext.isSkipTenant()) {
+        if (!properties.isTenantEnabled() || DataScopeContext.isSkipTenant() || dataScopeHandler.skipTenantScope()) {
             return sql;
         }
 
