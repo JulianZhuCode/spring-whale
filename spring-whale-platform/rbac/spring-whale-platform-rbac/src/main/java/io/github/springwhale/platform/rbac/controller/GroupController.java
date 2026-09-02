@@ -1,6 +1,7 @@
 package io.github.springwhale.platform.rbac.controller;
 
 import io.github.springwhale.database.SortUtils;
+import io.github.springwhale.database.datascope.DataScope;
 import io.github.springwhale.framework.core.exception.BusinessException;
 import io.github.springwhale.platform.rbac.dto.request.GroupRequest;
 import io.github.springwhale.platform.rbac.dto.vo.GroupVO;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,6 +31,8 @@ public class GroupController {
      * Find all departments with pagination and filter
      * GET /api/rbac/groups?page=0&size=20&keyword=&status=
      */
+    @PreAuthorize("hasAnyAuthority('rbac:group', '*')")
+    @DataScope(module = "rbac:group")
     @GetMapping
     public Page<GroupVO> findAll(
             @RequestParam(defaultValue = "0") int page,
@@ -45,6 +49,8 @@ public class GroupController {
      * Find department by ID
      * GET /api/rbac/groups/{id}
      */
+    @PreAuthorize("hasAnyAuthority('rbac:group', '*')")
+    @DataScope(module = "rbac:group")
     @GetMapping("/{id}")
     public GroupVO findById(@PathVariable Integer id) {
         return groupService.findById(id)
@@ -55,6 +61,8 @@ public class GroupController {
      * Find department by exact code
      * GET /api/rbac/groups/by-code?code=IT
      */
+    @PreAuthorize("hasAnyAuthority('rbac:group', '*')")
+    @DataScope(module = "rbac:group")
     @GetMapping("/by-code")
     public GroupVO findByCode(@RequestParam String code) {
         return groupService.findByCode(code)
@@ -65,6 +73,8 @@ public class GroupController {
      * Find departments by parent ID
      * GET /api/rbac/groups/by-parent?parentId=0
      */
+    @PreAuthorize("hasAnyAuthority('rbac:group', '*')")
+    @DataScope(module = "rbac:group")
     @GetMapping("/by-parent")
     public List<GroupVO> findByParentId(@RequestParam Integer parentId) {
         return groupService.findByParentId(parentId);
@@ -74,6 +84,8 @@ public class GroupController {
      * Search departments (fuzzy)
      * GET /api/rbac/groups/search?keyword=IT
      */
+    @PreAuthorize("hasAnyAuthority('rbac:group', '*')")
+    @DataScope(module = "rbac:group")
     @GetMapping("/search")
     public List<GroupVO> search(@RequestParam String keyword) {
         return groupService.search(keyword);
@@ -83,6 +95,8 @@ public class GroupController {
      * Find by status
      * GET /api/rbac/groups/by-status?status=1
      */
+    @PreAuthorize("hasAnyAuthority('rbac:group', '*')")
+    @DataScope(module = "rbac:group")
     @GetMapping("/by-status")
     public List<GroupVO> findByStatus(@RequestParam Integer status) {
         return groupService.findByStatus(status);
@@ -92,6 +106,8 @@ public class GroupController {
      * Get all root departments
      * GET /api/rbac/groups/root
      */
+    @PreAuthorize("hasAnyAuthority('rbac:group', '*')")
+    @DataScope(module = "rbac:group")
     @GetMapping("/root")
     public List<GroupVO> findRootGroups() {
         return groupService.findRootGroups();
@@ -101,6 +117,8 @@ public class GroupController {
      * Create department
      * POST /api/rbac/groups
      */
+    @PreAuthorize("hasAnyAuthority('rbac:group:create', '*')")
+    @DataScope(module = "rbac:group")
     @PostMapping
     public GroupVO create(@Valid @RequestBody GroupRequest request) {
         return groupService.create(request);
@@ -110,6 +128,8 @@ public class GroupController {
      * Update department
      * PUT /api/rbac/groups/{id}
      */
+    @PreAuthorize("hasAnyAuthority('rbac:group:update', '*')")
+    @DataScope(module = "rbac:group")
     @PutMapping("/{id}")
     public GroupVO update(@PathVariable Integer id, @Valid @RequestBody GroupRequest request) {
         return groupService.update(id, request);
@@ -119,6 +139,8 @@ public class GroupController {
      * Delete department
      * DELETE /api/rbac/groups/{id}
      */
+    @PreAuthorize("hasAnyAuthority('rbac:group:delete', '*')")
+    @DataScope(module = "rbac:group")
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Integer id) {
         groupService.delete(id);

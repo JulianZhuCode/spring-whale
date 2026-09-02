@@ -1,0 +1,34 @@
+package io.github.springwhale.platform.rbac.autoconfigure;
+
+import io.github.springwhale.platform.rbac.repository.MenuRepository;
+import io.github.springwhale.platform.rbac.repository.RoleMenuRepository;
+import io.github.springwhale.platform.rbac.repository.RoleRepository;
+import io.github.springwhale.platform.rbac.repository.UserRepository;
+import io.github.springwhale.platform.rbac.repository.UserRoleRepository;
+import io.github.springwhale.platform.rbac.security.RbacSecurityConfigProvider;
+import io.github.springwhale.platform.rbac.security.UserDetailsServiceImpl;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.core.userdetails.UserDetailsService;
+
+@Configuration
+public class SecurityConfiguration {
+
+    @Bean
+    @ConditionalOnMissingBean
+    public UserDetailsService userDetailsService(UserRepository userRepository,
+                                                  UserRoleRepository userRoleRepository,
+                                                  RoleRepository roleRepository,
+                                                  RoleMenuRepository roleMenuRepository,
+                                                  MenuRepository menuRepository) {
+        return new UserDetailsServiceImpl(userRepository, userRoleRepository,
+                roleRepository, roleMenuRepository, menuRepository);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public RbacSecurityConfigProvider rbacSecurityConfigProvider() {
+        return new RbacSecurityConfigProvider();
+    }
+}

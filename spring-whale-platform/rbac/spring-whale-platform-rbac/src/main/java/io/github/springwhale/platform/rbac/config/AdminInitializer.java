@@ -195,7 +195,7 @@ public class AdminInitializer implements CommandLineRunner {
                                        String path, int sort) {
         // Main menu
         MenuEntity menu = createMenu(parent.getId(), baseCode, name, nameI18nKey, MenuType.MENU,
-                path, null, null, "file-text", sort);
+                path, null, baseCode, "file-text", sort);
 
         // Standard CRUD button permissions
         createMenu(menu.getId(), baseCode + ":create", name + " Create", null, MenuType.BUTTON,

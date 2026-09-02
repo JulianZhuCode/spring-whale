@@ -33,7 +33,7 @@ ON CONFLICT (code) DO NOTHING;
 
 -- Level 2: User Management (menu + buttons)
 INSERT INTO rbac_menu (parent_id, code, name, name_i18n_key, type, path, component, permission, icon, sort, visible, status, version, del_flag, create_time, update_time)
-VALUES ((SELECT id FROM rbac_menu WHERE code = 'rbac'), 'rbac:user', 'User Management', 'menu.rbac.user_management', 'MENU', '/admin/rbac/users', NULL, NULL, 'file-text', 2, 1, 1, 0, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+VALUES ((SELECT id FROM rbac_menu WHERE code = 'rbac'), 'rbac:user', 'User Management', 'menu.rbac.user_management', 'MENU', '/admin/rbac/users', NULL, 'rbac:user', 'file-text', 2, 1, 1, 0, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON CONFLICT (code) DO NOTHING;
 
 INSERT INTO rbac_menu (parent_id, code, name, name_i18n_key, type, path, component, permission, icon, sort, visible, status, version, del_flag, create_time, update_time)
@@ -45,7 +45,7 @@ ON CONFLICT (code) DO NOTHING;
 
 -- Level 2: Role Management (menu + buttons)
 INSERT INTO rbac_menu (parent_id, code, name, name_i18n_key, type, path, component, permission, icon, sort, visible, status, version, del_flag, create_time, update_time)
-VALUES ((SELECT id FROM rbac_menu WHERE code = 'rbac'), 'rbac:role', 'Role Management', 'menu.rbac.role_management', 'MENU', '/admin/rbac/roles', NULL, NULL, 'file-text', 3, 1, 1, 0, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+VALUES ((SELECT id FROM rbac_menu WHERE code = 'rbac'), 'rbac:role', 'Role Management', 'menu.rbac.role_management', 'MENU', '/admin/rbac/roles', NULL, 'rbac:role', 'users', 3, 1, 1, 0, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON CONFLICT (code) DO NOTHING;
 
 INSERT INTO rbac_menu (parent_id, code, name, name_i18n_key, type, path, component, permission, icon, sort, visible, status, version, del_flag, create_time, update_time)
@@ -57,7 +57,7 @@ ON CONFLICT (code) DO NOTHING;
 
 -- Level 2: Menu Management (menu + buttons)
 INSERT INTO rbac_menu (parent_id, code, name, name_i18n_key, type, path, component, permission, icon, sort, visible, status, version, del_flag, create_time, update_time)
-VALUES ((SELECT id FROM rbac_menu WHERE code = 'rbac'), 'rbac:menu', 'Menu Management', 'menu.rbac.menu_management', 'MENU', '/admin/rbac/menus', NULL, NULL, 'file-text', 4, 1, 1, 0, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+VALUES ((SELECT id FROM rbac_menu WHERE code = 'rbac'), 'rbac:menu', 'Menu Management', 'menu.rbac.menu_management', 'MENU', '/admin/rbac/menus', NULL, 'rbac:menu', 'menu', 4, 1, 1, 0, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON CONFLICT (code) DO NOTHING;
 
 INSERT INTO rbac_menu (parent_id, code, name, name_i18n_key, type, path, component, permission, icon, sort, visible, status, version, del_flag, create_time, update_time)
@@ -69,7 +69,7 @@ ON CONFLICT (code) DO NOTHING;
 
 -- Level 2: Group Management (menu + buttons)
 INSERT INTO rbac_menu (parent_id, code, name, name_i18n_key, type, path, component, permission, icon, sort, visible, status, version, del_flag, create_time, update_time)
-VALUES ((SELECT id FROM rbac_menu WHERE code = 'rbac'), 'rbac:group', 'Group Management', 'menu.rbac.group_management', 'MENU', '/admin/rbac/groups', NULL, NULL, 'file-text', 5, 1, 1, 0, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+VALUES ((SELECT id FROM rbac_menu WHERE code = 'rbac'), 'rbac:group', 'Group Management', 'menu.rbac.group_management', 'MENU', '/admin/rbac/groups', NULL, 'rbac:group', 'layout', 5, 1, 1, 0, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON CONFLICT (code) DO NOTHING;
 
 INSERT INTO rbac_menu (parent_id, code, name, name_i18n_key, type, path, component, permission, icon, sort, visible, status, version, del_flag, create_time, update_time)

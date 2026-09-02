@@ -1,6 +1,7 @@
 package io.github.springwhale.platform.rbac.entity;
 
 import io.github.springwhale.database.BaseEntity;
+import io.github.springwhale.database.datascope.DeptIdField;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Index;
@@ -66,5 +67,6 @@ public class UserEntity extends BaseEntity {
     /**
      * Department ID
      */
+    @DeptIdField
     private Integer groupId;
 }

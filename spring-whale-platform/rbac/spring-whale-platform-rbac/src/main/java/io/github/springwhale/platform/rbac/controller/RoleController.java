@@ -1,6 +1,7 @@
 package io.github.springwhale.platform.rbac.controller;
 
 import io.github.springwhale.database.SortUtils;
+import io.github.springwhale.database.datascope.DataScope;
 import io.github.springwhale.framework.core.exception.BusinessException;
 import io.github.springwhale.platform.rbac.dto.request.RoleRequest;
 import io.github.springwhale.platform.rbac.dto.vo.RoleVO;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,6 +31,8 @@ public class RoleController {
      * Find all roles with pagination and filter
      * GET /api/rbac/roles?page=0&size=20&keyword=&status=
      */
+    @PreAuthorize("hasAnyAuthority('rbac:role', '*')")
+    @DataScope(module = "rbac:role")
     @GetMapping
     public Page<RoleVO> findAll(
             @RequestParam(defaultValue = "0") int page,
@@ -45,6 +49,8 @@ public class RoleController {
      * Find role by ID
      * GET /api/rbac/roles/{id}
      */
+    @PreAuthorize("hasAnyAuthority('rbac:role', '*')")
+    @DataScope(module = "rbac:role")
     @GetMapping("/{id}")
     public RoleVO findById(@PathVariable Integer id) {
         return roleService.findById(id)
@@ -55,6 +61,8 @@ public class RoleController {
      * Find role by exact code
      * GET /api/rbac/roles/by-code?code=ADMIN
      */
+    @PreAuthorize("hasAnyAuthority('rbac:role', '*')")
+    @DataScope(module = "rbac:role")
     @GetMapping("/by-code")
     public RoleVO findByCode(@RequestParam String code) {
         return roleService.findByCode(code)
@@ -65,6 +73,8 @@ public class RoleController {
      * Search roles (fuzzy)
      * GET /api/rbac/roles/search?keyword=admin
      */
+    @PreAuthorize("hasAnyAuthority('rbac:role', '*')")
+    @DataScope(module = "rbac:role")
     @GetMapping("/search")
     public List<RoleVO> search(@RequestParam String keyword) {
         return roleService.search(keyword);
@@ -74,6 +84,8 @@ public class RoleController {
      * Find by status
      * GET /api/rbac/roles/by-status?status=1
      */
+    @PreAuthorize("hasAnyAuthority('rbac:role', '*')")
+    @DataScope(module = "rbac:role")
     @GetMapping("/by-status")
     public List<RoleVO> findByStatus(@RequestParam Integer status) {
         return roleService.findByStatus(status);
@@ -83,6 +95,8 @@ public class RoleController {
      * Create role
      * POST /api/rbac/roles
      */
+    @PreAuthorize("hasAnyAuthority('rbac:role:create', '*')")
+    @DataScope(module = "rbac:role")
     @PostMapping
     public RoleVO create(@Valid @RequestBody RoleRequest request) {
         return roleService.create(request);
@@ -92,6 +106,8 @@ public class RoleController {
      * Update role
      * PUT /api/rbac/roles/{id}
      */
+    @PreAuthorize("hasAnyAuthority('rbac:role:update', '*')")
+    @DataScope(module = "rbac:role")
     @PutMapping("/{id}")
     public RoleVO update(@PathVariable Integer id, @Valid @RequestBody RoleRequest request) {
         return roleService.update(id, request);
@@ -101,6 +117,8 @@ public class RoleController {
      * Delete role
      * DELETE /api/rbac/roles/{id}
      */
+    @PreAuthorize("hasAnyAuthority('rbac:role:delete', '*')")
+    @DataScope(module = "rbac:role")
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Integer id) {
         roleService.delete(id);

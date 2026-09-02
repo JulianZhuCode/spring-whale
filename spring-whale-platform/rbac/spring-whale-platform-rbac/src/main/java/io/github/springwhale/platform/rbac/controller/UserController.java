@@ -1,6 +1,7 @@
 package io.github.springwhale.platform.rbac.controller;
 
 import io.github.springwhale.database.SortUtils;
+import io.github.springwhale.database.datascope.DataScope;
 import io.github.springwhale.framework.core.exception.BusinessException;
 import io.github.springwhale.platform.rbac.dto.request.UserRequest;
 import io.github.springwhale.platform.rbac.dto.vo.UserVO;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,6 +31,8 @@ public class UserController {
      * Find all users with pagination and filter
      * GET /api/rbac/users?page=0&size=20&keyword=&status=
      */
+    @PreAuthorize("hasAnyAuthority('rbac:user', '*')")
+    @DataScope(module = "rbac:user")
     @GetMapping
     public Page<UserVO> findAll(
             @RequestParam(defaultValue = "0") int page,
@@ -45,6 +49,8 @@ public class UserController {
      * Find user by ID
      * GET /api/rbac/users/{id}
      */
+    @PreAuthorize("hasAnyAuthority('rbac:user', '*')")
+    @DataScope(module = "rbac:user")
     @GetMapping("/{id}")
     public UserVO findById(@PathVariable Integer id) {
         return userService.findById(id)
@@ -55,6 +61,8 @@ public class UserController {
      * Find by exact username
      * GET /api/rbac/users/by-username?username=admin
      */
+    @PreAuthorize("hasAnyAuthority('rbac:user', '*')")
+    @DataScope(module = "rbac:user")
     @GetMapping("/by-username")
     public UserVO findByUsername(@RequestParam String username) {
         return userService.findByUsername(username)
@@ -65,6 +73,8 @@ public class UserController {
      * Find by exact email
      * GET /api/rbac/users/by-email?email=admin@example.com
      */
+    @PreAuthorize("hasAnyAuthority('rbac:user', '*')")
+    @DataScope(module = "rbac:user")
     @GetMapping("/by-email")
     public UserVO findByEmail(@RequestParam String email) {
         return userService.findByEmail(email)
@@ -75,6 +85,8 @@ public class UserController {
      * Find by exact phone
      * GET /api/rbac/users/by-phone?phone=13800138000
      */
+    @PreAuthorize("hasAnyAuthority('rbac:user', '*')")
+    @DataScope(module = "rbac:user")
     @GetMapping("/by-phone")
     public UserVO findByPhone(@RequestParam String phone) {
         return userService.findByPhone(phone)
@@ -85,6 +97,8 @@ public class UserController {
      * Search users (fuzzy)
      * GET /api/rbac/users/search?keyword=admin
      */
+    @PreAuthorize("hasAnyAuthority('rbac:user', '*')")
+    @DataScope(module = "rbac:user")
     @GetMapping("/search")
     public List<UserVO> search(@RequestParam String keyword) {
         return userService.search(keyword);
@@ -94,6 +108,8 @@ public class UserController {
      * Find users by department ID
      * GET /api/rbac/users/by-group?groupId=1
      */
+    @PreAuthorize("hasAnyAuthority('rbac:user', '*')")
+    @DataScope(module = "rbac:user")
     @GetMapping("/by-group")
     public List<UserVO> findByGroupId(@RequestParam Integer groupId) {
         return userService.findByGroupId(groupId);
@@ -103,6 +119,8 @@ public class UserController {
      * Find by status
      * GET /api/rbac/users/by-status?status=1
      */
+    @PreAuthorize("hasAnyAuthority('rbac:user', '*')")
+    @DataScope(module = "rbac:user")
     @GetMapping("/by-status")
     public List<UserVO> findByStatus(@RequestParam Integer status) {
         return userService.findByStatus(status);
@@ -112,6 +130,8 @@ public class UserController {
      * Create user
      * POST /api/rbac/users
      */
+    @PreAuthorize("hasAnyAuthority('rbac:user:create', '*')")
+    @DataScope(module = "rbac:user")
     @PostMapping
     public UserVO create(@Valid @RequestBody UserRequest request) {
         return userService.create(request);
@@ -121,6 +141,8 @@ public class UserController {
      * Update user
      * PUT /api/rbac/users/{id}
      */
+    @PreAuthorize("hasAnyAuthority('rbac:user:update', '*')")
+    @DataScope(module = "rbac:user")
     @PutMapping("/{id}")
     public UserVO update(@PathVariable Integer id, @Valid @RequestBody UserRequest request) {
         return userService.update(id, request);
@@ -130,6 +152,8 @@ public class UserController {
      * Delete user
      * DELETE /api/rbac/users/{id}
      */
+    @PreAuthorize("hasAnyAuthority('rbac:user:delete', '*')")
+    @DataScope(module = "rbac:user")
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Integer id) {
         userService.delete(id);

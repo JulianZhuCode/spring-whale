@@ -1,10 +1,8 @@
 package io.github.springwhale.platform.rbac.entity;
 
 import io.github.springwhale.database.BaseEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Index;
-import jakarta.persistence.Table;
+import io.github.springwhale.database.datascope.DeptIdField;
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -19,6 +17,11 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class GroupEntity extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @DeptIdField
+    private Integer id;
 
     /**
      * Parent department ID

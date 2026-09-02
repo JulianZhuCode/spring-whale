@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,6 +42,7 @@ public class RbacPageController {
 
     // ---- Users ----
 
+    @PreAuthorize("hasAnyAuthority('rbac:user', '*')")
     @GetMapping("/users")
     public String users(@RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "10") int size,
@@ -61,6 +63,7 @@ public class RbacPageController {
 
     // ---- Roles ----
 
+    @PreAuthorize("hasAnyAuthority('rbac:role', '*')")
     @GetMapping("/roles")
     public String roles(@RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "10") int size,
@@ -81,6 +84,7 @@ public class RbacPageController {
 
     // ---- Menus ----
 
+    @PreAuthorize("hasAnyAuthority('rbac:menu', '*')")
     @GetMapping("/menus")
     public String menus(@RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "10") int size,
@@ -103,6 +107,7 @@ public class RbacPageController {
 
     // ---- Groups ----
 
+    @PreAuthorize("hasAnyAuthority('rbac:group', '*')")
     @GetMapping("/groups")
     public String groups(@RequestParam(defaultValue = "0") int page,
                          @RequestParam(defaultValue = "10") int size,
