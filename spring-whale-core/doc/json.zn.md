@@ -295,6 +295,7 @@ spring:
 {
   "status": {
     "id": "ACTIVE",
+    "name": "ACTIVE",
     "desc": "Active"
   }
 }
@@ -327,6 +328,7 @@ DELETED=已删除
 {
   "status": {
     "id": "ACTIVE",
+    "name": "ACTIVE",
     "desc": "活跃"
   }
 }
@@ -338,6 +340,7 @@ DELETED=已删除
 {
   "status": {
     "id": "ACTIVE",
+    "name": "ACTIVE",
     "desc": "Active"
   }
 }
@@ -345,9 +348,9 @@ DELETED=已删除
 
 ### 反序列化
 
-支持三种反序列化方式：
+支持四种反序列化方式：
 
-#### 1. 对象格式
+#### 1. 对象格式（使用 id）
 
 ```json
 {
@@ -358,7 +361,18 @@ DELETED=已删除
 }
 ```
 
-#### 2. 字符串格式（使用 id）
+#### 2. 对象格式（使用 name）
+
+```json
+{
+  "status": {
+    "name": "ACTIVE",
+    "desc": "Active"
+  }
+}
+```
+
+#### 3. 字符串格式（使用 id 或枚举名称）
 
 ```json
 {
@@ -366,7 +380,7 @@ DELETED=已删除
 }
 ```
 
-#### 3. 整数格式（使用 ordinal）
+#### 4. 整数格式（使用 ordinal）
 
 ```json
 {

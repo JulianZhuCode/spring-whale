@@ -20,6 +20,7 @@ public class BaseEnumJacksonComponent extends BaseJacksonComponent {
         @Override
         public void serializeObject(BaseEnum value, JsonGenerator gen, @NonNull SerializationContext context) throws JacksonException {
             gen.writeStringProperty("id", value.getId());
+            gen.writeStringProperty("name", ((Enum<?>) value).name());
             gen.writeStringProperty("desc", resolveDesc(value));
         }
 
@@ -52,16 +53,29 @@ public class BaseEnumJacksonComponent extends BaseJacksonComponent {
         @Override
         public BaseEnum deserializeObject(@NonNull JsonParser jsonParser, @NonNull DeserializationContext context, @NonNull JsonNode node) throws JacksonException {
             if (node.isObject()) {
-                return findEnumById(enumClass, nullSafeValue(node.get("id"), String.class));
+                String id = nullSafeValue(node.get("id"), String.class);
+                if (id != null) {
+                    BaseEnum result = findEnumById(enumClass, id);
+                    if (result != null) return result;
+                }
+                String name = nullSafeValue(node.get("name"), String.class);
+                if (name != null) {
+                    return findEnumByName(enumClass, name);
+                }
+                throw new IllegalArgumentException("Cannot deserialize enum from object, missing both 'id' and 'name': " + node);
             } else if (node.isString()) {
-                return findEnumById(enumClass, node.asString());
+                String str = node.asString();
+                BaseEnum result = findEnumById(enumClass, str);
+                if (result != null) return result;
+                return findEnumByName(enumClass, str);
             } else if (node.isInt()) {
-                return findEnumById(enumClass, node.asInt());
+                return findEnumByIndex(enumClass, node.asInt());
             }
             throw new IllegalArgumentException("Cannot deserialize enum from: " + node);
         }
 
         private BaseEnum findEnumById(Class<?> enumClass, String id) {
+            if (id == null) return null;
             Object[] enumConstants = enumClass.getEnumConstants();
             for (Object constant : enumConstants) {
                 BaseEnum baseEnum = (BaseEnum) constant;
@@ -69,10 +83,15 @@ public class BaseEnumJacksonComponent extends BaseJacksonComponent {
                     return baseEnum;
                 }
             }
-            throw new IllegalArgumentException("No enum constant with id: " + id + " in class: " + enumClass.getName());
+            return null;
         }
 
-        private BaseEnum findEnumById(Class<?> enumClass, int index) {
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        private BaseEnum findEnumByName(Class<?> enumClass, String name) {
+            return (BaseEnum) Enum.valueOf((Class<? extends Enum>) enumClass, name);
+        }
+
+        private BaseEnum findEnumByIndex(Class<?> enumClass, int index) {
             Object[] enumConstants = enumClass.getEnumConstants();
             return (BaseEnum) enumConstants[index];
         }

@@ -297,6 +297,7 @@ Output:
 {
   "status": {
     "id": "ACTIVE",
+    "name": "ACTIVE",
     "desc": "Active"
   }
 }
@@ -329,6 +330,7 @@ Output (English locale):
 {
   "status": {
     "id": "ACTIVE",
+    "name": "ACTIVE",
     "desc": "Active"
   }
 }
@@ -340,6 +342,7 @@ Output (Chinese locale with translations):
 {
   "status": {
     "id": "ACTIVE",
+    "name": "ACTIVE",
     "desc": "活跃"
   }
 }
@@ -347,9 +350,9 @@ Output (Chinese locale with translations):
 
 ### Deserialization
 
-Supports three deserialization methods:
+Supports four deserialization methods:
 
-#### 1. Object Format
+#### 1. Object Format (using id)
 
 ```json
 {
@@ -360,7 +363,18 @@ Supports three deserialization methods:
 }
 ```
 
-#### 2. String Format (using id)
+#### 2. Object Format (using name)
+
+```json
+{
+  "status": {
+    "name": "ACTIVE",
+    "desc": "Active"
+  }
+}
+```
+
+#### 3. String Format (using id or enum name)
 
 ```json
 {
@@ -368,7 +382,7 @@ Supports three deserialization methods:
 }
 ```
 
-#### 3. Integer Format (using ordinal)
+#### 4. Integer Format (using ordinal)
 
 ```json
 {

@@ -269,6 +269,7 @@ spring:
 {
   "status": {
     "id": "ACTIVE",
+    "name": "ACTIVE",
     "desc": "Active"
   }
 }
@@ -301,6 +302,7 @@ DELETED=Deleted
 {
   "status": {
     "id": "ACTIVE",
+    "name": "ACTIVE",
     "desc": "Active"
   }
 }
@@ -312,6 +314,7 @@ DELETED=Deleted
 {
   "status": {
     "id": "ACTIVE",
+    "name": "ACTIVE",
     "desc": "活跃"
   }
 }
@@ -319,21 +322,27 @@ DELETED=Deleted
 
 ### 逆直列化
 
-3 つの逆直列化方法をサポート：
+4 つの逆直列化方法をサポート：
 
-#### 1. オブジェクト形式
+#### 1. オブジェクト形式（id を使用）
 
 ```json
 {"status": {"id": "ACTIVE", "desc": "Active"}}
 ```
 
-#### 2. 文字列形式（id を使用）
+#### 2. オブジェクト形式（name を使用）
+
+```json
+{"status": {"name": "ACTIVE", "desc": "Active"}}
+```
+
+#### 3. 文字列形式（id または列挙型名を使用）
 
 ```json
 {"status": "ACTIVE"}
 ```
 
-#### 3. 整数形式（ordinal を使用）
+#### 4. 整数形式（ordinal を使用）
 
 ```json
 {"status": 0}

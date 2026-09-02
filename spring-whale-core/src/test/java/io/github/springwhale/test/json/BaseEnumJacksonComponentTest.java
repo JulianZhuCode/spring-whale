@@ -121,4 +121,75 @@ public class BaseEnumJacksonComponentTest extends BaseJacksonTest {
         assertThrows(Exception.class, () -> mapper.readValue(json, EnumTestRecord.class));
     }
 
+    @Test
+    @DisplayName("Should serialize enum with name field")
+    public void testEnumSerializationIncludesNameField() {
+        jsonProperties.setUseI18n(false);
+        EnumTestRecord record = new EnumTestRecord(StatusEnum.ACTIVE);
+        String json = mapper.writeValueAsString(record);
+        JsonNode node = mapper.readTree(json).get("status");
+
+        assertEquals("ACTIVE", node.get("id").asString());
+        assertEquals("ACTIVE", node.get("name").asString());
+        assertEquals("Active", node.get("desc").asString());
+    }
+
+    @Test
+    @DisplayName("Should serialize enum with i18n and still include name field")
+    public void testEnumSerializationWithI18nIncludesNameField() {
+        jsonProperties.setUseI18n(true);
+        jsonProperties.setFallbackToDefaultDesc(true);
+        Locale.setDefault(Locale.JAPAN);
+        LocaleContextHolder.setLocale(Locale.JAPAN);
+
+        EnumTestRecord record = new EnumTestRecord(StatusEnum.INACTIVE);
+        String json = mapper.writeValueAsString(record);
+        JsonNode node = mapper.readTree(json).get("status");
+
+        assertEquals("INACTIVE", node.get("id").asString());
+        assertEquals("INACTIVE", node.get("name").asString());
+        assertEquals("非アクティブ", node.get("desc").asString());
+    }
+
+    @Test
+    @DisplayName("Should deserialize enum from object format using name field")
+    public void testEnumDeserializationFromObjectUsingName() {
+        EnumTestRecord expected = new EnumTestRecord(StatusEnum.ACTIVE);
+        String json = "{\"status\":{\"name\":\"ACTIVE\"}}";
+
+        EnumTestRecord actual = mapper.readValue(json, EnumTestRecord.class);
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @DisplayName("Should deserialize enum from object format using name field when id is missing")
+    public void testEnumDeserializationFromObjectUsingNameOnly() {
+        EnumTestRecord expected = new EnumTestRecord(StatusEnum.PENDING);
+        String json = "{\"status\":{\"name\":\"PENDING\",\"desc\":\"Pending\"}}";
+
+        EnumTestRecord actual = mapper.readValue(json, EnumTestRecord.class);
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @DisplayName("Should deserialize enum from string format using enum name")
+    public void testEnumDeserializationFromStringUsingName() {
+        EnumTestRecord expected = new EnumTestRecord(StatusEnum.DELETED);
+        String json = "{\"status\":\"DELETED\"}";
+
+        EnumTestRecord actual = mapper.readValue(json, EnumTestRecord.class);
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    @DisplayName("Should throw exception when deserializing from object with invalid name")
+    public void testEnumDeserializationWithInvalidName() {
+        String json = "{\"status\":{\"name\":\"INVALID_NAME\"}}";
+
+        assertThrows(Exception.class, () -> mapper.readValue(json, EnumTestRecord.class));
+    }
+
 }
