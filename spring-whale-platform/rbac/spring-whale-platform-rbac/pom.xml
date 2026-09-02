@@ -21,11 +21,6 @@
     <dependencies>
         <dependency>
             <groupId>io.github.julianzhucode</groupId>
-            <artifactId>spring-whale-platform-rbac-ui</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.github.julianzhucode</groupId>
             <artifactId>spring-whale-webmvc</artifactId>
         </dependency>
         <dependency>

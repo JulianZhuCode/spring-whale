@@ -1,12 +1,12 @@
-package io.github.springwhale.platform.rbac.controller.page;
+package io.github.springwhale.platform.rbac.ui.controller;
 
 import io.github.springwhale.database.SortUtils;
 import io.github.springwhale.framework.thymeleaf.controller.AdminPage;
-import io.github.springwhale.platform.rbac.enums.MenuType;
 import io.github.springwhale.platform.rbac.dto.vo.GroupVO;
 import io.github.springwhale.platform.rbac.dto.vo.MenuVO;
 import io.github.springwhale.platform.rbac.dto.vo.RoleVO;
 import io.github.springwhale.platform.rbac.dto.vo.UserVO;
+import io.github.springwhale.platform.rbac.enums.MenuType;
 import io.github.springwhale.platform.rbac.service.GroupService;
 import io.github.springwhale.platform.rbac.service.MenuService;
 import io.github.springwhale.platform.rbac.service.RoleService;

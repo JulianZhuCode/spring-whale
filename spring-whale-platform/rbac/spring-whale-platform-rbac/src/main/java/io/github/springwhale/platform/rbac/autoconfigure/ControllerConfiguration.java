@@ -1,7 +1,6 @@
 package io.github.springwhale.platform.rbac.autoconfigure;
 
 import io.github.springwhale.platform.rbac.controller.*;
-import io.github.springwhale.platform.rbac.controller.page.RbacPageController;
 import io.github.springwhale.platform.rbac.dao.repository.RoleMenuRepository;
 import io.github.springwhale.platform.rbac.dao.repository.RoleRepository;
 import io.github.springwhale.platform.rbac.dao.repository.UserRepository;
@@ -60,12 +59,4 @@ public class ControllerConfiguration {
         return new GroupController(groupService);
     }
 
-    @Bean
-    @ConditionalOnMissingBean
-    public RbacPageController rbacPageController(UserService userService,
-                                                 RoleService roleService,
-                                                 MenuService menuService,
-                                                 GroupService groupService) {
-        return new RbacPageController(userService, roleService, menuService, groupService);
-    }
 }
