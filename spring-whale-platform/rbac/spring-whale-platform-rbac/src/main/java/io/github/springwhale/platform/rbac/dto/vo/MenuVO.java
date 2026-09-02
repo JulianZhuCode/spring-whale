@@ -1,5 +1,6 @@
 package io.github.springwhale.platform.rbac.dto.vo;
 
+import io.github.springwhale.platform.rbac.enums.MenuType;
 import lombok.Data;
 
 /**
@@ -12,7 +13,7 @@ public class MenuVO {
     private String code;
     private String name;
     private String nameI18nKey;
-    private Integer type;
+    private MenuType type;
     private String path;
     private String component;
     private String permission;

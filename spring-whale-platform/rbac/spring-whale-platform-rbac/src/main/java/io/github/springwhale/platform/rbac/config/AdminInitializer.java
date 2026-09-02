@@ -1,5 +1,6 @@
 package io.github.springwhale.platform.rbac.config;
 
+import io.github.springwhale.platform.rbac.enums.MenuType;
 import io.github.springwhale.platform.rbac.constant.RbacConstants;
 import io.github.springwhale.platform.rbac.entity.*;
 import io.github.springwhale.platform.rbac.repository.*;
@@ -148,11 +149,11 @@ public class AdminInitializer implements CommandLineRunner {
         log.info("Initializing RBAC menus...");
 
         // Level 0: System root directory
-        MenuEntity systemDir = createMenu(null, "system", "System", "menu.system", RbacConstants.MENU_TYPE_DIRECTORY,
+        MenuEntity systemDir = createMenu(null, "system", "System", "menu.system", MenuType.DIRECTORY,
                 null, null, null, "menu", 0);
 
         // Level 1: RBAC directory
-        MenuEntity rbacDir = createMenu(systemDir.getId(), "rbac", "RBAC", "menu.rbac", RbacConstants.MENU_TYPE_DIRECTORY,
+        MenuEntity rbacDir = createMenu(systemDir.getId(), "rbac", "RBAC", "menu.rbac", MenuType.DIRECTORY,
                 null, null, null, "shield", 1);
 
         // Level 2: Four management menus with their button permissions
@@ -168,7 +169,7 @@ public class AdminInitializer implements CommandLineRunner {
         log.info("RBAC menus initialized successfully (SUPER_ADMIN has all permissions via wildcard)");
     }
 
-    private MenuEntity createMenu(Integer parentId, String code, String name, String nameI18nKey, int type,
+    private MenuEntity createMenu(Integer parentId, String code, String name, String nameI18nKey, MenuType type,
                                   String path, String component, String permission,
                                   String icon, int sort) {
         MenuEntity menu = new MenuEntity();
@@ -193,15 +194,15 @@ public class AdminInitializer implements CommandLineRunner {
     private void createMenuWithButtons(MenuEntity parent, String baseCode, String name, String nameI18nKey,
                                        String path, int sort) {
         // Main menu
-        MenuEntity menu = createMenu(parent.getId(), baseCode, name, nameI18nKey, RbacConstants.MENU_TYPE_MENU,
+        MenuEntity menu = createMenu(parent.getId(), baseCode, name, nameI18nKey, MenuType.MENU,
                 path, null, null, "file-text", sort);
 
         // Standard CRUD button permissions
-        createMenu(menu.getId(), baseCode + ":create", name + " Create", null, RbacConstants.MENU_TYPE_BUTTON,
+        createMenu(menu.getId(), baseCode + ":create", name + " Create", null, MenuType.BUTTON,
                 null, null, baseCode + ":create", null, 1);
-        createMenu(menu.getId(), baseCode + ":update", name + " Update", null, RbacConstants.MENU_TYPE_BUTTON,
+        createMenu(menu.getId(), baseCode + ":update", name + " Update", null, MenuType.BUTTON,
                 null, null, baseCode + ":update", null, 2);
-        createMenu(menu.getId(), baseCode + ":delete", name + " Delete", null, RbacConstants.MENU_TYPE_BUTTON,
+        createMenu(menu.getId(), baseCode + ":delete", name + " Delete", null, MenuType.BUTTON,
                 null, null, baseCode + ":delete", null, 3);
     }
 

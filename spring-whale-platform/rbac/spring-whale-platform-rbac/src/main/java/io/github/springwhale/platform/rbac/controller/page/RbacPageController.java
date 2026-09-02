@@ -2,6 +2,7 @@ package io.github.springwhale.platform.rbac.controller.page;
 
 import io.github.springwhale.database.SortUtils;
 import io.github.springwhale.framework.thymeleaf.controller.AdminPage;
+import io.github.springwhale.platform.rbac.enums.MenuType;
 import io.github.springwhale.platform.rbac.dto.vo.GroupVO;
 import io.github.springwhale.platform.rbac.dto.vo.MenuVO;
 import io.github.springwhale.platform.rbac.dto.vo.RoleVO;
@@ -84,7 +85,7 @@ public class RbacPageController {
     public String menus(@RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "10") int size,
                         @RequestParam(required = false) String keyword,
-                        @RequestParam(required = false) Integer type,
+                        @RequestParam(required = false) MenuType type,
                         @RequestParam(required = false) Integer status,
                         @RequestParam(required = false) String sort,
                         Model model) {
@@ -93,7 +94,7 @@ public class RbacPageController {
         model.addAttribute("menus", menuPage.getContent());
         model.addAttribute("page", menuPage);
         model.addAttribute("keyword", keyword);
-        model.addAttribute("selectedType", type != null ? type.toString() : null);
+        model.addAttribute("selectedType", type != null ? type.name() : null);
         model.addAttribute("selectedStatus", status != null ? status.toString() : null);
         model.addAttribute("sortField", SortUtils.getSortField(sortObj));
         model.addAttribute("sortDirection", SortUtils.getSortDirection(sortObj));

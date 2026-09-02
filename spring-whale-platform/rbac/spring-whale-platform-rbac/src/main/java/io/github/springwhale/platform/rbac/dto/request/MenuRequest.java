@@ -1,5 +1,6 @@
 package io.github.springwhale.platform.rbac.dto.request;
 
+import io.github.springwhale.platform.rbac.enums.MenuType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -21,7 +22,7 @@ public class MenuRequest {
     private String nameI18nKey;
 
     @NotNull(message = "Menu type must not be empty")
-    private Integer type;
+    private MenuType type;
 
     private String path;
     private String component;

@@ -2,6 +2,7 @@ package io.github.springwhale.platform.rbac.service;
 
 import io.github.springwhale.database.JpaQueryWrapper;
 import io.github.springwhale.framework.core.exception.BusinessException;
+import io.github.springwhale.platform.rbac.enums.MenuType;
 import io.github.springwhale.platform.rbac.dto.request.MenuRequest;
 import io.github.springwhale.platform.rbac.dto.vo.MenuVO;
 import io.github.springwhale.platform.rbac.entity.MenuEntity;
@@ -37,7 +38,7 @@ public class MenuService {
     /**
      * Find menus with filter
      */
-    public Page<MenuVO> findWithFilter(String keyword, Integer type, Integer status, Pageable pageable) {
+    public Page<MenuVO> findWithFilter(String keyword, MenuType type, Integer status, Pageable pageable) {
         var spec = JpaQueryWrapper.of(MenuEntity.class)
                 .or(!ObjectUtils.isEmpty(keyword), w -> w
                         .likeIgnoreCase(MenuEntity::getCode, keyword)
@@ -83,7 +84,7 @@ public class MenuService {
     /**
      * Find by type
      */
-    public List<MenuVO> findByType(Integer type) {
+    public List<MenuVO> findByType(MenuType type) {
         return menuMapper.toVOList(menuRepository.findByType(type));
     }
 

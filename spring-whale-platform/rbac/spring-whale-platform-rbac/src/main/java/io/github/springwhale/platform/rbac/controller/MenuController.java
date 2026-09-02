@@ -2,6 +2,7 @@ package io.github.springwhale.platform.rbac.controller;
 
 import io.github.springwhale.database.SortUtils;
 import io.github.springwhale.framework.core.exception.BusinessException;
+import io.github.springwhale.platform.rbac.enums.MenuType;
 import io.github.springwhale.platform.rbac.dto.request.MenuRequest;
 import io.github.springwhale.platform.rbac.dto.vo.MenuVO;
 import io.github.springwhale.platform.rbac.service.MenuService;
@@ -34,7 +35,7 @@ public class MenuController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Integer type,
+            @RequestParam(required = false) MenuType type,
             @RequestParam(required = false) Integer status,
             @RequestParam(required = false) String sort) {
         Sort sortObj = SortUtils.buildSort(sort);
@@ -85,7 +86,7 @@ public class MenuController {
      * GET /api/rbac/menus/by-type?type=2
      */
     @GetMapping("/by-type")
-    public List<MenuVO> findByType(@RequestParam Integer type) {
+    public List<MenuVO> findByType(@RequestParam MenuType type) {
         return menuService.findByType(type);
     }
 

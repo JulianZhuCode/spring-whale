@@ -1,8 +1,11 @@
 package io.github.springwhale.platform.rbac.entity;
 
 import io.github.springwhale.database.BaseEntity;
+import io.github.springwhale.platform.rbac.enums.MenuType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import lombok.Data;
@@ -46,10 +49,11 @@ public class MenuEntity extends BaseEntity {
     private String nameI18nKey;
 
     /**
-     * Menu type: 1=directory, 2=menu, 3=button
+     * Menu type: DIRECTORY, MENU, or BUTTON
      */
     @Column(nullable = false)
-    private Integer type = 2;
+    @Enumerated(EnumType.STRING)
+    private MenuType type = MenuType.MENU;
 
     /**
      * Route path

@@ -1,5 +1,6 @@
 package io.github.springwhale.platform.rbac.repository;
 
+import io.github.springwhale.platform.rbac.enums.MenuType;
 import io.github.springwhale.platform.rbac.entity.MenuEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -31,7 +32,7 @@ public interface MenuRepository extends JpaRepository<MenuEntity, Integer>, JpaS
     /**
      * Find by type
      */
-    List<MenuEntity> findByType(Integer type);
+    List<MenuEntity> findByType(MenuType type);
 
     /**
      * Find by status

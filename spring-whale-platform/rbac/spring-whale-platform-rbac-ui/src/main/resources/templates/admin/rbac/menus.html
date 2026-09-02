@@ -45,9 +45,9 @@
                 <div class="col-md-3">
                     <select class="form-select" data-search-field="type">
                         <option value="" th:text="#{rbac.menus.all_types}">All Types</option>
-                        <option th:selected="${selectedType != null and selectedType == '1'}" value="1" th:text="#{rbac.menus.type.directory}">Directory</option>
-                        <option th:selected="${selectedType != null and selectedType == '2'}" value="2" th:text="#{rbac.menus.type.menu}">Menu</option>
-                        <option th:selected="${selectedType != null and selectedType == '3'}" value="3" th:text="#{rbac.menus.type.button}">Button</option>
+                        <option th:selected="${selectedType != null and selectedType == 'DIRECTORY'}" value="DIRECTORY" th:text="#{rbac.menus.type.directory}">Directory</option>
+                        <option th:selected="${selectedType != null and selectedType == 'MENU'}" value="MENU" th:text="#{rbac.menus.type.menu}">Menu</option>
+                        <option th:selected="${selectedType != null and selectedType == 'BUTTON'}" value="BUTTON" th:text="#{rbac.menus.type.button}">Button</option>
                     </select>
                 </div>
                 <div class="col-md-3">
@@ -75,10 +75,10 @@
             <td th:text="${item.name}">Users</td>
             <td><code th:text="${item.nameI18nKey}">menu.rbac.user_management</code></td>
             <td>
-                <span class="badge bg-info text-dark" th:if="${item.type == 1}"
-                      th:text="#{rbac.menus.badge.menu}">Menu</span>
-                <span class="badge bg-warning text-dark" th:if="${item.type == 2}" th:text="#{rbac.menus.badge.button}">Button</span>
-                <span class="badge badge-purple" th:if="${item.type == 3}" th:text="#{rbac.menus.badge.api}">API</span>
+                <span class="badge bg-info text-dark" th:if="${item.type.name() == 'DIRECTORY'}"
+                      th:text="#{rbac.menus.type.directory}">Directory</span>
+                <span class="badge bg-warning text-dark" th:if="${item.type.name() == 'MENU'}" th:text="#{rbac.menus.badge.button}">Button</span>
+                <span class="badge badge-purple" th:if="${item.type.name() == 'BUTTON'}" th:text="#{rbac.menus.badge.api}">API</span>
             </td>
             <td th:text="${item.path}">/admin/rbac/users</td>
             <td><code th:text="${item.permission}">user:list</code></td>
@@ -140,9 +140,9 @@
                         <div class="mb-3">
                             <label class="form-label" for="menu-type" th:text="#{rbac.menus.type}">Type</label>
                             <select class="form-select" id="menu-type" name="type" data-int-field>
-                                <option th:text="#{rbac.menus.type.directory}" value="1">Directory</option>
-                                <option th:text="#{rbac.menus.type.menu}" value="2">Menu</option>
-                                <option th:text="#{rbac.menus.type.button}" value="3">Button</option>
+                                <option th:text="#{rbac.menus.type.directory}" value="DIRECTORY">Directory</option>
+                                <option th:text="#{rbac.menus.type.menu}" value="MENU">Menu</option>
+                                <option th:text="#{rbac.menus.type.button}" value="BUTTON">Button</option>
                             </select>
                             <div class="invalid-feedback" data-field="type"></div>
                         </div>
