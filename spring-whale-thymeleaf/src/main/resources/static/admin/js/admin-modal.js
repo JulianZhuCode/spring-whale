@@ -101,7 +101,11 @@ function fillFormFields(form, data) {
         if (field.tagName === 'SELECT') {
             var setVal = function () {
                 if (value != null) {
-                    field.value = (typeof value === 'object' && value.id !== undefined) ? value.id : value;
+                    if (typeof value === 'object') {
+                        field.value = (value.name !== undefined) ? value.name : (value.id !== undefined) ? value.id : value;
+                    } else {
+                        field.value = value;
+                    }
                 }
             };
             if (field.options.length > 1) {

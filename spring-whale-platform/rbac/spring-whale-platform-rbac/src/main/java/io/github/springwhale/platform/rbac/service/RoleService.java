@@ -77,6 +77,7 @@ public class RoleService {
         entity.setStatus(request.getStatus());
         entity.setSort(request.getSort());
         entity.setGroupId(request.getGroupId());
+        entity.setDataScope(request.getDataScope());
         return enrichGroupName(roleMapper.toVO(roleRepository.save(entity)));
     }
 
@@ -94,6 +95,7 @@ public class RoleService {
         role.setStatus(request.getStatus());
         role.setSort(request.getSort());
         role.setGroupId(request.getGroupId());
+        role.setDataScope(request.getDataScope());
 
         return enrichGroupName(roleMapper.toVO(roleRepository.save(role)));
     }

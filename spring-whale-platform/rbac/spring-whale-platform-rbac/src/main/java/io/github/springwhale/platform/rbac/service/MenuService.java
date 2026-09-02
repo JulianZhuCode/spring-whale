@@ -5,6 +5,7 @@ import io.github.springwhale.framework.core.exception.BusinessException;
 import io.github.springwhale.platform.rbac.dao.entity.MenuEntity;
 import io.github.springwhale.platform.rbac.dao.mapper.MenuMapper;
 import io.github.springwhale.platform.rbac.dto.request.MenuRequest;
+import io.github.springwhale.platform.rbac.dto.vo.MenuTreeVO;
 import io.github.springwhale.platform.rbac.dto.vo.MenuVO;
 import io.github.springwhale.platform.rbac.enums.MenuType;
 import io.github.springwhale.platform.rbac.repository.MenuRepository;
@@ -14,7 +15,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Menu service
@@ -108,5 +110,55 @@ public class MenuService {
         MenuEntity menu = menuRepository.findById(id)
                 .orElseThrow(() -> BusinessException.create("MENU_NOT_FOUND", "Menu not found, ID: " + id));
         menuRepository.delete(menu);
+    }
+
+    /**
+     * Build menu tree filtered by allowed menu IDs.
+     * If allowedMenuIds is null, returns all menus.
+     */
+    public List<MenuTreeVO> buildTree(Set<Integer> allowedMenuIds) {
+        List<MenuEntity> all = menuRepository.findAll();
+
+        List<MenuEntity> filtered = all;
+        if (allowedMenuIds != null) {
+            filtered = all.stream()
+                    .filter(m -> allowedMenuIds.contains(m.getId()))
+                    .toList();
+        }
+
+        Map<Integer, List<MenuTreeVO>> parentMap = filtered.stream()
+                .sorted(Comparator.comparing(MenuEntity::getSort, Comparator.nullsLast(Comparator.naturalOrder())))
+                .map(this::toTreeVO)
+                .collect(Collectors.groupingBy(
+                        vo -> vo.getParentId() != null ? vo.getParentId() : 0,
+                        LinkedHashMap::new,
+                        Collectors.toList()));
+
+        List<MenuTreeVO> roots = parentMap.getOrDefault(0, List.of());
+        for (MenuTreeVO root : roots) {
+            buildChildren(root, parentMap);
+        }
+        return roots;
+    }
+
+    private MenuTreeVO toTreeVO(MenuEntity entity) {
+        MenuTreeVO vo = new MenuTreeVO();
+        vo.setId(entity.getId());
+        vo.setParentId(entity.getParentId());
+        vo.setCode(entity.getCode());
+        vo.setName(entity.getName());
+        vo.setType(entity.getType());
+        vo.setPermission(entity.getPermission());
+        return vo;
+    }
+
+    private void buildChildren(MenuTreeVO parent, Map<Integer, List<MenuTreeVO>> parentMap) {
+        List<MenuTreeVO> children = parentMap.get(parent.getId());
+        if (children != null) {
+            parent.setChildren(children);
+            for (MenuTreeVO child : children) {
+                buildChildren(child, parentMap);
+            }
+        }
     }
 }

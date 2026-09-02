@@ -4,6 +4,7 @@ import io.github.springwhale.database.SortUtils;
 import io.github.springwhale.database.datascope.DataScope;
 import io.github.springwhale.framework.core.exception.BusinessException;
 import io.github.springwhale.platform.rbac.dto.request.GroupRequest;
+import io.github.springwhale.platform.rbac.dto.vo.GroupTreeVO;
 import io.github.springwhale.platform.rbac.dto.vo.GroupVO;
 import io.github.springwhale.platform.rbac.service.GroupService;
 import jakarta.validation.Valid;
@@ -15,6 +16,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * Group (department) controller
  */
@@ -24,6 +27,17 @@ import org.springframework.web.bind.annotation.*;
 public class GroupController {
 
     private final GroupService groupService;
+
+    /**
+     * Get department tree
+     * GET /api/rbac/groups/tree
+     */
+    @PreAuthorize("hasAnyAuthority('rbac:group', '*')")
+    @DataScope(module = "rbac:group")
+    @GetMapping("/tree")
+    public List<GroupTreeVO> tree() {
+        return groupService.buildDeptTree();
+    }
 
     /**
      * Find all departments with pagination and filter

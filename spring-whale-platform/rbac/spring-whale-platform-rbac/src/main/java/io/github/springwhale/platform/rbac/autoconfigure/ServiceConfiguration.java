@@ -7,6 +7,8 @@ import io.github.springwhale.platform.rbac.dao.mapper.RoleMapper;
 import io.github.springwhale.platform.rbac.dao.mapper.UserMapper;
 import io.github.springwhale.platform.rbac.repository.GroupRepository;
 import io.github.springwhale.platform.rbac.repository.MenuRepository;
+import io.github.springwhale.platform.rbac.repository.RoleMenuRepository;
+import io.github.springwhale.platform.rbac.repository.RoleDeptRepository;
 import io.github.springwhale.platform.rbac.repository.RoleRepository;
 import io.github.springwhale.platform.rbac.repository.UserRepository;
 import io.github.springwhale.platform.rbac.service.*;
@@ -54,5 +56,17 @@ public class ServiceConfiguration {
     public GroupService groupService(GroupRepository groupRepository,
                                      GroupMapper groupMapper) {
         return new GroupService(groupRepository, groupMapper);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public RoleMenuService roleMenuService(RoleMenuRepository roleMenuRepository) {
+        return new RoleMenuService(roleMenuRepository);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public RoleDeptService roleDeptService(RoleDeptRepository roleDeptRepository) {
+        return new RoleDeptService(roleDeptRepository);
     }
 }

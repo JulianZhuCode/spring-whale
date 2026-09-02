@@ -13,6 +13,7 @@ import lombok.EqualsAndHashCode;
 @DeptIdScope
 @Table(name = "rbac_group", indexes = {
         @Index(name = "idx_group_parent_id", columnList = "parent_id"),
+        @Index(name = "idx_group_path", columnList = "path"),
         @Index(name = "idx_group_code", columnList = "code")
 })
 @Data
@@ -23,6 +24,14 @@ public class GroupEntity extends BaseEntity {
      * Parent department ID
      */
     private Integer parentId;
+
+    /**
+     * Materialized path of ancestor IDs, e.g. "/1/3/".
+     * Used for efficient descendant queries: {@code WHERE path LIKE '/1/3/%'}.
+     * Root nodes use "/" as path.
+     */
+    @Column(length = 500)
+    private String path;
 
     /**
      * Department code

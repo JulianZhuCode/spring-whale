@@ -111,7 +111,7 @@ public abstract class SqlInspectorSupport implements StatementInspector {
             log.warn("Unsafe field name detected: {}, skipping condition", fieldName);
             return null;
         }
-        return "`" + fieldName + "`";
+        return fieldName;
     }
 
     protected String formatValue(Object value) {

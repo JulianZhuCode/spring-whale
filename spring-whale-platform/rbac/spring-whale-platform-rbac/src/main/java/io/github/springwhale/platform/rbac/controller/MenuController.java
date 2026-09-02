@@ -3,9 +3,16 @@ package io.github.springwhale.platform.rbac.controller;
 import io.github.springwhale.database.SortUtils;
 import io.github.springwhale.database.datascope.DataScope;
 import io.github.springwhale.framework.core.exception.BusinessException;
+import io.github.springwhale.platform.rbac.constant.RbacConstants;
+import io.github.springwhale.platform.rbac.dao.entity.RoleEntity;
+import io.github.springwhale.platform.rbac.dao.entity.RoleMenuEntity;
+import io.github.springwhale.platform.rbac.dao.entity.UserEntity;
+import io.github.springwhale.platform.rbac.dao.entity.UserRoleEntity;
 import io.github.springwhale.platform.rbac.dto.request.MenuRequest;
+import io.github.springwhale.platform.rbac.dto.vo.MenuTreeVO;
 import io.github.springwhale.platform.rbac.dto.vo.MenuVO;
 import io.github.springwhale.platform.rbac.enums.MenuType;
+import io.github.springwhale.platform.rbac.repository.*;
 import io.github.springwhale.platform.rbac.service.MenuService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +21,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Menu controller
@@ -25,6 +38,10 @@ import org.springframework.web.bind.annotation.*;
 public class MenuController {
 
     private final MenuService menuService;
+    private final UserRepository userRepository;
+    private final UserRoleRepository userRoleRepository;
+    private final RoleRepository roleRepository;
+    private final RoleMenuRepository roleMenuRepository;
 
     /**
      * Find all menus with pagination and filter
@@ -88,5 +105,37 @@ public class MenuController {
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Integer id) {
         menuService.delete(id);
+    }
+
+    /**
+     * Get menu tree filtered by current user's permissions
+     * GET /api/rbac/menus/tree
+     */
+    @PreAuthorize("hasAnyAuthority('rbac:menu', '*')")
+    @GetMapping("/tree")
+    public List<MenuTreeVO> tree() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        UserEntity user = userRepository.findByUsername(username).orElse(null);
+        if (user == null) {
+            return List.of();
+        }
+
+        List<UserRoleEntity> userRoles = userRoleRepository.findByUserId(user.getId());
+        List<Integer> roleIds = userRoles.stream().map(UserRoleEntity::getRoleId).toList();
+        List<RoleEntity> roles = roleRepository.findAllById(roleIds);
+
+        boolean isSuperAdmin = roles.stream().anyMatch(
+                r -> r.getStatus() == 1 && RbacConstants.SUPER_ADMIN_ROLE_CODE.equals(r.getCode()));
+        if (isSuperAdmin) {
+            return menuService.buildTree(null);
+        }
+
+        Set<Integer> menuIds = new HashSet<>();
+        for (Integer roleId : roleIds) {
+            roleMenuRepository.findByRoleId(roleId).stream()
+                    .map(RoleMenuEntity::getMenuId)
+                    .forEach(menuIds::add);
+        }
+        return menuService.buildTree(menuIds);
     }
 }

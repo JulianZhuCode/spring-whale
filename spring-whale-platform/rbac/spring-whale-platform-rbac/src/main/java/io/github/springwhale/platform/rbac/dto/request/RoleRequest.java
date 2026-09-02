@@ -1,5 +1,6 @@
 package io.github.springwhale.platform.rbac.dto.request;
 
+import io.github.springwhale.database.datascope.DataScopeType;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -9,7 +10,6 @@ import lombok.Data;
 @Data
 public class RoleRequest {
 
-    @NotBlank(message = "Role code must not be empty")
     private String code;
 
     @NotBlank(message = "Role name must not be empty")
@@ -19,4 +19,5 @@ public class RoleRequest {
     private Integer status;
     private Integer sort;
     private Integer groupId;
+    private DataScopeType dataScope;
 }

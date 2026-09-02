@@ -79,13 +79,15 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         // 3. Query all role information
         List<RoleEntity> roles = roleRepository.findAllById(roleIds);
 
-        // 4. Build role authorities (ROLE_ prefix)
+        // 4. Build role authorities (ROLE_ prefix), skip when code is empty
         List<GrantedAuthority> authorities = new ArrayList<>();
         for (RoleEntity role : roles) {
             if (role.getStatus() != 1) {
                 continue;
             }
-            authorities.add(new SimpleGrantedAuthority(RbacConstants.ROLE_PREFIX + role.getCode()));
+            if (role.getCode() != null && !role.getCode().isBlank()) {
+                authorities.add(new SimpleGrantedAuthority(RbacConstants.ROLE_PREFIX + role.getCode()));
+            }
         }
 
         // 5. SUPER_ADMIN has all permissions — skip menu lookup

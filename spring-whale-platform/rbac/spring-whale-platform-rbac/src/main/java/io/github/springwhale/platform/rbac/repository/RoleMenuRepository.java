@@ -2,7 +2,8 @@ package io.github.springwhale.platform.rbac.repository;
 
 import io.github.springwhale.platform.rbac.dao.entity.RoleMenuEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
-
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -36,4 +37,11 @@ public interface RoleMenuRepository extends JpaRepository<RoleMenuEntity, Intege
      * Delete all role associations for menu
      */
     void deleteByMenuId(Integer menuId);
+
+    /**
+     * Find role IDs that have access to a menu by its code.
+     * Single query: JOIN rbac_role_menu + rbac_menu.
+     */
+    @Query("SELECT rm.roleId FROM RoleMenuEntity rm JOIN MenuEntity m ON rm.menuId = m.id WHERE m.code = :code")
+    List<Integer> findRoleIdsByMenuCode(@Param("code") String code);
 }

@@ -20,7 +20,7 @@
         emptyMessage=#{rbac.roles.empty},
         baseUrl='/admin/rbac/roles',
         page=${page},
-        colspan=7,
+        colspan=8,
         headers=~{::#role-headers},
         rows=~{::#role-row},
         filter=~{::#role-filter}
@@ -52,20 +52,26 @@
             </div>
         </th:block>
         <th:block id="role-headers">
-            <th th:text="#{rbac.roles.code}">Code</th>
             <th th:text="#{rbac.roles.name}">Name</th>
             <th th:text="#{rbac.roles.description}">Description</th>
             <th th:text="#{rbac.roles.group}">Group</th>
             <th th:text="#{rbac.roles.sort}">Sort</th>
+            <th th:text="#{rbac.roles.dataScope}">Data Scope</th>
             <th th:text="#{rbac.roles.status}">Status</th>
             <th th:text="#{rbac.roles.actions}">Actions</th>
         </th:block>
         <th:block id="role-row">
-            <td><code th:text="${item.code}">ROLE_ADMIN</code></td>
             <td th:text="${item.name}">Admin</td>
             <td th:text="${item.description}">Administrator role</td>
             <td th:text="${item.groupName} ?: '-'">Root Group</td>
             <td th:text="${item.sort}">1</td>
+            <td>
+                <span class="badge bg-info" th:if="${item.dataScope != null and item.dataScope.name() == 'SELF'}" th:text="#{datascope.type.self}">Own Data Only</span>
+                <span class="badge bg-primary" th:if="${item.dataScope != null and item.dataScope.name() == 'DEPT'}" th:text="#{datascope.type.dept}">Own Dept</span>
+                <span class="badge bg-secondary" th:if="${item.dataScope != null and item.dataScope.name() == 'DEPT_AND_CHILD'}" th:text="#{datascope.type.dept_and_child}">Own Dept and Children</span>
+                <span class="badge bg-warning text-dark" th:if="${item.dataScope != null and item.dataScope.name() == 'CUSTOM'}" th:text="#{datascope.type.custom}">Custom Dept Scope</span>
+                <span class="badge bg-light text-dark" th:if="${item.dataScope == null}">-</span>
+            </td>
             <td>
                 <span class="badge bg-success" th:if="${item.status == 1}" th:text="#{status.active}">Active</span>
                 <span class="badge bg-danger" th:if="${item.status == 0}" th:text="#{status.disabled}">Disabled</span>
@@ -73,13 +79,29 @@
             <td>
                 <div class="d-flex gap-1">
                     <button class="btn btn-outline-primary btn-sm"
-                            data-modal="role-modal" th:attr="data-edit-id=${item.id}"
+                            data-modal="role-modal"
+                            th:data-edit-id="${item.id}"
                             th:if="${#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:role:update')}"
                             th:text="#{action.edit}">Edit
                     </button>
+                    <button class="btn btn-outline-success btn-sm"
+                            data-menu-modal="menu-assign-modal"
+                            th:data-role-id="${item.id}"
+                            th:data-role-name="${item.name}"
+                            th:if="${#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:role:update')}">
+                        <i class="bi bi-list-check me-1"></i><span th:text="#{rbac.roles.assign_menus}">Assign Menus</span>
+                    </button>
+                    <button class="btn btn-outline-info btn-sm"
+                            data-dept-modal="dept-assign-modal"
+                            th:data-role-id="${item.id}"
+                            th:data-role-name="${item.name}"
+                            th:if="${item.dataScope != null and item.dataScope.name() == 'CUSTOM' and (#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:role:update'))}">
+                        <i class="bi bi-diagram-3 me-1"></i><span th:text="#{rbac.roles.assign_depts}">Assign Depts</span>
+                    </button>
                     <button class="btn btn-outline-danger btn-sm"
                             data-delete-api="/api/rbac/roles"
-                            th:attr="data-delete-id=${item.id},data-delete-name=${item.name}"
+                            th:data-delete-id="${item.id}"
+                            th:data-delete-name="${item.name}"
                             th:if="${#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:role:delete')}"
                             th:text="#{action.delete}">Delete
                     </button>
@@ -98,11 +120,6 @@
                 </div>
                 <form class="dict-modal-form" data-api-base="/api/rbac/roles" data-group-api="/api/rbac/groups?page=0&size=1000">
                     <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label" for="role-code" th:text="#{rbac.roles.code}">Code</label>
-                            <input class="form-control" id="role-code" name="code" required type="text">
-                            <div class="invalid-feedback" data-field="code"></div>
-                        </div>
                         <div class="mb-3">
                             <label class="form-label" for="role-name" th:text="#{rbac.roles.name}">Name</label>
                             <input class="form-control" id="role-name" name="name" required type="text">
@@ -126,6 +143,24 @@
                             <div class="invalid-feedback" data-field="sort"></div>
                         </div>
                         <div class="mb-3">
+                            <label class="form-label" for="role-dataScope" th:text="#{rbac.roles.dataScope}">Data Scope</label>
+                            <select class="form-select" id="role-dataScope" name="dataScope">
+                                <option value="SELF" th:text="#{datascope.type.self}">Own Data Only</option>
+                                <option value="DEPT" th:text="#{datascope.type.dept}">Own Dept</option>
+                                <option value="DEPT_AND_CHILD" th:text="#{datascope.type.dept_and_child}">Own Dept and Children</option>
+                                <option value="CUSTOM" th:text="#{datascope.type.custom}">Custom Dept Scope</option>
+                            </select>
+                            <div class="invalid-feedback" data-field="dataScope"></div>
+                        </div>
+                        <div class="mb-3" id="role-dept-tree-panel" style="display:none">
+                            <label class="form-label" th:text="#{rbac.roles.dataScope_select_dept}">Select Departments</label>
+                            <div id="dept-tree-container" style="max-height:200px;overflow-y:auto;border:1px solid #dee2e6;border-radius:0.375rem;padding:8px">
+                                <div class="text-center py-2">
+                                    <small class="text-muted">Loading departments...</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label" for="role-status" th:text="#{rbac.roles.status}">Status</label>
                             <select class="form-select" id="role-status" name="status" data-int-field>
                                 <option th:text="#{status.active}" value="1">Active</option>
@@ -145,7 +180,534 @@
             </div>
         </div>
     </div>
+
+<!-- Menu Assignment Modal -->
+    <div class="modal fade" id="menu-assign-modal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Assign Menus — <span id="menu-assign-role-name"></span></h5>
+                    <button class="btn-close" data-bs-dismiss="modal" type="button"></button>
+                </div>
+                <div class="modal-body" style="max-height:60vh;overflow-y:auto">
+                    <div id="menu-tree-container">
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <p class="mt-2 text-muted">Loading menus...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- Department Assignment Modal -->
+    <div class="modal fade" id="dept-assign-modal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Assign Departments — <span id="dept-assign-role-name"></span></h5>
+                    <button class="btn-close" data-bs-dismiss="modal" type="button"></button>
+                </div>
+                <div class="modal-body" style="max-height:60vh;overflow-y:auto">
+                    <div id="dept-assign-tree-container">
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <p class="mt-2 text-muted">Loading departments...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </main>
+
+<script th:inline="javascript">
+(function() {
+    var currentRoleId = null;
+
+    function apiCall(url, options) {
+        return fetch(url, options).then(function(r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.json();
+        }).then(function(data) {
+            if (data.code && data.code !== '200') throw new Error(data.message || 'Request failed');
+            return data.data !== undefined ? data.data : data;
+        });
+    }
+
+    function renderTree(container, nodes, checkedIds, level) {
+        level = level || 0;
+        nodes.forEach(function(node) {
+            var item = document.createElement('div');
+            item.className = 'menu-tree-node';
+
+            var label = document.createElement('label');
+            label.className = 'menu-tree-label d-flex align-items-center py-1 px-2 rounded';
+            label.style.paddingLeft = (level * 20 + 8) + 'px';
+            label.setAttribute('data-menu-id', node.id);
+
+            var checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'form-check-input me-2 menu-tree-checkbox';
+            checkbox.setAttribute('data-menu-id', node.id);
+            if (checkedIds.indexOf(node.id) !== -1) {
+                checkbox.checked = true;
+            }
+
+            var icon = document.createElement('i');
+            var hasChildren = node.children && node.children.length > 0;
+            if (hasChildren) {
+                icon.className = 'bi bi-chevron-down me-1 menu-tree-toggle';
+                icon.style.cursor = 'pointer';
+                icon.style.fontSize = '0.75rem';
+            } else {
+                icon.className = 'me-1';
+                icon.style.width = '1rem';
+                icon.style.display = 'inline-block';
+            }
+
+            var name = document.createElement('span');
+            name.textContent = node.name;
+            name.style.fontSize = '0.9rem';
+
+            var permission = document.createElement('small');
+            permission.className = 'text-muted ms-2';
+            permission.textContent = node.permission || '';
+            permission.style.fontSize = '0.75rem';
+
+            label.appendChild(checkbox);
+            label.appendChild(icon);
+            label.appendChild(name);
+            label.appendChild(permission);
+            item.appendChild(label);
+
+            if (hasChildren) {
+                var childrenContainer = document.createElement('div');
+                childrenContainer.className = 'menu-tree-children';
+                renderTree(childrenContainer, node.children, checkedIds, level + 1);
+                item.appendChild(childrenContainer);
+
+                icon.addEventListener('click', function() {
+                    var isHidden = childrenContainer.style.display === 'none';
+                    childrenContainer.style.display = isHidden ? '' : 'none';
+                    icon.className = isHidden ? 'bi bi-chevron-down me-1 menu-tree-toggle' : 'bi bi-chevron-right me-1 menu-tree-toggle';
+                });
+            }
+
+            container.appendChild(item);
+        });
+    }
+
+    function collectDescendantIds(node) {
+        var ids = [node.id];
+        if (node.children) {
+            node.children.forEach(function(child) {
+                ids = ids.concat(collectDescendantIds(child));
+            });
+        }
+        return ids;
+    }
+
+    function findNodeById(nodes, id) {
+        for (var i = 0; i < nodes.length; i++) {
+            if (nodes[i].id === id) return nodes[i];
+            if (nodes[i].children) {
+                var found = findNodeById(nodes[i].children, id);
+                if (found) return found;
+            }
+        }
+        return null;
+    }
+
+    function updateParentCheckboxes(container, treeData) {
+        var checkboxes = container.querySelectorAll('.menu-tree-checkbox[data-menu-id]');
+        checkboxes.forEach(function(cb) {
+            var node = findNodeById(treeData, parseInt(cb.getAttribute('data-menu-id')));
+            if (!node || !node.children || node.children.length === 0) return;
+            var allChildrenChecked = node.children.every(function(child) {
+                var childCb = container.querySelector('.menu-tree-checkbox[data-menu-id="' + child.id + '"]');
+                return childCb && childCb.checked;
+            });
+            cb.checked = allChildrenChecked;
+            cb.indeterminate = !allChildrenChecked && node.children.some(function(child) {
+                var childCb = container.querySelector('.menu-tree-checkbox[data-menu-id="' + child.id + '"]');
+                return childCb && childCb.checked;
+            });
+        });
+    }
+
+    function setChildrenCheckboxes(container, node, checked) {
+        if (node.children) {
+            node.children.forEach(function(child) {
+                var childCb = container.querySelector('.menu-tree-checkbox[data-menu-id="' + child.id + '"]');
+                if (childCb) {
+                    childCb.checked = checked;
+                    childCb.indeterminate = false;
+                }
+                setChildrenCheckboxes(container, child, checked);
+            });
+        }
+    }
+
+    function showToast(message, type) {
+        var toast = document.getElementById('dict-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'dict-toast';
+            toast.className = 'modal-toast';
+            document.body.appendChild(toast);
+        }
+        toast.className = 'modal-toast ' + (type || 'success');
+        toast.textContent = message;
+        toast.classList.add('show');
+        clearTimeout(toast._timer);
+        toast._timer = setTimeout(function() { toast.classList.remove('show'); }, 2500);
+    }
+
+    // ==================== Department tree for CUSTOM data scope ====================
+
+    var deptTreeData = [];
+    var deptEditRoleId = null;
+
+    function renderDeptTree(container, nodes, checkedIds, level) {
+        level = level || 0;
+        nodes.forEach(function(node) {
+            var item = document.createElement('div');
+            item.className = 'dept-tree-node';
+
+            var label = document.createElement('label');
+            label.className = 'dept-tree-label d-flex align-items-center py-1 px-2 rounded';
+            label.style.paddingLeft = (level * 20 + 8) + 'px';
+            label.setAttribute('data-dept-id', node.id);
+
+            var checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'form-check-input me-2 dept-tree-checkbox';
+            checkbox.setAttribute('data-dept-id', node.id);
+            if (checkedIds.indexOf(node.id) !== -1) {
+                checkbox.checked = true;
+            }
+
+            var icon = document.createElement('i');
+            var hasChildren = node.children && node.children.length > 0;
+            if (hasChildren) {
+                icon.className = 'bi bi-chevron-down me-1 dept-tree-toggle';
+                icon.style.cursor = 'pointer';
+                icon.style.fontSize = '0.75rem';
+            } else {
+                icon.className = 'me-1';
+                icon.style.width = '1rem';
+                icon.style.display = 'inline-block';
+            }
+
+            var name = document.createElement('span');
+            name.textContent = node.name;
+            name.style.fontSize = '0.85rem';
+
+            label.appendChild(checkbox);
+            label.appendChild(icon);
+            label.appendChild(name);
+            item.appendChild(label);
+
+            if (hasChildren) {
+                var childrenContainer = document.createElement('div');
+                childrenContainer.className = 'dept-tree-children';
+                renderDeptTree(childrenContainer, node.children, checkedIds, level + 1);
+                item.appendChild(childrenContainer);
+
+                icon.addEventListener('click', function() {
+                    var isHidden = childrenContainer.style.display === 'none';
+                    childrenContainer.style.display = isHidden ? '' : 'none';
+                    icon.className = isHidden ? 'bi bi-chevron-down me-1 dept-tree-toggle' : 'bi bi-chevron-right me-1 dept-tree-toggle';
+                });
+            }
+
+            container.appendChild(item);
+        });
+    }
+
+    function setupDeptTree(roleId) {
+        deptEditRoleId = roleId;
+        var panel = document.getElementById('role-dept-tree-panel');
+        var container = document.getElementById('dept-tree-container');
+
+        if (!roleId) {
+            panel.style.display = 'none';
+            return;
+        }
+
+        panel.style.display = '';
+        container.innerHTML = '<div class="text-center py-2"><small class="text-muted">Loading departments...</small></div>';
+
+        Promise.all([
+            apiCall('/api/rbac/groups/tree'),
+            apiCall('/api/rbac/roles/' + roleId + '/depts')
+        ]).then(function(results) {
+            deptTreeData = results[0];
+            var checkedIds = results[1] || [];
+            container.innerHTML = '';
+            renderDeptTree(container, deptTreeData, checkedIds, 0);
+
+            container.addEventListener('change', function(e) {
+                if (!e.target.classList.contains('dept-tree-checkbox')) return;
+                var deptId = parseInt(e.target.getAttribute('data-dept-id'));
+                var checked = e.target.checked;
+                var node = findNodeById(deptTreeData, deptId);
+                if (!node) return;
+
+                var ids = collectDescendantIds(node);
+                setDeptChildrenCheckboxes(container, node, checked);
+                updateDeptParentCheckboxes(container, deptTreeData);
+
+                var url = '/api/rbac/roles/' + deptEditRoleId + '/depts';
+                var method = checked ? 'POST' : 'DELETE';
+                fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(ids)
+                }).then(function(r) { return r.json(); })
+                  .then(function() {
+                      showToast(checked ? 'Department assigned' : 'Department removed', 'success');
+                  }).catch(function() {
+                      showToast('Operation failed', 'error');
+                      e.target.checked = !checked;
+                  });
+            });
+        }).catch(function(err) {
+            container.innerHTML = '<div class="alert alert-danger py-1 px-2 small">Failed to load departments</div>';
+        });
+    }
+
+    function setDeptChildrenCheckboxes(container, node, checked) {
+        if (node.children) {
+            node.children.forEach(function(child) {
+                var childCb = container.querySelector('.dept-tree-checkbox[data-dept-id="' + child.id + '"]');
+                if (childCb) {
+                    childCb.checked = checked;
+                    childCb.indeterminate = false;
+                }
+                setDeptChildrenCheckboxes(container, child, checked);
+            });
+        }
+    }
+
+    function updateDeptParentCheckboxes(container, treeData) {
+        var checkboxes = container.querySelectorAll('.dept-tree-checkbox[data-dept-id]');
+        checkboxes.forEach(function(cb) {
+            var node = findNodeById(treeData, parseInt(cb.getAttribute('data-dept-id')));
+            if (!node || !node.children || node.children.length === 0) return;
+            var allChildrenChecked = node.children.every(function(child) {
+                var childCb = container.querySelector('.dept-tree-checkbox[data-dept-id="' + child.id + '"]');
+                return childCb && childCb.checked;
+            });
+            cb.checked = allChildrenChecked;
+            cb.indeterminate = !allChildrenChecked && node.children.some(function(child) {
+                var childCb = container.querySelector('.dept-tree-checkbox[data-dept-id="' + child.id + '"]');
+                return childCb && childCb.checked;
+            });
+        });
+    }
+
+    // Data scope dropdown change
+    var dataScopeSelect = document.getElementById('role-dataScope');
+    if (dataScopeSelect) {
+        dataScopeSelect.addEventListener('change', function() {
+            var panel = document.getElementById('role-dept-tree-panel');
+            var container = document.getElementById('dept-tree-container');
+            if (this.value === 'CUSTOM') {
+                if (deptEditRoleId) {
+                    setupDeptTree(deptEditRoleId);
+                } else {
+                    panel.style.display = '';
+                    container.innerHTML = '<div class="text-center py-2"><small class="text-muted">Save the role first, then edit again to assign departments.</small></div>';
+                }
+            } else {
+                panel.style.display = 'none';
+            }
+        });
+    }
+
+    function refreshDeptPanel() {
+        var form = roleModal.querySelector('.dict-modal-form');
+        var editId = form ? form.getAttribute('data-edit-id') : null;
+        var panel = document.getElementById('role-dept-tree-panel');
+        var container = document.getElementById('dept-tree-container');
+        var dsSelect = document.getElementById('role-dataScope');
+
+        if (editId) {
+            deptEditRoleId = parseInt(editId);
+            if (dsSelect && dsSelect.value === 'CUSTOM') {
+                setupDeptTree(deptEditRoleId);
+            } else {
+                panel.style.display = 'none';
+            }
+        } else {
+            deptEditRoleId = null;
+            if (dsSelect && dsSelect.value === 'CUSTOM') {
+                panel.style.display = '';
+                container.innerHTML = '<div class="text-center py-2"><small class="text-muted">Save the role first, then edit again to assign departments.</small></div>';
+            } else {
+                panel.style.display = 'none';
+            }
+        }
+    }
+
+    // When role modal opens, detect edit mode and setup dept tree
+    var roleModal = document.getElementById('role-modal');
+    if (roleModal) {
+        roleModal.addEventListener('show.bs.modal', function() {
+            var panel = document.getElementById('role-dept-tree-panel');
+            panel.style.display = 'none';
+            var container = document.getElementById('dept-tree-container');
+            container.innerHTML = '<div class="text-center py-2"><small class="text-muted">Loading departments...</small></div>';
+        });
+        roleModal.addEventListener('shown.bs.modal', function() {
+            refreshDeptPanel();
+        });
+    }
+
+    // ==================== Menu assignment modal ====================
+
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('[data-menu-modal]');
+        if (!btn) return;
+        e.preventDefault();
+        e.stopPropagation();
+        try {
+            var roleId = btn.getAttribute('data-role-id');
+            var roleName = btn.getAttribute('data-role-name');
+            if (!roleId) {
+                console.error('Missing data-role-id on menu button');
+                return;
+            }
+            currentRoleId = roleId;
+
+            document.getElementById('menu-assign-role-name').textContent = roleName;
+            var container = document.getElementById('menu-tree-container');
+            container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-muted">Loading menus...</p></div>';
+
+            var menuModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('menu-assign-modal'));
+            menuModal.show();
+
+            Promise.all([
+                apiCall('/api/rbac/menus/tree'),
+                apiCall('/api/rbac/roles/' + roleId + '/menus')
+            ]).then(function(results) {
+                var treeData = results[0];
+                var checkedIds = results[1] || [];
+                container.innerHTML = '';
+                renderTree(container, treeData, checkedIds, 0);
+
+                container.addEventListener('change', function(e) {
+                    if (!e.target.classList.contains('menu-tree-checkbox')) return;
+                    var menuId = parseInt(e.target.getAttribute('data-menu-id'));
+                    var checked = e.target.checked;
+                    var node = findNodeById(treeData, menuId);
+                    if (!node) return;
+
+                    var ids = collectDescendantIds(node);
+                    setChildrenCheckboxes(container, node, checked);
+                    updateParentCheckboxes(container, treeData);
+
+                    var url = '/api/rbac/roles/' + currentRoleId + '/menus';
+                    var method = checked ? 'POST' : 'DELETE';
+                    fetch(url, {
+                        method: method,
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(ids)
+                    }).then(function(r) { return r.json(); })
+                      .then(function() {
+                          showToast(checked ? 'Menu assigned successfully' : 'Menu removed successfully', 'success');
+                      }).catch(function() {
+                          showToast('Operation failed', 'error');
+                          e.target.checked = !checked;
+                      });
+                });
+            }).catch(function(err) {
+                container.innerHTML = '<div class="alert alert-danger">Failed to load menus: ' + (err.message || 'Unknown error') + '</div>';
+            });
+        } catch(e) {
+            console.error('Menu assign modal error:', e);
+            showToast('Failed to open menu assignment', 'error');
+        }
+    });
+
+    // ==================== Department assignment modal ====================
+
+    var deptAssignRoleId = null;
+
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('[data-dept-modal]');
+        if (!btn) return;
+        e.preventDefault();
+        e.stopPropagation();
+        try {
+            var roleId = btn.getAttribute('data-role-id');
+            var roleName = btn.getAttribute('data-role-name');
+            if (!roleId) {
+                console.error('Missing data-role-id on dept button');
+                return;
+            }
+            deptAssignRoleId = roleId;
+
+            document.getElementById('dept-assign-role-name').textContent = roleName;
+            var container = document.getElementById('dept-assign-tree-container');
+            container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-muted">Loading departments...</p></div>';
+
+            var deptModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('dept-assign-modal'));
+            deptModal.show();
+
+            Promise.all([
+                apiCall('/api/rbac/groups/tree'),
+                apiCall('/api/rbac/roles/' + roleId + '/depts')
+            ]).then(function(results) {
+                var treeData = results[0];
+                var checkedIds = results[1] || [];
+                container.innerHTML = '';
+                renderDeptTree(container, treeData, checkedIds, 0);
+
+                container.addEventListener('change', function(e) {
+                    if (!e.target.classList.contains('dept-tree-checkbox')) return;
+                    var deptId = parseInt(e.target.getAttribute('data-dept-id'));
+                    var checked = e.target.checked;
+                    var node = findNodeById(treeData, deptId);
+                    if (!node) return;
+
+                    var ids = collectDescendantIds(node);
+                    setDeptChildrenCheckboxes(container, node, checked);
+                    updateDeptParentCheckboxes(container, treeData);
+
+                    var url = '/api/rbac/roles/' + deptAssignRoleId + '/depts';
+                    var method = checked ? 'POST' : 'DELETE';
+                    fetch(url, {
+                        method: method,
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(ids)
+                    }).then(function(r) { return r.json(); })
+                      .then(function() {
+                          showToast(checked ? 'Department assigned' : 'Department removed', 'success');
+                      }).catch(function() {
+                          showToast('Operation failed', 'error');
+                          e.target.checked = !checked;
+                      });
+                });
+            }).catch(function(err) {
+                container.innerHTML = '<div class="alert alert-danger">Failed to load departments: ' + (err.message || 'Unknown error') + '</div>';
+            });
+        } catch(e) {
+            console.error('Dept assign modal error:', e);
+            showToast('Failed to open department assignment', 'error');
+        }
+    });
+})();
+</script>
 
 </body>
 </html>

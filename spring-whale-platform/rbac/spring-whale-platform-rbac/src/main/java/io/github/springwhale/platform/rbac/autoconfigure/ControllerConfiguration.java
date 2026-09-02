@@ -4,11 +4,16 @@ import io.github.springwhale.platform.rbac.controller.AuthController;
 import io.github.springwhale.platform.rbac.controller.GroupController;
 import io.github.springwhale.platform.rbac.controller.MenuController;
 import io.github.springwhale.platform.rbac.controller.RoleController;
+import io.github.springwhale.platform.rbac.controller.RoleDeptController;
+import io.github.springwhale.platform.rbac.controller.RoleMenuController;
 import io.github.springwhale.platform.rbac.controller.UserController;
 import io.github.springwhale.platform.rbac.controller.page.RbacPageController;
+import io.github.springwhale.platform.rbac.repository.*;
 import io.github.springwhale.platform.rbac.service.AuthService;
 import io.github.springwhale.platform.rbac.service.GroupService;
 import io.github.springwhale.platform.rbac.service.MenuService;
+import io.github.springwhale.platform.rbac.service.RoleMenuService;
+import io.github.springwhale.platform.rbac.service.RoleDeptService;
 import io.github.springwhale.platform.rbac.service.RoleService;
 import io.github.springwhale.platform.rbac.service.UserService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -38,8 +43,24 @@ public class ControllerConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public MenuController menuController(MenuService menuService) {
-        return new MenuController(menuService);
+    public MenuController menuController(MenuService menuService,
+                                          UserRepository userRepository,
+                                          UserRoleRepository userRoleRepository,
+                                          RoleRepository roleRepository,
+                                          RoleMenuRepository roleMenuRepository) {
+        return new MenuController(menuService, userRepository, userRoleRepository, roleRepository, roleMenuRepository);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public RoleMenuController roleMenuController(RoleMenuService roleMenuService) {
+        return new RoleMenuController(roleMenuService);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public RoleDeptController roleDeptController(RoleDeptService roleDeptService) {
+        return new RoleDeptController(roleDeptService);
     }
 
     @Bean

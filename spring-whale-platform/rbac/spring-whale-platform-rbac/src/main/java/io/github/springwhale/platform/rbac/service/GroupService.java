@@ -5,6 +5,7 @@ import io.github.springwhale.framework.core.exception.BusinessException;
 import io.github.springwhale.platform.rbac.dao.entity.GroupEntity;
 import io.github.springwhale.platform.rbac.dao.mapper.GroupMapper;
 import io.github.springwhale.platform.rbac.dto.request.GroupRequest;
+import io.github.springwhale.platform.rbac.dto.vo.GroupTreeVO;
 import io.github.springwhale.platform.rbac.dto.vo.GroupVO;
 import io.github.springwhale.platform.rbac.repository.GroupRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Group (department) service
@@ -68,6 +70,9 @@ public class GroupService {
         entity.setEmail(request.getEmail());
         entity.setSort(request.getSort());
         entity.setStatus(request.getStatus());
+
+        entity.setPath(buildPath(request.getParentId()));
+
         return groupMapper.toVO(groupRepository.save(entity));
     }
 
@@ -79,6 +84,7 @@ public class GroupService {
         GroupEntity group = groupRepository.findById(id)
                 .orElseThrow(() -> BusinessException.create("GROUP_NOT_FOUND", "Department not found, ID: " + id));
 
+        Integer oldParentId = group.getParentId();
         group.setParentId(request.getParentId());
         group.setCode(request.getCode());
         group.setName(request.getName());
@@ -88,6 +94,13 @@ public class GroupService {
         group.setEmail(request.getEmail());
         group.setSort(request.getSort());
         group.setStatus(request.getStatus());
+
+        if (!Objects.equals(oldParentId, request.getParentId())) {
+            String oldPath = group.getPath();
+            group.setPath(buildPath(request.getParentId()));
+            group = groupRepository.save(group);
+            updateDescendantPaths(group, oldPath);
+        }
 
         return groupMapper.toVO(groupRepository.save(group));
     }
@@ -100,5 +113,92 @@ public class GroupService {
         GroupEntity group = groupRepository.findById(id)
                 .orElseThrow(() -> BusinessException.create("GROUP_NOT_FOUND", "Department not found, ID: " + id));
         groupRepository.delete(group);
+    }
+
+    /**
+     * Build department tree
+     */
+    public List<GroupTreeVO> buildDeptTree() {
+        List<GroupEntity> all = groupRepository.findAll();
+
+        Map<Integer, List<GroupTreeVO>> parentMap = all.stream()
+                .sorted(Comparator.comparing(GroupEntity::getSort, Comparator.nullsLast(Comparator.naturalOrder())))
+                .map(this::toTreeVO)
+                .collect(Collectors.groupingBy(
+                        vo -> vo.getParentId() != null ? vo.getParentId() : 0,
+                        LinkedHashMap::new,
+                        Collectors.toList()));
+
+        List<GroupTreeVO> roots = parentMap.getOrDefault(0, List.of());
+        for (GroupTreeVO root : roots) {
+            buildChildren(root, parentMap);
+        }
+        return roots;
+    }
+
+    private GroupTreeVO toTreeVO(GroupEntity entity) {
+        GroupTreeVO vo = new GroupTreeVO();
+        vo.setId(entity.getId());
+        vo.setParentId(entity.getParentId());
+        vo.setCode(entity.getCode());
+        vo.setName(entity.getName());
+        return vo;
+    }
+
+    private void buildChildren(GroupTreeVO parent, Map<Integer, List<GroupTreeVO>> parentMap) {
+        List<GroupTreeVO> children = parentMap.get(parent.getId());
+        if (children != null) {
+            parent.setChildren(children);
+            for (GroupTreeVO child : children) {
+                buildChildren(child, parentMap);
+            }
+        }
+    }
+
+    // ==================== Materialized path helpers ====================
+
+    /**
+     * Find all descendants of a department.
+     *
+     * @param deptId the department ID
+     * @return all descendant departments (excluding the department itself)
+     */
+    public List<GroupVO> findDescendants(Integer deptId) {
+        GroupEntity dept = groupRepository.findById(deptId)
+                .orElseThrow(() -> BusinessException.create("GROUP_NOT_FOUND", "Department not found, ID: " + deptId));
+        String prefix = dept.getPath() + deptId + "/";
+        return groupRepository.findByPathStartingWith(prefix).stream()
+                .map(groupMapper::toVO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Build materialized path for a new department based on its parent.
+     * Root nodes (parentId is null) get path "/".
+     */
+    private String buildPath(Integer parentId) {
+        if (parentId == null) {
+            return "/";
+        }
+        GroupEntity parent = groupRepository.findById(parentId)
+                .orElseThrow(() -> BusinessException.create("GROUP_NOT_FOUND", "Parent department not found, ID: " + parentId));
+        return parent.getPath() + parentId + "/";
+    }
+
+    /**
+     * When a department is moved to a new parent, update the path of all its descendants.
+     */
+    private void updateDescendantPaths(GroupEntity dept, String oldPath) {
+        String oldPrefix = oldPath + dept.getId() + "/";
+        List<GroupEntity> descendants = groupRepository.findByPathStartingWith(oldPrefix);
+        if (descendants.isEmpty()) {
+            return;
+        }
+        String newPrefix = dept.getPath() + dept.getId() + "/";
+        for (GroupEntity descendant : descendants) {
+            String newPath = newPrefix + descendant.getPath().substring(oldPrefix.length());
+            descendant.setPath(newPath);
+        }
+        groupRepository.saveAll(descendants);
     }
 }

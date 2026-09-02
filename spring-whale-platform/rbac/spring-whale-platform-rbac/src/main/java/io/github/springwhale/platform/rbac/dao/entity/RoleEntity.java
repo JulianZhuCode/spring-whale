@@ -1,11 +1,9 @@
 package io.github.springwhale.platform.rbac.dao.entity;
 
 import io.github.springwhale.database.BaseEntity;
+import io.github.springwhale.database.datascope.DataScopeType;
 import io.github.springwhale.database.datascope.DeptIdField;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Index;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -21,9 +19,10 @@ import lombok.EqualsAndHashCode;
 public class RoleEntity extends BaseEntity {
 
     /**
-     * Role code
+     * Role code, optional — used for role-based access control (ROLE_ prefix).
+     * When empty, the role only grants menu-level permissions.
      */
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(unique = true, length = 50)
     private String code;
 
     /**
@@ -54,4 +53,7 @@ public class RoleEntity extends BaseEntity {
      */
     @DeptIdField
     private Integer groupId;
+
+    @Enumerated(EnumType.STRING)
+    private DataScopeType dataScope;
 }

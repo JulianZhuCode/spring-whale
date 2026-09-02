@@ -61,17 +61,24 @@ public class AdminInitializer implements CommandLineRunner {
     // ==================== Root Group ====================
 
     private GroupEntity initRootGroup() {
-        return groupRepository.findByCode(RbacConstants.ROOT_GROUP_CODE)
+        GroupEntity group = groupRepository.findByCode(RbacConstants.ROOT_GROUP_CODE)
                 .orElseGet(() -> {
-                    GroupEntity group = new GroupEntity();
-                    group.setCode(RbacConstants.ROOT_GROUP_CODE);
-                    group.setName(RbacConstants.ROOT_GROUP_NAME);
-                    group.setDescription(RbacConstants.ROOT_GROUP_DESCRIPTION);
-                    group.setSort(0);
-                    group.setStatus(1);
+                    GroupEntity g = new GroupEntity();
+                    g.setCode(RbacConstants.ROOT_GROUP_CODE);
+                    g.setName(RbacConstants.ROOT_GROUP_NAME);
+                    g.setDescription(RbacConstants.ROOT_GROUP_DESCRIPTION);
+                    g.setSort(0);
+                    g.setStatus(1);
+                    g.setPath("/");
                     log.info("Created root group '{}'", RbacConstants.ROOT_GROUP_CODE);
-                    return groupRepository.save(group);
+                    return groupRepository.save(g);
                 });
+
+        if (group.getPath() == null) {
+            group.setPath("/");
+            group = groupRepository.save(group);
+        }
+        return group;
     }
 
     // ==================== Role ====================

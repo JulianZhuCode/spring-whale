@@ -1,5 +1,6 @@
 package io.github.springwhale.platform.rbac.dto.vo;
 
+import io.github.springwhale.database.datascope.DataScopeType;
 import lombok.Data;
 
 /**
@@ -15,4 +16,5 @@ public class RoleVO {
     private Integer sort;
     private Integer groupId;
     private String groupName;
+    private DataScopeType dataScope;
 }
