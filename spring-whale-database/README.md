@@ -217,6 +217,22 @@ public class Order extends BaseEntity {
     private Integer userId;
 }
 
+// When the entity itself IS the scope subject (e.g. GroupEntity is a department),
+// use class-level annotations to avoid redeclaring @Id/@GeneratedValue:
+@Entity
+@DeptIdScope        // entity id = dept id, defaults to {"id"}
+@Table(name = "rbac_group")
+public class GroupEntity extends BaseEntity {
+    private String name;
+    private Integer parentId;
+}
+
+// Multiple fields or custom field names:
+@DeptIdScope({"deptId", "ownerDeptId"})
+public class SomeEntity extends BaseEntity { ... }
+
+// Also available: @UserIdScope and @TenantIdScope
+
 // Declare data scope on controller
 @RestController
 @RequestMapping("/orders")

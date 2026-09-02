@@ -213,6 +213,22 @@ public class Order extends BaseEntity {
     private Integer userId;
 }
 
+// エンティティ自身がデータスコープ主体である場合（例：GroupEntity は部門そのもの）、
+// クラスレベルアノテーションを使用して @Id/@GeneratedValue の再宣言を回避：
+@Entity
+@DeptIdScope        // エンティティID = 部門ID、デフォルト {"id"}
+@Table(name = "rbac_group")
+public class GroupEntity extends BaseEntity {
+    private String name;
+    private Integer parentId;
+}
+
+// 複数フィールドまたはカスタムフィールド名：
+@DeptIdScope({"deptId", "ownerDeptId"})
+public class SomeEntity extends BaseEntity { ... }
+
+// @UserIdScope と @TenantIdScope も利用可能
+
 // コントローラーにデータ範囲を宣言
 @RestController
 @RequestMapping("/orders")

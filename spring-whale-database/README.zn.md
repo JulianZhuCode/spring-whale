@@ -210,6 +210,22 @@ public class Order extends BaseEntity {
     private Integer userId;
 }
 
+// 当实体自身就是数据范围主体时（如 GroupEntity 本身就是部门），
+// 使用类级别注解，避免为添加 @DeptIdField 而重复声明 @Id/@GeneratedValue：
+@Entity
+@DeptIdScope        // 实体 id = 部门 id，默认 {"id"}
+@Table(name = "rbac_group")
+public class GroupEntity extends BaseEntity {
+    private String name;
+    private Integer parentId;
+}
+
+// 多字段或自定义字段名：
+@DeptIdScope({"deptId", "ownerDeptId"})
+public class SomeEntity extends BaseEntity { ... }
+
+// 同样支持：@UserIdScope 和 @TenantIdScope
+
 // Controller 声明数据范围
 @RestController
 @RequestMapping("/orders")

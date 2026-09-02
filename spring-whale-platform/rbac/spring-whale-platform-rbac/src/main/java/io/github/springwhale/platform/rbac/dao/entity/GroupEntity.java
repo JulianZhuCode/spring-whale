@@ -1,7 +1,7 @@
 package io.github.springwhale.platform.rbac.dao.entity;
 
 import io.github.springwhale.database.BaseEntity;
-import io.github.springwhale.database.datascope.DeptIdField;
+import io.github.springwhale.database.datascope.DeptIdScope;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -10,6 +10,7 @@ import lombok.EqualsAndHashCode;
  * Group (department) entity
  */
 @Entity
+@DeptIdScope
 @Table(name = "rbac_group", indexes = {
         @Index(name = "idx_group_parent_id", columnList = "parent_id"),
         @Index(name = "idx_group_code", columnList = "code")
@@ -17,11 +18,6 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class GroupEntity extends BaseEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @DeptIdField
-    private Integer id;
 
     /**
      * Parent department ID
