@@ -14,23 +14,23 @@ public enum EventConsumeStatus implements BaseEnum {
     /**
      * Awaiting the next retry cycle.
      */
-    PENDING_RETRY("PENDING_RETRY", "Pending Retry"),
+    PENDING_RETRY("event.consume.status.pending_retry", "Pending Retry"),
     /**
      * Currently being retried (CAS-transitioned by a retry task instance).
      */
-    RETRYING("RETRYING", "Retrying"),
+    RETRYING("event.consume.status.retrying", "Retrying"),
     /**
      * Terminal: failed after all retries exhausted.
      */
-    FINAL_FAILED("FINAL_FAILED", "Final Failed"),
+    FINAL_FAILED("event.consume.status.final_failed", "Final Failed"),
     /**
      * Terminal: successfully replayed.
      */
-    REPLAY_SUCCESS("REPLAY_SUCCESS", "Replay Success"),
+    REPLAY_SUCCESS("event.consume.status.replay_success", "Replay Success"),
     /**
      * Terminal: discarded without retry (retryEnabled=false).
      */
-    DISCARDED("DISCARDED", "Discarded");
+    DISCARDED("event.consume.status.discarded", "Discarded");
 
     private final String id;
     private final String desc;

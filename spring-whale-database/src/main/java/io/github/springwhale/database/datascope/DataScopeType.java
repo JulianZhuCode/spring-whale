@@ -21,17 +21,17 @@ import lombok.Getter;
 @Getter
 public enum DataScopeType implements BaseEnum {
 
-    CUSTOM("CUSTOM", "Custom Dept Scope"),
+    CUSTOM("datascope.type.custom", "Custom Dept Scope"),
 
-    DEPT("DEPT", "Own Dept"),
+    DEPT("datascope.type.dept", "Own Dept"),
 
-    DEPT_AND_CHILD("DEPT_AND_CHILD", "Own Dept and Children"),
+    DEPT_AND_CHILD("datascope.type.dept_and_child", "Own Dept and Children"),
 
-    SELF("SELF", "Own Data Only"),
+    SELF("datascope.type.self", "Own Data Only"),
 
-    CALLER("CALLER", "Caller-Defined Scope"),
+    CALLER("datascope.type.caller", "Caller-Defined Scope"),
 
-    AUTO("AUTO", "Auto Inferred");
+    AUTO("datascope.type.auto", "Auto Inferred");
 
     private final String id;
     private final String desc;
