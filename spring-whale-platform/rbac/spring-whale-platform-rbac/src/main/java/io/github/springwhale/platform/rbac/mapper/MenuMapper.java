@@ -1,25 +1,25 @@
-package io.github.springwhale.platform.rbac.dao.mapper;
+package io.github.springwhale.platform.rbac.mapper;
 
-import io.github.springwhale.platform.rbac.dao.entity.RoleEntity;
-import io.github.springwhale.platform.rbac.dto.vo.RoleVO;
+import io.github.springwhale.platform.rbac.dao.entity.MenuEntity;
+import io.github.springwhale.platform.rbac.dto.vo.MenuVO;
 import org.springframework.beans.BeanUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Role entity/VO converter
+ * Menu entity/VO converter
  */
-public class RoleMapper {
+public class MenuMapper {
 
     /**
      * Entity to VO
      */
-    public RoleVO toVO(RoleEntity entity) {
+    public MenuVO toVO(MenuEntity entity) {
         if (entity == null) {
             return null;
         }
-        RoleVO vo = new RoleVO();
+        MenuVO vo = new MenuVO();
         BeanUtils.copyProperties(entity, vo);
         return vo;
     }
@@ -27,11 +27,11 @@ public class RoleMapper {
     /**
      * VO to Entity
      */
-    public RoleEntity toEntity(RoleVO vo) {
+    public MenuEntity toEntity(MenuVO vo) {
         if (vo == null) {
             return null;
         }
-        RoleEntity entity = new RoleEntity();
+        MenuEntity entity = new MenuEntity();
         BeanUtils.copyProperties(vo, entity);
         return entity;
     }
@@ -39,7 +39,7 @@ public class RoleMapper {
     /**
      * Entity list to VO list
      */
-    public List<RoleVO> toVOList(List<RoleEntity> entities) {
+    public List<MenuVO> toVOList(List<MenuEntity> entities) {
         if (entities == null) {
             return null;
         }

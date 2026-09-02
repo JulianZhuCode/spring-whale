@@ -4,9 +4,13 @@ import io.github.springwhale.database.datascope.DataScopeHandler;
 import io.github.springwhale.database.datascope.DataScopeType;
 import io.github.springwhale.framework.core.utils.AuthUtil;
 import io.github.springwhale.platform.rbac.constant.RbacConstants;
-import io.github.springwhale.platform.rbac.dao.entity.*;
+import io.github.springwhale.platform.rbac.dao.entity.GroupEntity;
+import io.github.springwhale.platform.rbac.dao.entity.UserEntity;
+import io.github.springwhale.platform.rbac.dao.repository.GroupRepository;
+import io.github.springwhale.platform.rbac.dao.repository.RoleMenuRepository;
+import io.github.springwhale.platform.rbac.dao.repository.UserRepository;
+import io.github.springwhale.platform.rbac.dao.repository.UserRoleScopeViewRepository;
 import io.github.springwhale.platform.rbac.dao.view.UserRoleScopeView;
-import io.github.springwhale.platform.rbac.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
@@ -117,8 +121,10 @@ public class RBACDataScopeHandler implements DataScopeHandler {
                         }
                     }
                 }
-                case SELF -> {}
-                default -> {}
+                case SELF -> {
+                }
+                default -> {
+                }
             }
         }
         return new ArrayList<>(deptIds);

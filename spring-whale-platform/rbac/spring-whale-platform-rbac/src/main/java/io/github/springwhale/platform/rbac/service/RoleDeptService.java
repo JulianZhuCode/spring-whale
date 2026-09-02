@@ -1,7 +1,7 @@
 package io.github.springwhale.platform.rbac.service;
 
 import io.github.springwhale.platform.rbac.dao.entity.RoleDeptEntity;
-import io.github.springwhale.platform.rbac.repository.RoleDeptRepository;
+import io.github.springwhale.platform.rbac.dao.repository.RoleDeptRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 

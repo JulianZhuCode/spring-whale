@@ -1,25 +1,25 @@
-package io.github.springwhale.platform.rbac.dao.mapper;
+package io.github.springwhale.platform.rbac.mapper;
 
-import io.github.springwhale.platform.rbac.dao.entity.UserEntity;
-import io.github.springwhale.platform.rbac.dto.vo.UserVO;
+import io.github.springwhale.platform.rbac.dao.entity.RoleEntity;
+import io.github.springwhale.platform.rbac.dto.vo.RoleVO;
 import org.springframework.beans.BeanUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * User entity/VO converter
+ * Role entity/VO converter
  */
-public class UserMapper {
+public class RoleMapper {
 
     /**
      * Entity to VO
      */
-    public UserVO toVO(UserEntity entity) {
+    public RoleVO toVO(RoleEntity entity) {
         if (entity == null) {
             return null;
         }
-        UserVO vo = new UserVO();
+        RoleVO vo = new RoleVO();
         BeanUtils.copyProperties(entity, vo);
         return vo;
     }
@@ -27,11 +27,11 @@ public class UserMapper {
     /**
      * VO to Entity
      */
-    public UserEntity toEntity(UserVO vo) {
+    public RoleEntity toEntity(RoleVO vo) {
         if (vo == null) {
             return null;
         }
-        UserEntity entity = new UserEntity();
+        RoleEntity entity = new RoleEntity();
         BeanUtils.copyProperties(vo, entity);
         return entity;
     }
@@ -39,7 +39,7 @@ public class UserMapper {
     /**
      * Entity list to VO list
      */
-    public List<UserVO> toVOList(List<UserEntity> entities) {
+    public List<RoleVO> toVOList(List<RoleEntity> entities) {
         if (entities == null) {
             return null;
         }

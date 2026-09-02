@@ -2,9 +2,9 @@ package io.github.springwhale.platform.rbac.service;
 
 import io.github.springwhale.framework.webmvc.security.JwtUtil;
 import io.github.springwhale.platform.rbac.dao.entity.UserEntity;
+import io.github.springwhale.platform.rbac.dao.repository.UserRepository;
 import io.github.springwhale.platform.rbac.dto.request.LoginRequest;
 import io.github.springwhale.platform.rbac.dto.response.LoginResponse;
-import io.github.springwhale.platform.rbac.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;

@@ -8,11 +8,14 @@ import io.github.springwhale.platform.rbac.dao.entity.RoleEntity;
 import io.github.springwhale.platform.rbac.dao.entity.RoleMenuEntity;
 import io.github.springwhale.platform.rbac.dao.entity.UserEntity;
 import io.github.springwhale.platform.rbac.dao.entity.UserRoleEntity;
+import io.github.springwhale.platform.rbac.dao.repository.RoleMenuRepository;
+import io.github.springwhale.platform.rbac.dao.repository.RoleRepository;
+import io.github.springwhale.platform.rbac.dao.repository.UserRepository;
+import io.github.springwhale.platform.rbac.dao.repository.UserRoleRepository;
 import io.github.springwhale.platform.rbac.dto.request.MenuRequest;
 import io.github.springwhale.platform.rbac.dto.vo.MenuTreeVO;
 import io.github.springwhale.platform.rbac.dto.vo.MenuVO;
 import io.github.springwhale.platform.rbac.enums.MenuType;
-import io.github.springwhale.platform.rbac.repository.*;
 import io.github.springwhale.platform.rbac.service.MenuService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +30,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Menu controller

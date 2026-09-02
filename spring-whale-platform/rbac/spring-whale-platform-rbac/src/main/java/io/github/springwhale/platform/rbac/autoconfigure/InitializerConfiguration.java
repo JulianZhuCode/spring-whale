@@ -1,7 +1,7 @@
 package io.github.springwhale.platform.rbac.autoconfigure;
 
 import io.github.springwhale.platform.rbac.config.AdminInitializer;
-import io.github.springwhale.platform.rbac.repository.*;
+import io.github.springwhale.platform.rbac.dao.repository.*;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;

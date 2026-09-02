@@ -1,7 +1,7 @@
 package io.github.springwhale.platform.rbac.service;
 
 import io.github.springwhale.platform.rbac.dao.entity.RoleMenuEntity;
-import io.github.springwhale.platform.rbac.repository.RoleMenuRepository;
+import io.github.springwhale.platform.rbac.dao.repository.RoleMenuRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 
