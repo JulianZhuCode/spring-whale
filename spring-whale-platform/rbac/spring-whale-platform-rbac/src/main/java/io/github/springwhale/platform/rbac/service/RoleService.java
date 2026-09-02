@@ -66,36 +66,6 @@ public class RoleService {
     }
 
     /**
-     * Find role by exact code
-     */
-    public Optional<RoleVO> findByCode(String code) {
-        return roleRepository.findByCode(code)
-                .map(roleMapper::toVO)
-                .map(this::enrichGroupName);
-    }
-
-    /**
-     * Search roles by name (fuzzy)
-     */
-    public List<RoleVO> search(String keyword) {
-        if (ObjectUtils.isEmpty(keyword)) {
-            return List.of();
-        }
-        List<RoleVO> vos = roleMapper.toVOList(roleRepository.findByNameContaining(keyword));
-        enrichGroupNames(vos);
-        return vos;
-    }
-
-    /**
-     * Find by status
-     */
-    public List<RoleVO> findByStatus(Integer status) {
-        List<RoleVO> vos = roleMapper.toVOList(roleRepository.findByStatus(status));
-        enrichGroupNames(vos);
-        return vos;
-    }
-
-    /**
      * Create role
      */
     @Transactional

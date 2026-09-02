@@ -4,7 +4,6 @@ import io.github.springwhale.platform.rbac.dao.entity.GroupEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
-
 import java.util.List;
 import java.util.Optional;
 
@@ -17,21 +16,6 @@ public interface GroupRepository extends JpaRepository<GroupEntity, Integer>, Jp
      * Find department by exact code
      */
     Optional<GroupEntity> findByCode(String code);
-
-    /**
-     * Find departments by parent ID
-     */
-    List<GroupEntity> findByParentId(Integer parentId);
-
-    /**
-     * Find by department name (fuzzy)
-     */
-    List<GroupEntity> findByNameContaining(String name);
-
-    /**
-     * Find by status
-     */
-    List<GroupEntity> findByStatus(Integer status);
 
     /**
      * Find all groups by IDs (batch query)

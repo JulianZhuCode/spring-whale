@@ -15,8 +15,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 /**
  * User controller
  */
@@ -55,75 +53,6 @@ public class UserController {
     public UserVO findById(@PathVariable Integer id) {
         return userService.findById(id)
                 .orElseThrow(() -> BusinessException.create("USER_NOT_FOUND", "User not found: " + id));
-    }
-
-    /**
-     * Find by exact username
-     * GET /api/rbac/users/by-username?username=admin
-     */
-    @PreAuthorize("hasAnyAuthority('rbac:user', '*')")
-    @DataScope(module = "rbac:user")
-    @GetMapping("/by-username")
-    public UserVO findByUsername(@RequestParam String username) {
-        return userService.findByUsername(username)
-                .orElseThrow(() -> BusinessException.create("USER_NOT_FOUND", "User not found: " + username));
-    }
-
-    /**
-     * Find by exact email
-     * GET /api/rbac/users/by-email?email=admin@example.com
-     */
-    @PreAuthorize("hasAnyAuthority('rbac:user', '*')")
-    @DataScope(module = "rbac:user")
-    @GetMapping("/by-email")
-    public UserVO findByEmail(@RequestParam String email) {
-        return userService.findByEmail(email)
-                .orElseThrow(() -> BusinessException.create("USER_NOT_FOUND", "User not found: " + email));
-    }
-
-    /**
-     * Find by exact phone
-     * GET /api/rbac/users/by-phone?phone=13800138000
-     */
-    @PreAuthorize("hasAnyAuthority('rbac:user', '*')")
-    @DataScope(module = "rbac:user")
-    @GetMapping("/by-phone")
-    public UserVO findByPhone(@RequestParam String phone) {
-        return userService.findByPhone(phone)
-                .orElseThrow(() -> BusinessException.create("USER_NOT_FOUND", "User not found: " + phone));
-    }
-
-    /**
-     * Search users (fuzzy)
-     * GET /api/rbac/users/search?keyword=admin
-     */
-    @PreAuthorize("hasAnyAuthority('rbac:user', '*')")
-    @DataScope(module = "rbac:user")
-    @GetMapping("/search")
-    public List<UserVO> search(@RequestParam String keyword) {
-        return userService.search(keyword);
-    }
-
-    /**
-     * Find users by department ID
-     * GET /api/rbac/users/by-group?groupId=1
-     */
-    @PreAuthorize("hasAnyAuthority('rbac:user', '*')")
-    @DataScope(module = "rbac:user")
-    @GetMapping("/by-group")
-    public List<UserVO> findByGroupId(@RequestParam Integer groupId) {
-        return userService.findByGroupId(groupId);
-    }
-
-    /**
-     * Find by status
-     * GET /api/rbac/users/by-status?status=1
-     */
-    @PreAuthorize("hasAnyAuthority('rbac:user', '*')")
-    @DataScope(module = "rbac:user")
-    @GetMapping("/by-status")
-    public List<UserVO> findByStatus(@RequestParam Integer status) {
-        return userService.findByStatus(status);
     }
 
     /**

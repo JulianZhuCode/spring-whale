@@ -1,17 +1,11 @@
 package io.github.springwhale.platform.rbac.controller;
 
-import io.github.springwhale.framework.core.exception.BusinessException;
-import io.github.springwhale.framework.core.utils.AuthUtil;
 import io.github.springwhale.framework.webmvc.advice.AdviceIgnore;
-import io.github.springwhale.platform.rbac.dto.request.ChangePasswordRequest;
 import io.github.springwhale.platform.rbac.dto.request.LoginRequest;
-import io.github.springwhale.platform.rbac.dto.request.RegisterRequest;
 import io.github.springwhale.platform.rbac.dto.response.LoginResponse;
-import io.github.springwhale.platform.rbac.dto.vo.UserVO;
 import io.github.springwhale.platform.rbac.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -32,52 +26,5 @@ public class AuthController {
     @PostMapping("/login")
     public LoginResponse login(@Valid @RequestBody LoginRequest request) {
         return authService.login(request);
-    }
-
-    /**
-     * User registration
-     * POST /api/rbac/auth/register
-     */
-    @PreAuthorize("hasAnyAuthority('rbac:user:create', '*')")
-    @PostMapping("/register")
-    public UserVO register(@Valid @RequestBody RegisterRequest request) {
-        return authService.register(request);
-    }
-
-    /**
-     * Get current user info
-     * GET /api/rbac/auth/me
-     */
-    @PreAuthorize("isAuthenticated()")
-    @GetMapping("/me")
-    public String getCurrentUser() {
-        Integer userId = AuthUtil.getUserId();
-        String username = AuthUtil.getUsername();
-        return "Current user: " + username + " (ID: " + userId + ")";
-    }
-
-    /**
-     * Change password
-     * POST /api/rbac/auth/change-password
-     */
-    @PreAuthorize("isAuthenticated()")
-    @PostMapping("/change-password")
-    public void changePassword(@Valid @RequestBody ChangePasswordRequest request) {
-        Integer userId = AuthUtil.getUserId();
-        if (userId == null) {
-            throw BusinessException.create("USER_NOT_AUTHENTICATED", "User not authenticated");
-        }
-
-        authService.changePassword(userId, request);
-    }
-
-    /**
-     * Logout (frontend removes token)
-     * POST /api/rbac/auth/logout
-     */
-    @PreAuthorize("isAuthenticated()")
-    @PostMapping("/logout")
-    public String logout() {
-        return "Logout successful";
     }
 }

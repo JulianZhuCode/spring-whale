@@ -15,8 +15,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 /**
  * Role controller
  */
@@ -55,40 +53,6 @@ public class RoleController {
     public RoleVO findById(@PathVariable Integer id) {
         return roleService.findById(id)
                 .orElseThrow(() -> BusinessException.create("ROLE_NOT_FOUND", "Role not found: " + id));
-    }
-
-    /**
-     * Find role by exact code
-     * GET /api/rbac/roles/by-code?code=ADMIN
-     */
-    @PreAuthorize("hasAnyAuthority('rbac:role', '*')")
-    @DataScope(module = "rbac:role")
-    @GetMapping("/by-code")
-    public RoleVO findByCode(@RequestParam String code) {
-        return roleService.findByCode(code)
-                .orElseThrow(() -> BusinessException.create("ROLE_NOT_FOUND", "Role not found: " + code));
-    }
-
-    /**
-     * Search roles (fuzzy)
-     * GET /api/rbac/roles/search?keyword=admin
-     */
-    @PreAuthorize("hasAnyAuthority('rbac:role', '*')")
-    @DataScope(module = "rbac:role")
-    @GetMapping("/search")
-    public List<RoleVO> search(@RequestParam String keyword) {
-        return roleService.search(keyword);
-    }
-
-    /**
-     * Find by status
-     * GET /api/rbac/roles/by-status?status=1
-     */
-    @PreAuthorize("hasAnyAuthority('rbac:role', '*')")
-    @DataScope(module = "rbac:role")
-    @GetMapping("/by-status")
-    public List<RoleVO> findByStatus(@RequestParam Integer status) {
-        return roleService.findByStatus(status);
     }
 
     /**

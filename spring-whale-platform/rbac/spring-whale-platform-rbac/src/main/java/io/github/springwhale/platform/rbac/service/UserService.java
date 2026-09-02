@@ -66,68 +66,6 @@ public class UserService {
     }
 
     /**
-     * Find by exact username
-     */
-    public Optional<UserVO> findByUsername(String username) {
-        return userRepository.findByUsername(username)
-                .map(userMapper::toVO)
-                .map(this::enrichGroupName);
-    }
-
-    /**
-     * Find by exact email
-     */
-    public Optional<UserVO> findByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .map(userMapper::toVO)
-                .map(this::enrichGroupName);
-    }
-
-    /**
-     * Find by exact phone
-     */
-    public Optional<UserVO> findByPhone(String phone) {
-        return userRepository.findByPhone(phone)
-                .map(userMapper::toVO)
-                .map(this::enrichGroupName);
-    }
-
-    /**
-     * Search users by username or real name (fuzzy)
-     */
-    public List<UserVO> search(String keyword) {
-        if (ObjectUtils.isEmpty(keyword)) {
-            return List.of();
-        }
-        List<UserEntity> byUsername = userRepository.findByUsernameContaining(keyword);
-        List<UserEntity> byRealName = userRepository.findByRealNameContaining(keyword);
-        // Merge and deduplicate
-        List<UserVO> vos = userMapper.toVOList(byUsername.stream()
-                .filter(u -> !byRealName.contains(u))
-                .toList());
-        enrichGroupNames(vos);
-        return vos;
-    }
-
-    /**
-     * Find users by department ID
-     */
-    public List<UserVO> findByGroupId(Integer groupId) {
-        List<UserVO> vos = userMapper.toVOList(userRepository.findByGroupId(groupId));
-        enrichGroupNames(vos);
-        return vos;
-    }
-
-    /**
-     * Find by status
-     */
-    public List<UserVO> findByStatus(Integer status) {
-        List<UserVO> vos = userMapper.toVOList(userRepository.findByStatus(status));
-        enrichGroupNames(vos);
-        return vos;
-    }
-
-    /**
      * Create user
      */
     @Transactional

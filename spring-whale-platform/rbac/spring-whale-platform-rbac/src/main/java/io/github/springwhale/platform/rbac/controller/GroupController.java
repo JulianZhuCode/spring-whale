@@ -15,8 +15,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 /**
  * Group (department) controller
  */
@@ -55,62 +53,6 @@ public class GroupController {
     public GroupVO findById(@PathVariable Integer id) {
         return groupService.findById(id)
                 .orElseThrow(() -> BusinessException.create("GROUP_NOT_FOUND", "Department not found: " + id));
-    }
-
-    /**
-     * Find department by exact code
-     * GET /api/rbac/groups/by-code?code=IT
-     */
-    @PreAuthorize("hasAnyAuthority('rbac:group', '*')")
-    @DataScope(module = "rbac:group")
-    @GetMapping("/by-code")
-    public GroupVO findByCode(@RequestParam String code) {
-        return groupService.findByCode(code)
-                .orElseThrow(() -> BusinessException.create("GROUP_NOT_FOUND", "Department not found: " + code));
-    }
-
-    /**
-     * Find departments by parent ID
-     * GET /api/rbac/groups/by-parent?parentId=0
-     */
-    @PreAuthorize("hasAnyAuthority('rbac:group', '*')")
-    @DataScope(module = "rbac:group")
-    @GetMapping("/by-parent")
-    public List<GroupVO> findByParentId(@RequestParam Integer parentId) {
-        return groupService.findByParentId(parentId);
-    }
-
-    /**
-     * Search departments (fuzzy)
-     * GET /api/rbac/groups/search?keyword=IT
-     */
-    @PreAuthorize("hasAnyAuthority('rbac:group', '*')")
-    @DataScope(module = "rbac:group")
-    @GetMapping("/search")
-    public List<GroupVO> search(@RequestParam String keyword) {
-        return groupService.search(keyword);
-    }
-
-    /**
-     * Find by status
-     * GET /api/rbac/groups/by-status?status=1
-     */
-    @PreAuthorize("hasAnyAuthority('rbac:group', '*')")
-    @DataScope(module = "rbac:group")
-    @GetMapping("/by-status")
-    public List<GroupVO> findByStatus(@RequestParam Integer status) {
-        return groupService.findByStatus(status);
-    }
-
-    /**
-     * Get all root departments
-     * GET /api/rbac/groups/root
-     */
-    @PreAuthorize("hasAnyAuthority('rbac:group', '*')")
-    @DataScope(module = "rbac:group")
-    @GetMapping("/root")
-    public List<GroupVO> findRootGroups() {
-        return groupService.findRootGroups();
     }
 
     /**

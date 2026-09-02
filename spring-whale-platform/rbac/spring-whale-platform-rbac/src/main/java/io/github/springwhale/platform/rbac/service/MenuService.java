@@ -14,7 +14,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -54,58 +53,6 @@ public class MenuService {
      */
     public Optional<MenuVO> findById(Integer id) {
         return menuRepository.findById(id).map(menuMapper::toVO);
-    }
-
-    /**
-     * Find menu by exact code
-     */
-    public Optional<MenuVO> findByCode(String code) {
-        return menuRepository.findByCode(code).map(menuMapper::toVO);
-    }
-
-    /**
-     * Find menus by parent ID
-     */
-    public List<MenuVO> findByParentId(Integer parentId) {
-        return menuMapper.toVOList(menuRepository.findByParentId(parentId));
-    }
-
-    /**
-     * Search menus by name (fuzzy)
-     */
-    public List<MenuVO> search(String keyword) {
-        if (ObjectUtils.isEmpty(keyword)) {
-            return List.of();
-        }
-        return menuMapper.toVOList(menuRepository.findByNameContaining(keyword));
-    }
-
-    /**
-     * Find by type
-     */
-    public List<MenuVO> findByType(MenuType type) {
-        return menuMapper.toVOList(menuRepository.findByType(type));
-    }
-
-    /**
-     * Find by status
-     */
-    public List<MenuVO> findByStatus(Integer status) {
-        return menuMapper.toVOList(menuRepository.findByStatus(status));
-    }
-
-    /**
-     * Find by visibility
-     */
-    public List<MenuVO> findByVisible(Integer visible) {
-        return menuMapper.toVOList(menuRepository.findByVisible(visible));
-    }
-
-    /**
-     * Get all root menus (parentId is null)
-     */
-    public List<MenuVO> findRootMenus() {
-        return menuMapper.toVOList(menuRepository.findByParentId(null));
     }
 
     /**

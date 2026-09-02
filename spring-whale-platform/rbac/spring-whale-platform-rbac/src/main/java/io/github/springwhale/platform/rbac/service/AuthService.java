@@ -1,21 +1,15 @@
 package io.github.springwhale.platform.rbac.service;
 
-import io.github.springwhale.framework.core.exception.BusinessException;
 import io.github.springwhale.framework.webmvc.security.JwtUtil;
 import io.github.springwhale.platform.rbac.dao.entity.UserEntity;
-import io.github.springwhale.platform.rbac.dao.mapper.UserMapper;
-import io.github.springwhale.platform.rbac.dto.request.ChangePasswordRequest;
 import io.github.springwhale.platform.rbac.dto.request.LoginRequest;
-import io.github.springwhale.platform.rbac.dto.request.RegisterRequest;
 import io.github.springwhale.platform.rbac.dto.response.LoginResponse;
-import io.github.springwhale.platform.rbac.dto.vo.UserVO;
 import io.github.springwhale.platform.rbac.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 
 /**
@@ -28,8 +22,6 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
-    private final PasswordEncoder passwordEncoder;
-    private final UserMapper userMapper;
 
     /**
      * User login
@@ -65,54 +57,5 @@ public class AuthService {
             log.warn("Login failed for user: {}", request.getUsername());
             throw new BadCredentialsException("Invalid username or password");
         }
-    }
-
-    /**
-     * User registration
-     */
-    public UserVO register(RegisterRequest request) {
-        // Check if username already exists
-        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
-            throw BusinessException.create("USER_ALREADY_EXISTS", "Username already exists");
-        }
-
-        // Convert to Entity
-        UserEntity user = userMapper.toEntity(new UserVO());
-        user.setUsername(request.getUsername());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRealName(request.getRealName());
-        user.setEmail(request.getEmail());
-        user.setPhone(request.getPhone());
-        user.setAvatar(request.getAvatar());
-        user.setGroupId(request.getGroupId());
-
-        // Set default status
-        if (user.getStatus() == null) {
-            user.setStatus(1);
-        }
-
-        UserEntity savedUser = userRepository.save(user);
-
-        // Convert to VO
-        return userMapper.toVO(savedUser);
-    }
-
-    /**
-     * Change password
-     */
-    public void changePassword(Integer userId, ChangePasswordRequest request) {
-        UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> BusinessException.create("USER_NOT_FOUND", "User not found"));
-
-        // Verify old password
-        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
-            throw BusinessException.create("OLD_PASSWORD_INCORRECT", "Old password is incorrect");
-        }
-
-        // Update new password
-        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-        userRepository.save(user);
-
-        log.info("User {} changed password", userId);
     }
 }

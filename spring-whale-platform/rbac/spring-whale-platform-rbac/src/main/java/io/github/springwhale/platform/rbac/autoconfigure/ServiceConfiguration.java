@@ -14,7 +14,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
 public class ServiceConfiguration {
@@ -23,10 +22,8 @@ public class ServiceConfiguration {
     @ConditionalOnMissingBean
     public AuthService authService(AuthenticationManager authenticationManager,
                                    UserRepository userRepository,
-                                   JwtUtil jwtUtil,
-                                   PasswordEncoder passwordEncoder,
-                                   UserMapper userMapper) {
-        return new AuthService(authenticationManager, userRepository, jwtUtil, passwordEncoder, userMapper);
+                                   JwtUtil jwtUtil) {
+        return new AuthService(authenticationManager, userRepository, jwtUtil);
     }
 
     @Bean

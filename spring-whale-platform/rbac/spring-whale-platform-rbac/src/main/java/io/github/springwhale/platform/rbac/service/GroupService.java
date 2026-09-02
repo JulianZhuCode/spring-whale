@@ -13,7 +13,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -52,44 +51,6 @@ public class GroupService {
      */
     public Optional<GroupVO> findById(Integer id) {
         return groupRepository.findById(id).map(groupMapper::toVO);
-    }
-
-    /**
-     * Find department by exact code
-     */
-    public Optional<GroupVO> findByCode(String code) {
-        return groupRepository.findByCode(code).map(groupMapper::toVO);
-    }
-
-    /**
-     * Find departments by parent ID
-     */
-    public List<GroupVO> findByParentId(Integer parentId) {
-        return groupMapper.toVOList(groupRepository.findByParentId(parentId));
-    }
-
-    /**
-     * Search departments by name (fuzzy)
-     */
-    public List<GroupVO> search(String keyword) {
-        if (ObjectUtils.isEmpty(keyword)) {
-            return List.of();
-        }
-        return groupMapper.toVOList(groupRepository.findByNameContaining(keyword));
-    }
-
-    /**
-     * Find by status
-     */
-    public List<GroupVO> findByStatus(Integer status) {
-        return groupMapper.toVOList(groupRepository.findByStatus(status));
-    }
-
-    /**
-     * Get all root departments (parentId is null)
-     */
-    public List<GroupVO> findRootGroups() {
-        return groupMapper.toVOList(groupRepository.findByParentId(null));
     }
 
     /**
