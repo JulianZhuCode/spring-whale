@@ -2,6 +2,7 @@ package io.github.springwhale.platform.rbac.service;
 
 import io.github.springwhale.database.JpaQueryWrapper;
 import io.github.springwhale.framework.core.exception.BusinessException;
+import io.github.springwhale.framework.event.EventPublisher;
 import io.github.springwhale.platform.rbac.dao.entity.GroupEntity;
 import io.github.springwhale.platform.rbac.dao.entity.UserEntity;
 import io.github.springwhale.platform.rbac.dao.repository.GroupRepository;
@@ -10,7 +11,6 @@ import io.github.springwhale.platform.rbac.dto.mapper.GroupMapper;
 import io.github.springwhale.platform.rbac.dto.request.GroupRequest;
 import io.github.springwhale.platform.rbac.dto.vo.GroupTreeVO;
 import io.github.springwhale.platform.rbac.dto.vo.GroupVO;
-import io.github.springwhale.framework.event.EventPublisher;
 import io.github.springwhale.platform.rbac.event.GroupChangedEvent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,16 +28,13 @@ public class GroupService {
 
     private final GroupRepository groupRepository;
     private final UserRepository userRepository;
-    private final GroupMapper groupMapper;
     private final EventPublisher eventPublisher;
 
     public GroupService(GroupRepository groupRepository,
                         UserRepository userRepository,
-                        GroupMapper groupMapper,
                         EventPublisher eventPublisher) {
         this.groupRepository = groupRepository;
         this.userRepository = userRepository;
-        this.groupMapper = groupMapper;
         this.eventPublisher = eventPublisher;
     }
 
@@ -45,7 +42,7 @@ public class GroupService {
      * Find all departments with pagination
      */
     public Page<GroupVO> findAll(Pageable pageable) {
-        return groupRepository.findAll(pageable).map(groupMapper::toVO);
+        return groupRepository.findAll(pageable).map(GroupMapper::toVO);
     }
 
     /**
@@ -59,14 +56,14 @@ public class GroupService {
                         .likeIgnoreCase(GroupEntity::getLeader, keyword))
                 .eq(status != null, GroupEntity::getStatus, status)
                 .buildSpec();
-        return groupRepository.findAll(spec, pageable).map(groupMapper::toVO);
+        return groupRepository.findAll(spec, pageable).map(GroupMapper::toVO);
     }
 
     /**
      * Find department by ID
      */
     public Optional<GroupVO> findById(Integer id) {
-        return groupRepository.findById(id).map(groupMapper::toVO);
+        return groupRepository.findById(id).map(GroupMapper::toVO);
     }
 
     /**
@@ -87,7 +84,7 @@ public class GroupService {
 
         entity.setPath(buildPath(request.getParentId()));
 
-        GroupVO result = groupMapper.toVO(groupRepository.save(entity));
+        GroupVO result = GroupMapper.toVO(groupRepository.save(entity));
         eventPublisher.publishAfterCommit(new GroupChangedEvent(result.getId()));
         return result;
     }
@@ -117,7 +114,7 @@ public class GroupService {
             updateDescendantPaths(group, oldPath);
         }
 
-        GroupVO result = groupMapper.toVO(groupRepository.save(group));
+        GroupVO result = GroupMapper.toVO(groupRepository.save(group));
         eventPublisher.publishAfterCommit(new GroupChangedEvent(id));
         return result;
     }
@@ -213,7 +210,7 @@ public class GroupService {
                 .orElseThrow(() -> BusinessException.create("GROUP_NOT_FOUND", "Department not found, ID: " + deptId));
         String prefix = dept.getPath() + deptId + "/";
         return groupRepository.findByPathStartingWith(prefix).stream()
-                .map(groupMapper::toVO)
+                .map(GroupMapper::toVO)
                 .collect(Collectors.toList());
     }
 

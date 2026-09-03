@@ -1,9 +1,22 @@
 -- ================================================================
+-- Initialize Flyway error log table
+-- ================================================================
+
+CREATE TABLE IF NOT EXISTS flyway_error_log
+(
+    id          SERIAL PRIMARY KEY,
+    server_name VARCHAR(128),
+    create_time TIMESTAMP,
+    message     TEXT
+);
+
+-- ================================================================
 -- Initialize RBAC tables
 -- ================================================================
 
 -- 1. Department / Group
-CREATE TABLE IF NOT EXISTS rbac_group (
+CREATE TABLE IF NOT EXISTS rbac_group
+(
     id          SERIAL PRIMARY KEY,
     parent_id   INTEGER,
     path        VARCHAR(500),
@@ -23,11 +36,12 @@ CREATE TABLE IF NOT EXISTS rbac_group (
     del_flag    INTEGER      NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS idx_group_parent_id ON rbac_group (parent_id);
-CREATE INDEX IF NOT EXISTS idx_group_path      ON rbac_group (path);
+CREATE INDEX IF NOT EXISTS idx_group_path ON rbac_group (path);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_group_code ON rbac_group (code) WHERE del_flag = 0;
 
 -- 2. Role
-CREATE TABLE IF NOT EXISTS rbac_role (
+CREATE TABLE IF NOT EXISTS rbac_role
+(
     id          SERIAL PRIMARY KEY,
     code        VARCHAR(50),
     name        VARCHAR(100) NOT NULL,
@@ -46,7 +60,8 @@ CREATE TABLE IF NOT EXISTS rbac_role (
 CREATE UNIQUE INDEX IF NOT EXISTS idx_role_code ON rbac_role (code) WHERE del_flag = 0;
 
 -- 3. Menu
-CREATE TABLE IF NOT EXISTS rbac_menu (
+CREATE TABLE IF NOT EXISTS rbac_menu
+(
     id            SERIAL PRIMARY KEY,
     parent_id     INTEGER,
     code          VARCHAR(100) NOT NULL,
@@ -71,7 +86,8 @@ CREATE INDEX IF NOT EXISTS idx_menu_parent_id ON rbac_menu (parent_id);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_menu_code ON rbac_menu (code) WHERE del_flag = 0;
 
 -- 4. User
-CREATE TABLE IF NOT EXISTS rbac_user (
+CREATE TABLE IF NOT EXISTS rbac_user
+(
     id          SERIAL PRIMARY KEY,
     username    VARCHAR(50)  NOT NULL,
     password    VARCHAR(200) NOT NULL,
@@ -89,11 +105,12 @@ CREATE TABLE IF NOT EXISTS rbac_user (
     del_flag    INTEGER      NOT NULL DEFAULT 0
 );
 CREATE UNIQUE INDEX IF NOT EXISTS idx_user_username ON rbac_user (username) WHERE del_flag = 0;
-CREATE INDEX IF NOT EXISTS idx_user_email    ON rbac_user (email);
-CREATE INDEX IF NOT EXISTS idx_user_phone    ON rbac_user (phone);
+CREATE INDEX IF NOT EXISTS idx_user_email ON rbac_user (email);
+CREATE INDEX IF NOT EXISTS idx_user_phone ON rbac_user (phone);
 
 -- 5. Role-Department association
-CREATE TABLE IF NOT EXISTS rbac_role_dept (
+CREATE TABLE IF NOT EXISTS rbac_role_dept
+(
     id          SERIAL PRIMARY KEY,
     role_id     INTEGER NOT NULL,
     group_id    INTEGER NOT NULL,
@@ -104,11 +121,12 @@ CREATE TABLE IF NOT EXISTS rbac_role_dept (
     version     INTEGER NOT NULL DEFAULT 0,
     del_flag    INTEGER NOT NULL DEFAULT 0
 );
-CREATE INDEX IF NOT EXISTS idx_role_dept_role_id  ON rbac_role_dept (role_id);
+CREATE INDEX IF NOT EXISTS idx_role_dept_role_id ON rbac_role_dept (role_id);
 CREATE INDEX IF NOT EXISTS idx_role_dept_group_id ON rbac_role_dept (group_id);
 
 -- 6. Role-Menu association
-CREATE TABLE IF NOT EXISTS rbac_role_menu (
+CREATE TABLE IF NOT EXISTS rbac_role_menu
+(
     id          BIGSERIAL PRIMARY KEY,
     role_id     INTEGER NOT NULL,
     menu_id     INTEGER NOT NULL,
@@ -120,7 +138,8 @@ CREATE INDEX IF NOT EXISTS idx_role_menu_role_id ON rbac_role_menu (role_id);
 CREATE INDEX IF NOT EXISTS idx_role_menu_menu_id ON rbac_role_menu (menu_id);
 
 -- 7. User-Role association
-CREATE TABLE IF NOT EXISTS rbac_user_role (
+CREATE TABLE IF NOT EXISTS rbac_user_role
+(
     id          BIGSERIAL PRIMARY KEY,
     user_id     INTEGER NOT NULL,
     role_id     INTEGER NOT NULL,
@@ -153,7 +172,8 @@ FROM rbac_user_role ur
 -- Root group
 INSERT INTO rbac_group (code, name, description, path, sort, status, create_time, update_time)
 VALUES ('ROOT', 'Root Group', 'Built-in root group', '/', 0, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-ON CONFLICT (code) WHERE del_flag = 0 DO NOTHING;
+ON CONFLICT (code)
+WHERE del_flag = 0 DO NOTHING;
 
 -- SUPER_ADMIN role
 INSERT INTO rbac_role (code, name, description, status, sort, group_id,
@@ -162,7 +182,8 @@ VALUES ('SUPER_ADMIN', 'Super Administrator',
         'Built-in super administrator role with full permissions', 1, 0,
         (SELECT id FROM rbac_group WHERE code = 'ROOT' AND del_flag = 0),
         CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-ON CONFLICT (code) WHERE del_flag = 0 DO NOTHING;
+ON CONFLICT (code)
+WHERE del_flag = 0 DO NOTHING;
 
 -- Admin user (password is BCrypt-encoded "admin")
 INSERT INTO rbac_user (username, password, real_name, status, group_id,
@@ -172,7 +193,8 @@ VALUES ('admin',
         'Super Administrator', 1,
         (SELECT id FROM rbac_group WHERE code = 'ROOT' AND del_flag = 0),
         CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-ON CONFLICT (username) WHERE del_flag = 0 DO NOTHING;
+ON CONFLICT (username)
+WHERE del_flag = 0 DO NOTHING;
 
 -- Assign SUPER_ADMIN role to admin user
 INSERT INTO rbac_user_role (user_id, role_id, create_time)

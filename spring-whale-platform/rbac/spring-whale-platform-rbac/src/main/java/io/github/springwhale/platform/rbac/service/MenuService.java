@@ -26,13 +26,12 @@ import java.util.stream.Collectors;
 public class MenuService {
 
     private final MenuRepository menuRepository;
-    private final MenuMapper menuMapper;
 
     /**
      * Find all menus with pagination
      */
     public Page<MenuVO> findAll(Pageable pageable) {
-        return menuRepository.findAll(pageable).map(menuMapper::toVO);
+        return menuRepository.findAll(pageable).map(MenuMapper::toVO);
     }
 
     /**
@@ -47,14 +46,14 @@ public class MenuService {
                 .eq(type != null, MenuEntity::getType, type)
                 .eq(status != null, MenuEntity::getStatus, status)
                 .buildSpec();
-        return menuRepository.findAll(spec, pageable).map(menuMapper::toVO);
+        return menuRepository.findAll(spec, pageable).map(MenuMapper::toVO);
     }
 
     /**
      * Find menu by ID
      */
     public Optional<MenuVO> findById(Integer id) {
-        return menuRepository.findById(id).map(menuMapper::toVO);
+        return menuRepository.findById(id).map(MenuMapper::toVO);
     }
 
     /**
@@ -75,7 +74,7 @@ public class MenuService {
         entity.setSort(request.getSort());
         entity.setVisible(request.getVisible());
         entity.setStatus(request.getStatus());
-        return menuMapper.toVO(menuRepository.save(entity));
+        return MenuMapper.toVO(menuRepository.save(entity));
     }
 
     /**
@@ -99,7 +98,7 @@ public class MenuService {
         menu.setVisible(request.getVisible());
         menu.setStatus(request.getStatus());
 
-        return menuMapper.toVO(menuRepository.save(menu));
+        return MenuMapper.toVO(menuRepository.save(menu));
     }
 
     /**

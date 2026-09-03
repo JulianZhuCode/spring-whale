@@ -3,6 +3,7 @@ package io.github.springwhale.framework.event.autoconfigure;
 import io.github.springwhale.framework.event.metrics.MicrometerEventMetricsCollector;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -17,6 +18,7 @@ import org.springframework.context.annotation.Bean;
 public class MicrometerEventConfiguration {
 
     @Bean
+    @ConditionalOnBean(MeterRegistry.class)
     @ConditionalOnMissingBean
     public MicrometerEventMetricsCollector micrometerEventMetricsCollector(MeterRegistry meterRegistry) {
         return new MicrometerEventMetricsCollector(meterRegistry);

@@ -11,17 +11,31 @@ import java.util.stream.Collectors;
  * Group entity/VO converter
  */
 public class GroupMapper {
+    private GroupMapper() {
+    }
 
     /**
      * Entity to VO
      */
-    public GroupVO toVO(GroupEntity entity) {
+    public static GroupVO toVO(GroupEntity entity) {
         if (entity == null) {
             return null;
         }
         GroupVO vo = new GroupVO();
         BeanUtils.copyProperties(entity, vo);
         return vo;
+    }
+
+    /**
+     * Entity list to VO list
+     */
+    public static List<GroupVO> toVOList(List<GroupEntity> entities) {
+        if (entities == null) {
+            return null;
+        }
+        return entities.stream()
+                .map(GroupMapper::toVO)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -34,17 +48,5 @@ public class GroupMapper {
         GroupEntity entity = new GroupEntity();
         BeanUtils.copyProperties(vo, entity);
         return entity;
-    }
-
-    /**
-     * Entity list to VO list
-     */
-    public List<GroupVO> toVOList(List<GroupEntity> entities) {
-        if (entities == null) {
-            return null;
-        }
-        return entities.stream()
-                .map(this::toVO)
-                .collect(Collectors.toList());
     }
 }

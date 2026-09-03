@@ -16,13 +16,11 @@ import io.github.springwhale.platform.rbac.dao.repository.UserRepository;
 import io.github.springwhale.platform.rbac.dao.repository.UserRoleScopeViewRepository;
 import io.github.springwhale.platform.rbac.dao.view.UserRoleScopeView;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.util.*;
 
 @Slf4j
-@Component
 public class RBACDataScopeHandler implements DataScopeHandler {
 
     private final WhaleCacheManager cacheManager;

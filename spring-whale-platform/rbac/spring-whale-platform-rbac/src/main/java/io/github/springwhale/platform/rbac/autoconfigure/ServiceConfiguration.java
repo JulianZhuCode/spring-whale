@@ -4,10 +4,6 @@ import io.github.springwhale.framework.event.EventPublisher;
 import io.github.springwhale.framework.webmvc.security.JwtUtil;
 import io.github.springwhale.framework.webmvc.security.SecurityProperties;
 import io.github.springwhale.platform.rbac.dao.repository.*;
-import io.github.springwhale.platform.rbac.dto.mapper.GroupMapper;
-import io.github.springwhale.platform.rbac.dto.mapper.MenuMapper;
-import io.github.springwhale.platform.rbac.dto.mapper.RoleMapper;
-import io.github.springwhale.platform.rbac.dto.mapper.UserMapper;
 import io.github.springwhale.platform.rbac.listener.DataScopeCacheInvalidationListener;
 import io.github.springwhale.platform.rbac.security.RBACDataScopeHandler;
 import io.github.springwhale.platform.rbac.service.*;
@@ -33,35 +29,31 @@ public class ServiceConfiguration {
     @ConditionalOnMissingBean
     public UserService userService(UserRepository userRepository,
                                    GroupRepository groupRepository,
-                                   UserMapper userMapper,
                                    EventPublisher eventPublisher,
                                    PasswordEncoder passwordEncoder) {
-        return new UserService(userRepository, groupRepository, userMapper, eventPublisher, passwordEncoder);
+        return new UserService(userRepository, groupRepository, eventPublisher, passwordEncoder);
     }
 
     @Bean
     @ConditionalOnMissingBean
     public RoleService roleService(RoleRepository roleRepository,
                                    GroupRepository groupRepository,
-                                   RoleMapper roleMapper,
                                    EventPublisher eventPublisher) {
-        return new RoleService(roleRepository, groupRepository, roleMapper, eventPublisher);
+        return new RoleService(roleRepository, groupRepository, eventPublisher);
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public MenuService menuService(MenuRepository menuRepository,
-                                   MenuMapper menuMapper) {
-        return new MenuService(menuRepository, menuMapper);
+    public MenuService menuService(MenuRepository menuRepository) {
+        return new MenuService(menuRepository);
     }
 
     @Bean
     @ConditionalOnMissingBean
     public GroupService groupService(GroupRepository groupRepository,
                                      UserRepository userRepository,
-                                     GroupMapper groupMapper,
                                      EventPublisher eventPublisher) {
-        return new GroupService(groupRepository, userRepository, groupMapper, eventPublisher);
+        return new GroupService(groupRepository, userRepository, eventPublisher);
     }
 
     @Bean

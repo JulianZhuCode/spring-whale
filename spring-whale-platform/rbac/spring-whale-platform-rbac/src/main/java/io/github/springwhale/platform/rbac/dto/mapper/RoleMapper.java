@@ -12,10 +12,13 @@ import java.util.stream.Collectors;
  */
 public class RoleMapper {
 
+    private RoleMapper() {
+    }
+
     /**
      * Entity to VO
      */
-    public RoleVO toVO(RoleEntity entity) {
+    public static RoleVO toVO(RoleEntity entity) {
         if (entity == null) {
             return null;
         }
@@ -27,7 +30,7 @@ public class RoleMapper {
     /**
      * VO to Entity
      */
-    public RoleEntity toEntity(RoleVO vo) {
+    public static RoleEntity toEntity(RoleVO vo) {
         if (vo == null) {
             return null;
         }
@@ -39,12 +42,12 @@ public class RoleMapper {
     /**
      * Entity list to VO list
      */
-    public List<RoleVO> toVOList(List<RoleEntity> entities) {
+    public static List<RoleVO> toVOList(List<RoleEntity> entities) {
         if (entities == null) {
             return null;
         }
         return entities.stream()
-                .map(this::toVO)
+                .map(RoleMapper::toVO)
                 .collect(Collectors.toList());
     }
 }

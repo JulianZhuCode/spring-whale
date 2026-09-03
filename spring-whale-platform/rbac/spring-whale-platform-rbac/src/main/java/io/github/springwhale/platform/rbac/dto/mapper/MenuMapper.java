@@ -12,10 +12,13 @@ import java.util.stream.Collectors;
  */
 public class MenuMapper {
 
+    private MenuMapper() {
+    }
+
     /**
      * Entity to VO
      */
-    public MenuVO toVO(MenuEntity entity) {
+    public static MenuVO toVO(MenuEntity entity) {
         if (entity == null) {
             return null;
         }
@@ -27,7 +30,7 @@ public class MenuMapper {
     /**
      * VO to Entity
      */
-    public MenuEntity toEntity(MenuVO vo) {
+    public static MenuEntity toEntity(MenuVO vo) {
         if (vo == null) {
             return null;
         }
@@ -39,12 +42,12 @@ public class MenuMapper {
     /**
      * Entity list to VO list
      */
-    public List<MenuVO> toVOList(List<MenuEntity> entities) {
+    public static List<MenuVO> toVOList(List<MenuEntity> entities) {
         if (entities == null) {
             return null;
         }
         return entities.stream()
-                .map(this::toVO)
+                .map(MenuMapper::toVO)
                 .collect(Collectors.toList());
     }
 }

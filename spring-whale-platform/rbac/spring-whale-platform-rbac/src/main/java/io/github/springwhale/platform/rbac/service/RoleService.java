@@ -2,6 +2,7 @@ package io.github.springwhale.platform.rbac.service;
 
 import io.github.springwhale.database.JpaQueryWrapper;
 import io.github.springwhale.framework.core.exception.BusinessException;
+import io.github.springwhale.framework.event.EventPublisher;
 import io.github.springwhale.platform.rbac.dao.entity.GroupEntity;
 import io.github.springwhale.platform.rbac.dao.entity.RoleEntity;
 import io.github.springwhale.platform.rbac.dao.repository.GroupRepository;
@@ -9,7 +10,6 @@ import io.github.springwhale.platform.rbac.dao.repository.RoleRepository;
 import io.github.springwhale.platform.rbac.dto.mapper.RoleMapper;
 import io.github.springwhale.platform.rbac.dto.request.RoleRequest;
 import io.github.springwhale.platform.rbac.dto.vo.RoleVO;
-import io.github.springwhale.framework.event.EventPublisher;
 import io.github.springwhale.platform.rbac.event.RoleChangedEvent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,16 +29,13 @@ public class RoleService {
 
     private final RoleRepository roleRepository;
     private final GroupRepository groupRepository;
-    private final RoleMapper roleMapper;
     private final EventPublisher eventPublisher;
 
     public RoleService(RoleRepository roleRepository,
                        GroupRepository groupRepository,
-                       RoleMapper roleMapper,
                        EventPublisher eventPublisher) {
         this.roleRepository = roleRepository;
         this.groupRepository = groupRepository;
-        this.roleMapper = roleMapper;
         this.eventPublisher = eventPublisher;
     }
 
@@ -46,7 +43,7 @@ public class RoleService {
      * Find all roles with pagination
      */
     public Page<RoleVO> findAll(Pageable pageable) {
-        Page<RoleVO> page = roleRepository.findAll(pageable).map(roleMapper::toVO);
+        Page<RoleVO> page = roleRepository.findAll(pageable).map(RoleMapper::toVO);
         enrichGroupNames(page.getContent());
         return page;
     }
@@ -62,7 +59,7 @@ public class RoleService {
                         .likeIgnoreCase(RoleEntity::getDescription, keyword))
                 .eq(status != null, RoleEntity::getStatus, status)
                 .buildSpec();
-        Page<RoleVO> page = roleRepository.findAll(spec, pageable).map(roleMapper::toVO);
+        Page<RoleVO> page = roleRepository.findAll(spec, pageable).map(RoleMapper::toVO);
         enrichGroupNames(page.getContent());
         return page;
     }
@@ -72,7 +69,7 @@ public class RoleService {
      */
     public Optional<RoleVO> findById(Integer id) {
         return roleRepository.findById(id)
-                .map(roleMapper::toVO)
+                .map(RoleMapper::toVO)
                 .map(this::enrichGroupName);
     }
 
@@ -89,7 +86,7 @@ public class RoleService {
         entity.setSort(request.getSort());
         entity.setGroupId(request.getGroupId());
         entity.setDataScope(request.getDataScope());
-        RoleVO result = enrichGroupName(roleMapper.toVO(roleRepository.save(entity)));
+        RoleVO result = enrichGroupName(RoleMapper.toVO(roleRepository.save(entity)));
         eventPublisher.publishAfterCommit(new RoleChangedEvent(result.getId()));
         return result;
     }
@@ -110,7 +107,7 @@ public class RoleService {
         role.setGroupId(request.getGroupId());
         role.setDataScope(request.getDataScope());
 
-        RoleVO result = enrichGroupName(roleMapper.toVO(roleRepository.save(role)));
+        RoleVO result = enrichGroupName(RoleMapper.toVO(roleRepository.save(role)));
         eventPublisher.publishAfterCommit(new RoleChangedEvent(id));
         return result;
     }

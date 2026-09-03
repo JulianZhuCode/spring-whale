@@ -12,6 +12,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.hibernate.autoconfigure.HibernatePropertiesCustomizer;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -99,7 +100,7 @@ public class SpringWhaleDatabaseConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "spring.whale.database.datascope", name = "tenant-enabled", havingValue = "true", matchIfMissing = true)
-    public TenantSqlInspector tenantSqlInspector(DataScopeProperties properties, DataScopeHandler dataScopeHandler) {
+    public TenantSqlInspector tenantSqlInspector(DataScopeProperties properties, @Lazy DataScopeHandler dataScopeHandler) {
         return new TenantSqlInspector(properties, dataScopeHandler);
     }
 

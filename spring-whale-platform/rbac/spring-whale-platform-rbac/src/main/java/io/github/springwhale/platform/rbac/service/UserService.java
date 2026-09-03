@@ -2,6 +2,7 @@ package io.github.springwhale.platform.rbac.service;
 
 import io.github.springwhale.database.JpaQueryWrapper;
 import io.github.springwhale.framework.core.exception.BusinessException;
+import io.github.springwhale.framework.event.EventPublisher;
 import io.github.springwhale.platform.rbac.dao.entity.GroupEntity;
 import io.github.springwhale.platform.rbac.dao.entity.UserEntity;
 import io.github.springwhale.platform.rbac.dao.repository.GroupRepository;
@@ -9,7 +10,6 @@ import io.github.springwhale.platform.rbac.dao.repository.UserRepository;
 import io.github.springwhale.platform.rbac.dto.mapper.UserMapper;
 import io.github.springwhale.platform.rbac.dto.request.UserRequest;
 import io.github.springwhale.platform.rbac.dto.vo.UserVO;
-import io.github.springwhale.framework.event.EventPublisher;
 import io.github.springwhale.platform.rbac.event.UserRoleChangedEvent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -32,18 +32,15 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final GroupRepository groupRepository;
-    private final UserMapper userMapper;
     private final EventPublisher eventPublisher;
     private final PasswordEncoder passwordEncoder;
 
     public UserService(UserRepository userRepository,
                        GroupRepository groupRepository,
-                       UserMapper userMapper,
                        EventPublisher eventPublisher,
                        PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.groupRepository = groupRepository;
-        this.userMapper = userMapper;
         this.eventPublisher = eventPublisher;
         this.passwordEncoder = passwordEncoder;
     }
@@ -52,7 +49,7 @@ public class UserService {
      * Find all users with pagination
      */
     public Page<UserVO> findAll(Pageable pageable) {
-        Page<UserVO> page = userRepository.findAll(pageable).map(userMapper::toVO);
+        Page<UserVO> page = userRepository.findAll(pageable).map(UserMapper::toVO);
         enrichGroupNames(page.getContent());
         return page;
     }
@@ -68,7 +65,7 @@ public class UserService {
                         .likeIgnoreCase(UserEntity::getEmail, keyword))
                 .eq(status != null, UserEntity::getStatus, status)
                 .buildSpec();
-        Page<UserVO> page = userRepository.findAll(spec, pageable).map(userMapper::toVO);
+        Page<UserVO> page = userRepository.findAll(spec, pageable).map(UserMapper::toVO);
         enrichGroupNames(page.getContent());
         return page;
     }
@@ -78,7 +75,7 @@ public class UserService {
      */
     public Optional<UserVO> findById(Integer id) {
         return userRepository.findById(id)
-                .map(userMapper::toVO)
+                .map(UserMapper::toVO)
                 .map(this::enrichGroupName);
     }
 
@@ -98,7 +95,7 @@ public class UserService {
         entity.setAvatar(request.getAvatar());
         entity.setStatus(request.getStatus());
         entity.setGroupId(request.getGroupId());
-        return enrichGroupName(userMapper.toVO(userRepository.save(entity)));
+        return enrichGroupName(UserMapper.toVO(userRepository.save(entity)));
     }
 
     /**
@@ -122,7 +119,7 @@ public class UserService {
         boolean groupIdChanged = !Objects.equals(user.getGroupId(), request.getGroupId());
         user.setGroupId(request.getGroupId());
 
-        UserVO result = enrichGroupName(userMapper.toVO(userRepository.save(user)));
+        UserVO result = enrichGroupName(UserMapper.toVO(userRepository.save(user)));
 
         if (groupIdChanged) {
             eventPublisher.publishAfterCommit(new UserRoleChangedEvent(id, null));

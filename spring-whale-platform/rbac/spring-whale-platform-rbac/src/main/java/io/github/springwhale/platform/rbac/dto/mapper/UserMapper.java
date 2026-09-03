@@ -12,10 +12,13 @@ import java.util.stream.Collectors;
  */
 public class UserMapper {
 
+    private UserMapper() {
+    }
+
     /**
      * Entity to VO
      */
-    public UserVO toVO(UserEntity entity) {
+    public static UserVO toVO(UserEntity entity) {
         if (entity == null) {
             return null;
         }
@@ -27,7 +30,7 @@ public class UserMapper {
     /**
      * VO to Entity
      */
-    public UserEntity toEntity(UserVO vo) {
+    public static UserEntity toEntity(UserVO vo) {
         if (vo == null) {
             return null;
         }
@@ -39,12 +42,12 @@ public class UserMapper {
     /**
      * Entity list to VO list
      */
-    public List<UserVO> toVOList(List<UserEntity> entities) {
+    public static List<UserVO> toVOList(List<UserEntity> entities) {
         if (entities == null) {
             return null;
         }
         return entities.stream()
-                .map(this::toVO)
+                .map(UserMapper::toVO)
                 .collect(Collectors.toList());
     }
 }
