@@ -1,7 +1,8 @@
 package io.github.springwhale.platform.task.mapper;
 
+import io.github.springwhale.platform.task.dao.entity.TaskBatchEntity;
 import io.github.springwhale.platform.task.dto.vo.TaskVO;
-import io.github.springwhale.platform.task.entity.TaskBatchEntity;
+
 import java.util.List;
 import java.util.stream.Collectors;
 

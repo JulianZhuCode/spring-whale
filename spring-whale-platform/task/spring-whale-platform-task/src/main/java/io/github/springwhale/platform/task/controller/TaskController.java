@@ -1,9 +1,9 @@
 package io.github.springwhale.platform.task.controller;
 
 import io.github.springwhale.framework.core.exception.BusinessException;
+import io.github.springwhale.platform.task.dao.entity.TaskBatchItemEntity;
 import io.github.springwhale.platform.task.dto.request.TaskCreateRequest;
 import io.github.springwhale.platform.task.dto.vo.TaskVO;
-import io.github.springwhale.platform.task.entity.TaskBatchItemEntity;
 import io.github.springwhale.platform.task.enums.TaskStatus;
 import io.github.springwhale.platform.task.service.TaskService;
 import jakarta.validation.Valid;

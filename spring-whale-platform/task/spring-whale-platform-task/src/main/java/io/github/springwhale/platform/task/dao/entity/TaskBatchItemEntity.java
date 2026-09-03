@@ -1,4 +1,4 @@
-package io.github.springwhale.platform.task.entity;
+package io.github.springwhale.platform.task.dao.entity;
 
 import io.github.springwhale.database.BaseEntity;
 import io.github.springwhale.platform.task.enums.TaskItemStatus;

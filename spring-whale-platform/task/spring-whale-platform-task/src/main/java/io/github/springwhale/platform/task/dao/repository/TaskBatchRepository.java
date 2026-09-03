@@ -1,11 +1,12 @@
-package io.github.springwhale.platform.task.repository;
+package io.github.springwhale.platform.task.dao.repository;
 
-import io.github.springwhale.platform.task.entity.TaskBatchEntity;
+import io.github.springwhale.platform.task.dao.entity.TaskBatchEntity;
 import io.github.springwhale.platform.task.enums.TaskStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+
 import java.util.List;
 
 public interface TaskBatchRepository extends JpaRepository<TaskBatchEntity, Integer>, JpaSpecificationExecutor<TaskBatchEntity> {
