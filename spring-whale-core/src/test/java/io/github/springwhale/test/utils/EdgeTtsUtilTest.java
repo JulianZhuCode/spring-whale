@@ -15,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Integration tests for EdgeTtsEngine.
  * Requires edge-tts to be installed on the system PATH.
  */
+@Tag("integration")
 class EdgeTtsUtilTest {
 
     @TempDir
