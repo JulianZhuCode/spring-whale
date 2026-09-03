@@ -1,5 +1,9 @@
 package io.github.springwhale.platform.rbac.ui;
 
+import io.github.springwhale.platform.rbac.dao.repository.MenuRepository;
+import io.github.springwhale.platform.rbac.dao.repository.RoleMenuRepository;
+import io.github.springwhale.platform.rbac.dao.repository.RoleRepository;
+import io.github.springwhale.platform.rbac.dao.repository.UserRoleRepository;
 import io.github.springwhale.platform.rbac.service.GroupService;
 import io.github.springwhale.platform.rbac.service.MenuService;
 import io.github.springwhale.platform.rbac.service.RoleService;
@@ -22,8 +26,11 @@ public class SpringWhalePlatformRBACUIConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public RbacMenuProvider rbacMenuProvider() {
-        return new RbacMenuProvider();
+    public RbacMenuProvider rbacMenuProvider(MenuRepository menuRepository,
+                                             UserRoleRepository userRoleRepository,
+                                             RoleRepository roleRepository,
+                                             RoleMenuRepository roleMenuRepository) {
+        return new RbacMenuProvider(menuRepository, userRoleRepository, roleRepository, roleMenuRepository);
     }
 
     @Bean
