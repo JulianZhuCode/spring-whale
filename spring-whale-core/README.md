@@ -8,6 +8,7 @@ Core framework of spring-whale, the foundation of all spring-whale modules.
 
 ```
 spring-whale-core
+├── cache/                Cache Abstraction
 ├── context/              Authentication Context
 ├── enums/                Base Enum Interface
 ├── exception/            Business Exception
@@ -22,6 +23,7 @@ spring-whale-core
 
 | Feature                | Class                                       | Description                                                                          |
 |------------------------|---------------------------------------------|--------------------------------------------------------------------------------------|
+| **Cache Abstraction** ⭐ | `cache/` package                            | Local (Caffeine) / Distributed (Redis) cache, per-key TTL, Spring Cache compatible → [Details](doc/cache.md) |
 | **JSON Serialization** ⭐ | `json/` package                             | Multi-format time, enum i18n, BigDecimal precision, numeric overflow protection → [Details](doc/json.md) |
 | **Authentication Context** | `AuthenticationContextHolder` / `AuthUtil`  | ThreadLocal-based storage for current user identity (userId, username, tenantId)     |
 | **Unified API Result** | `ApiResult<T>`                              | Encapsulates code + message + data, with `success()` / `error()` factory methods     |

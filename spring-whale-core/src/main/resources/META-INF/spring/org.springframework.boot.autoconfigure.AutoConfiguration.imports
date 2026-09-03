@@ -1,1 +1,3 @@
 io.github.springwhale.framework.core.autoconfigure.SpringWhaleCoreConfiguration
+io.github.springwhale.framework.core.cache.autoconfigure.WhaleCacheAutoConfiguration
+io.github.springwhale.framework.core.cache.autoconfigure.WhaleCacheRedisAutoConfiguration

@@ -8,6 +8,7 @@ spring-whale のコアフレームワークであり、すべての spring-whale
 
 ```
 spring-whale-core
+├── cache/               キャッシュ抽象化
 ├── context/              認証コンテキスト
 ├── enums/                基本列挙型インターフェース
 ├── exception/            ビジネス例外
@@ -22,6 +23,7 @@ spring-whale-core
 
 | 機能                   | クラス                                        | 説明                                                                          |
 |----------------------|--------------------------------------------|-----------------------------------------------------------------------------|
+| **キャッシュ抽象化** ⭐     | `cache/` パッケージ                             | ローカル（Caffeine）/ 分散（Redis）キャッシュ、キーごとの TTL、Spring Cache 互換 → [詳細](doc/cache.ja.md) |
 | **JSON 直列化** ⭐      | `json/` パッケージ                              | マルチフォーマット時刻、列挙型 i18n、BigDecimal 精度、数値オーバーフロー保護 → [詳細](doc/json.ja.md) |
 | **認証コンテキスト**         | `AuthenticationContextHolder` / `AuthUtil`  | ThreadLocal による現在のユーザー ID 情報（userId、username、tenantId）の保存                    |
 | **統一 API レスポンス**     | `ApiResult<T>`                             | code + message + data をカプセル化し、`success()` / `error()` ファクトリメソッドを提供           |

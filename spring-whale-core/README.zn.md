@@ -8,6 +8,7 @@ spring-whale 核心框架，是所有 spring-whale 模块的基石。
 
 ```
 spring-whale-core
+├── cache/               缓存抽象
 ├── context/              认证上下文
 ├── enums/                基础枚举接口
 ├── exception/            业务异常
@@ -22,6 +23,7 @@ spring-whale-core
 
 | 特性             | 类                                          | 说明                                                        |
 |----------------|--------------------------------------------|-----------------------------------------------------------|
+| **缓存抽象** ⭐     | `cache/` 包                                 | 本地（Caffeine）/ 分布式（Redis）缓存，per-key TTL，Spring Cache 兼容 → [详细文档](doc/cache.zn.md) |
 | **JSON 序列化** ⭐ | `json/` 包                                  | 时间多格式、枚举国际化、BigDecimal 精度、数值溢出保护 → [详细文档](doc/json.zn.md) |
 | **认证上下文**      | `AuthenticationContextHolder` / `AuthUtil` | ThreadLocal 存储当前用户身份（userId、username、tenantId）            |
 | **统一返回结果**     | `ApiResult<T>`                             | 封装 code + message + data，提供 `success()` / `error()` 工厂方法  |
