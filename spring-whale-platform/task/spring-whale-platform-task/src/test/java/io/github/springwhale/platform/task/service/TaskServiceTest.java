@@ -118,14 +118,14 @@ class TaskServiceTest {
     @Test
     @DisplayName("starting a non-existent task raises TASK_NOT_FOUND")
     void startNotFound() {
-        BusinessException ex = assertThrows(BusinessException.class, () -> taskService.start(99999));
+        BusinessException ex = assertThrows(BusinessException.class, () -> taskService.start(99999L));
         assertEquals("TASK_NOT_FOUND", ex.getErrorCode());
     }
 
     @Test
     @DisplayName("pausing a PENDING task raises TASK_NOT_RUNNING")
     void pausePending() {
-        Integer id = createTask(2);
+        Long id = createTask(2);
 
         BusinessException ex = assertThrows(BusinessException.class, () -> taskService.pause(id));
         assertEquals("TASK_NOT_RUNNING", ex.getErrorCode());
@@ -134,7 +134,7 @@ class TaskServiceTest {
     @Test
     @DisplayName("resuming a PENDING task raises TASK_NOT_PAUSED")
     void resumePending() {
-        Integer id = createTask(2);
+        Long id = createTask(2);
 
         BusinessException ex = assertThrows(BusinessException.class, () -> taskService.resume(id));
         assertEquals("TASK_NOT_PAUSED", ex.getErrorCode());
@@ -143,14 +143,14 @@ class TaskServiceTest {
     @Test
     @DisplayName("deleting a non-existent task raises TASK_NOT_FOUND")
     void deleteNotFound() {
-        BusinessException ex = assertThrows(BusinessException.class, () -> taskService.delete(99999));
+        BusinessException ex = assertThrows(BusinessException.class, () -> taskService.delete(99999L));
         assertEquals("TASK_NOT_FOUND", ex.getErrorCode());
     }
 
     @Test
     @DisplayName("deleting an active task raises TASK_ACTIVE")
     void deleteActive() {
-        Integer id = createTask(2);
+        Long id = createTask(2);
 
         BusinessException ex = assertThrows(BusinessException.class, () -> taskService.delete(id));
         assertEquals("TASK_ACTIVE", ex.getErrorCode());
@@ -159,7 +159,7 @@ class TaskServiceTest {
     @Test
     @DisplayName("retrying an active task raises TASK_ACTIVE")
     void retryFailedWhileActive() {
-        Integer id = createTask(2);
+        Long id = createTask(2);
 
         BusinessException ex = assertThrows(BusinessException.class, () -> taskService.retryFailed(id));
         assertEquals("TASK_ACTIVE", ex.getErrorCode());
@@ -170,7 +170,7 @@ class TaskServiceTest {
     @Test
     @DisplayName("start runs items asynchronously to COMPLETED, then retry raises NO_FAILED_ITEMS")
     void startThenRetryWithoutFailures() {
-        Integer id = createTask(4);
+        Long id = createTask(4);
 
         taskService.start(id);
         TaskVO completed = awaitStatus(id, TaskStatus.COMPLETED);
@@ -183,9 +183,32 @@ class TaskServiceTest {
     }
 
     @Test
+    @DisplayName("a fatal batch error marks the task FAILED instead of hanging in RUNNING")
+    void fatalBatchFailureMarksFailed() {
+        TaskCreateRequest request = new TaskCreateRequest();
+        request.setTaskType(TestTaskHandler.TASK_TYPE);
+        request.setParams(Map.of("count", 3, "fatalBatch", true));
+        Long id = taskService.create(request).getId();
+
+        taskService.start(id);
+
+        TaskVO failed = awaitStatus(id, TaskStatus.FAILED);
+        assertNotNull(failed.getErrorMessage());
+        assertTrue(failed.getErrorMessage().contains("simulated fatal batch failure"));
+        assertNotNull(failed.getEndTime());
+        // afterComplete must not be invoked on failure.
+        assertEquals(0, testTaskHandler.afterCompleteCount.get());
+
+        // FAILED is terminal: startup recovery leaves it alone, and it can be deleted.
+        assertEquals(0, taskService.recoverInterruptedTasks());
+        taskService.delete(id);
+        assertTrue(taskService.findById(id).isEmpty());
+    }
+
+    @Test
     @DisplayName("cancelling a PENDING task invokes onCancel and ends CANCELLED")
     void cancelPending() {
-        Integer id = createTask(2);
+        Long id = createTask(2);
 
         TaskVO vo = taskService.cancel(id);
 
@@ -198,14 +221,14 @@ class TaskServiceTest {
 
     // ==================== Helpers ====================
 
-    private Integer createTask(int count) {
+    private Long createTask(int count) {
         TaskCreateRequest request = new TaskCreateRequest();
         request.setTaskType(TestTaskHandler.TASK_TYPE);
         request.setParams(Map.of("count", count));
         return taskService.create(request).getId();
     }
 
-    private TaskVO awaitStatus(Integer taskId, TaskStatus expected) {
+    private TaskVO awaitStatus(Long taskId, TaskStatus expected) {
         long deadline = System.currentTimeMillis() + TIMEOUT_MS;
         while (System.currentTimeMillis() < deadline) {
             TaskVO vo = taskService.findById(taskId).orElseThrow();

@@ -50,7 +50,7 @@ public class RoleController {
     @PreAuthorize("hasAnyAuthority('rbac:role', '*')")
     @DataScope(module = "rbac:role")
     @GetMapping("/{id}")
-    public RoleVO findById(@PathVariable Integer id) {
+    public RoleVO findById(@PathVariable Long id) {
         return roleService.findById(id)
                 .orElseThrow(() -> BusinessException.create("ROLE_NOT_FOUND", "Role not found: " + id));
     }
@@ -73,7 +73,7 @@ public class RoleController {
     @PreAuthorize("hasAnyAuthority('rbac:role:update', '*')")
     @DataScope(module = "rbac:role")
     @PutMapping("/{id}")
-    public RoleVO update(@PathVariable Integer id, @Valid @RequestBody RoleRequest request) {
+    public RoleVO update(@PathVariable Long id, @Valid @RequestBody RoleRequest request) {
         return roleService.update(id, request);
     }
 
@@ -84,7 +84,7 @@ public class RoleController {
     @PreAuthorize("hasAnyAuthority('rbac:role:delete', '*')")
     @DataScope(module = "rbac:role")
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Integer id) {
+    public void delete(@PathVariable Long id) {
         roleService.delete(id);
     }
 }

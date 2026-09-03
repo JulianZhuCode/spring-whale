@@ -4,7 +4,7 @@ import io.github.springwhale.framework.core.context.AuthenticationContextHolder;
 
 public class AuthUtil {
 
-    public static Integer getUserId() {
+    public static Long getUserId() {
         var context = AuthenticationContextHolder.getContext();
         return context != null ? context.getUserId() : null;
     }
@@ -14,7 +14,7 @@ public class AuthUtil {
         return context != null ? context.getUsername() : null;
     }
 
-    public static Integer getTenantId() {
+    public static Long getTenantId() {
         var context = AuthenticationContextHolder.getContext();
         return context != null ? context.getTenantId() : null;
     }

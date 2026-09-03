@@ -10,7 +10,7 @@ import java.util.Optional;
 /**
  * User repository
  */
-public interface UserRepository extends JpaRepository<UserEntity, Integer>, JpaSpecificationExecutor<UserEntity> {
+public interface UserRepository extends JpaRepository<UserEntity, Long>, JpaSpecificationExecutor<UserEntity> {
 
     /**
      * Find by exact username
@@ -20,5 +20,5 @@ public interface UserRepository extends JpaRepository<UserEntity, Integer>, JpaS
     /**
      * Find all users by group ID
      */
-    List<UserEntity> findByGroupId(Integer groupId);
+    List<UserEntity> findByGroupId(Long groupId);
 }

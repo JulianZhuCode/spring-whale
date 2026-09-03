@@ -54,7 +54,7 @@ class UserDetailsServiceImplTest {
     @BeforeEach
     void setUp() {
         user = new UserEntity();
-        user.setId(1);
+        user.setId(1L);
         user.setUsername("admin");
         user.setPassword("encoded_password");
         user.setStatus(1);
@@ -66,27 +66,27 @@ class UserDetailsServiceImplTest {
         when(userRepository.findByUsername("admin")).thenReturn(Optional.of(user));
 
         RoleEntity role = new RoleEntity();
-        role.setId(1);
+        role.setId(1L);
         role.setCode("ADMIN");
         role.setStatus(1);
 
         UserRoleEntity userRole = new UserRoleEntity();
-        userRole.setUserId(1);
-        userRole.setRoleId(1);
+        userRole.setUserId(1L);
+        userRole.setRoleId(1L);
 
         MenuEntity menu = new MenuEntity();
-        menu.setId(1);
+        menu.setId(1L);
         menu.setPermission("rbac:user");
         menu.setStatus(1);
 
         RoleMenuEntity roleMenu = new RoleMenuEntity();
-        roleMenu.setRoleId(1);
-        roleMenu.setMenuId(1);
+        roleMenu.setRoleId(1L);
+        roleMenu.setMenuId(1L);
 
-        when(userRoleRepository.findByUserId(1)).thenReturn(List.of(userRole));
-        when(roleRepository.findAllById(List.of(1))).thenReturn(List.of(role));
-        when(roleMenuRepository.findByRoleIdIn(List.of(1))).thenReturn(List.of(roleMenu));
-        when(menuRepository.findAllById(List.of(1))).thenReturn(List.of(menu));
+        when(userRoleRepository.findByUserId(1L)).thenReturn(List.of(userRole));
+        when(roleRepository.findAllById(List.of(1L))).thenReturn(List.of(role));
+        when(roleMenuRepository.findByRoleIdIn(List.of(1L))).thenReturn(List.of(roleMenu));
+        when(menuRepository.findAllById(List.of(1L))).thenReturn(List.of(menu));
 
         UserDetails result = userDetailsService.loadUserByUsername("admin");
 
@@ -123,16 +123,16 @@ class UserDetailsServiceImplTest {
         when(userRepository.findByUsername("admin")).thenReturn(Optional.of(user));
 
         RoleEntity superAdminRole = new RoleEntity();
-        superAdminRole.setId(1);
+        superAdminRole.setId(1L);
         superAdminRole.setCode(RbacConstants.SUPER_ADMIN_ROLE_CODE);
         superAdminRole.setStatus(1);
 
         UserRoleEntity userRole = new UserRoleEntity();
-        userRole.setUserId(1);
-        userRole.setRoleId(1);
+        userRole.setUserId(1L);
+        userRole.setRoleId(1L);
 
-        when(userRoleRepository.findByUserId(1)).thenReturn(List.of(userRole));
-        when(roleRepository.findAllById(List.of(1))).thenReturn(List.of(superAdminRole));
+        when(userRoleRepository.findByUserId(1L)).thenReturn(List.of(userRole));
+        when(roleRepository.findAllById(List.of(1L))).thenReturn(List.of(superAdminRole));
 
         UserDetails result = userDetailsService.loadUserByUsername("admin");
 
@@ -146,7 +146,7 @@ class UserDetailsServiceImplTest {
     @DisplayName("user without roles returns empty authorities")
     void loadUserWithoutRoles() {
         when(userRepository.findByUsername("admin")).thenReturn(Optional.of(user));
-        when(userRoleRepository.findByUserId(1)).thenReturn(List.of());
+        when(userRoleRepository.findByUserId(1L)).thenReturn(List.of());
 
         UserDetails result = userDetailsService.loadUserByUsername("admin");
 
@@ -159,16 +159,16 @@ class UserDetailsServiceImplTest {
         when(userRepository.findByUsername("admin")).thenReturn(Optional.of(user));
 
         RoleEntity disabledRole = new RoleEntity();
-        disabledRole.setId(1);
+        disabledRole.setId(1L);
         disabledRole.setCode("ADMIN");
         disabledRole.setStatus(0);
 
         UserRoleEntity userRole = new UserRoleEntity();
-        userRole.setUserId(1);
-        userRole.setRoleId(1);
+        userRole.setUserId(1L);
+        userRole.setRoleId(1L);
 
-        when(userRoleRepository.findByUserId(1)).thenReturn(List.of(userRole));
-        when(roleRepository.findAllById(List.of(1))).thenReturn(List.of(disabledRole));
+        when(userRoleRepository.findByUserId(1L)).thenReturn(List.of(userRole));
+        when(roleRepository.findAllById(List.of(1L))).thenReturn(List.of(disabledRole));
 
         UserDetails result = userDetailsService.loadUserByUsername("admin");
 

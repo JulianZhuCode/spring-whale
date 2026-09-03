@@ -44,5 +44,5 @@ public class RegisterRequest {
     /**
      * Department ID
      */
-    private Integer groupId;
+    private Long groupId;
 }

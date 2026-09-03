@@ -73,7 +73,7 @@ public class UserService {
     /**
      * Find user by ID
      */
-    public Optional<UserVO> findById(Integer id) {
+    public Optional<UserVO> findById(Long id) {
         return userRepository.findById(id)
                 .map(UserMapper::toVO)
                 .map(this::enrichGroupName);
@@ -102,7 +102,7 @@ public class UserService {
      * Update user
      */
     @Transactional
-    public UserVO update(Integer id, UserRequest request) {
+    public UserVO update(Long id, UserRequest request) {
         UserEntity user = userRepository.findById(id)
                 .orElseThrow(() -> BusinessException.create("USER_NOT_FOUND", "User not found, ID: " + id));
 
@@ -131,7 +131,7 @@ public class UserService {
      * Delete user
      */
     @Transactional
-    public void delete(Integer id) {
+    public void delete(Long id) {
         UserEntity user = userRepository.findById(id)
                 .orElseThrow(() -> BusinessException.create("USER_NOT_FOUND", "User not found, ID: " + id));
         userRepository.delete(user);
@@ -141,13 +141,13 @@ public class UserService {
 
     private void enrichGroupNames(List<UserVO> vos) {
         if (vos == null || vos.isEmpty()) return;
-        List<Integer> groupIds = vos.stream()
+        List<Long> groupIds = vos.stream()
                 .map(UserVO::getGroupId)
                 .filter(gid -> gid != null)
                 .distinct()
                 .toList();
         if (groupIds.isEmpty()) return;
-        Map<Integer, String> groupNameMap = groupRepository.findAllByIdIn(groupIds).stream()
+        Map<Long, String> groupNameMap = groupRepository.findAllByIdIn(groupIds).stream()
                 .collect(Collectors.toMap(GroupEntity::getId, GroupEntity::getName));
         vos.forEach(vo -> {
             if (vo.getGroupId() != null) {

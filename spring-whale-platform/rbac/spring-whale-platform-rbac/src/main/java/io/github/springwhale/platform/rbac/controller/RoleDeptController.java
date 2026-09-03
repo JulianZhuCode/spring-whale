@@ -18,20 +18,20 @@ public class RoleDeptController {
 
     @PreAuthorize("hasAnyAuthority('rbac:role', '*')")
     @GetMapping
-    public List<Integer> getDepts(@PathVariable Integer roleId) {
+    public List<Long> getDepts(@PathVariable Long roleId) {
         return roleDeptService.getDeptIdsByRoleId(roleId);
     }
 
     @PreAuthorize("hasAnyAuthority('rbac:role:update', '*')")
     @PostMapping
-    public ResponseEntity<Map<String, String>> addDepts(@PathVariable Integer roleId, @RequestBody List<Integer> deptIds) {
+    public ResponseEntity<Map<String, String>> addDepts(@PathVariable Long roleId, @RequestBody List<Long> deptIds) {
         roleDeptService.addDepts(roleId, deptIds);
         return ResponseEntity.ok(Map.of("message", "ok"));
     }
 
     @PreAuthorize("hasAnyAuthority('rbac:role:update', '*')")
     @DeleteMapping
-    public ResponseEntity<Map<String, String>> removeDepts(@PathVariable Integer roleId, @RequestBody List<Integer> deptIds) {
+    public ResponseEntity<Map<String, String>> removeDepts(@PathVariable Long roleId, @RequestBody List<Long> deptIds) {
         roleDeptService.removeDepts(roleId, deptIds);
         return ResponseEntity.ok(Map.of("message", "ok"));
     }

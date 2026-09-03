@@ -32,7 +32,7 @@ public final class DataScopeCacheKey {
      *
      * <p>Format: {@code skip:{userId}}</p>
      */
-    public static String skipDataScope(Integer userId) {
+    public static String skipDataScope(Long userId) {
         return SKIP_PREFIX + userId;
     }
 
@@ -41,7 +41,7 @@ public final class DataScopeCacheKey {
      *
      * <p>Format: {@code dept:{userId}:{scopeType}:{module}}</p>
      */
-    public static String resolveDeptIds(Integer userId, DataScopeType scopeType, String module) {
+    public static String resolveDeptIds(Long userId, DataScopeType scopeType, String module) {
         return DEPT_PREFIX + userId + ":" + scopeType.name() + ":" + (module != null ? module : "");
     }
 
@@ -51,7 +51,7 @@ public final class DataScopeCacheKey {
      *
      * <p>Format: {@code fallback:skip:{userId}}</p>
      */
-    public static String fallbackSkipDataScope(Integer userId) {
+    public static String fallbackSkipDataScope(Long userId) {
         return FALLBACK_SKIP_PREFIX + userId;
     }
 
@@ -61,7 +61,7 @@ public final class DataScopeCacheKey {
      *
      * <p>Format: {@code fallback:dept:{userId}:{scopeType}:{module}}</p>
      */
-    public static String fallbackResolveDeptIds(Integer userId, DataScopeType scopeType, String module) {
+    public static String fallbackResolveDeptIds(Long userId, DataScopeType scopeType, String module) {
         return FALLBACK_DEPT_PREFIX + userId + ":" + scopeType.name() + ":" + (module != null ? module : "");
     }
 
@@ -70,7 +70,7 @@ public final class DataScopeCacheKey {
      *
      * <p>Format: {@code skipTenant:{userId}}</p>
      */
-    public static String skipTenantScope(Integer userId) {
+    public static String skipTenantScope(Long userId) {
         return SKIP_TENANT_PREFIX + userId;
     }
 
@@ -80,7 +80,7 @@ public final class DataScopeCacheKey {
      *
      * <p>Format: {@code fallback:skipTenant:{userId}}</p>
      */
-    public static String fallbackSkipTenantScope(Integer userId) {
+    public static String fallbackSkipTenantScope(Long userId) {
         return FALLBACK_SKIP_TENANT_PREFIX + userId;
     }
 }

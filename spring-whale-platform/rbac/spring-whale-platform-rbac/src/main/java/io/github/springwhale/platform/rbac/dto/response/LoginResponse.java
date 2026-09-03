@@ -27,7 +27,7 @@ public class LoginResponse {
     /**
      * User ID
      */
-    private Integer userId;
+    private Long userId;
 
     /**
      * Username

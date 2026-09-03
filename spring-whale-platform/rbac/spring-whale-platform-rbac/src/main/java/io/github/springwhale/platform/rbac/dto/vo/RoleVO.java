@@ -8,13 +8,13 @@ import lombok.Data;
  */
 @Data
 public class RoleVO {
-    private Integer id;
+    private Long id;
     private String code;
     private String name;
     private String description;
     private Integer status;
     private Integer sort;
-    private Integer groupId;
+    private Long groupId;
     private String groupName;
     private DataScopeType dataScope;
 }

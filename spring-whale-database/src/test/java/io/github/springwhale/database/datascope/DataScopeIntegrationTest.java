@@ -53,7 +53,7 @@ class DataScopeIntegrationTest {
         TestDataScopeHandler.reset();
     }
 
-    private void loginAs(Integer userId) {
+    private void loginAs(Long userId) {
         AuthenticationContextHolder.setContext(
                 new AuthenticationContext(userId, "user" + userId, null));
     }
@@ -75,7 +75,7 @@ class DataScopeIntegrationTest {
     @Test
     @DisplayName("Verify DataScopeContext is populated after @DataScope method call")
     void verifyDataScopeContextPopulated() {
-        loginAs(1);
+        loginAs(1L);
 
         System.out.println("TestUserService proxy class: " + testUserService.getClass().getName());
         System.out.println("TestUserService is CGLIB proxy: " + testUserService.getClass().getName().contains("$$"));
@@ -90,7 +90,7 @@ class DataScopeIntegrationTest {
     @Test
     @DisplayName("SELF scope: user should only see own data")
     void testSelfScope() {
-        loginAs(1);
+        loginAs(1L);
 
         List<TestUser> result = testUserService.listSelf();
 
@@ -101,7 +101,7 @@ class DataScopeIntegrationTest {
     @Test
     @DisplayName("DEPT scope: user should only see own department data")
     void testDeptScope() {
-        loginAs(1);
+        loginAs(1L);
 
         List<TestUser> result = testUserService.listByDept();
 
@@ -112,7 +112,7 @@ class DataScopeIntegrationTest {
     @Test
     @DisplayName("DEPT_AND_CHILD scope: user should see own and child department data")
     void testDeptAndChildScope() {
-        loginAs(1);
+        loginAs(1L);
 
         List<TestUser> result = testUserService.listByDeptAndChild();
 
@@ -123,7 +123,7 @@ class DataScopeIntegrationTest {
     @Test
     @DisplayName("CUSTOM scope: user should see data based on custom handler logic")
     void testCustomScope() {
-        loginAs(1);
+        loginAs(1L);
 
         List<TestUser> result = testUserService.listByCustom();
 
@@ -134,7 +134,7 @@ class DataScopeIntegrationTest {
     @Test
     @DisplayName("AUTO scope: user should see data based on auto-inferred scope")
     void testAutoScope() {
-        loginAs(1);
+        loginAs(1L);
 
         List<TestUser> result = testUserService.listByAuto();
 
@@ -145,7 +145,7 @@ class DataScopeIntegrationTest {
     @Test
     @DisplayName("No @DataScope: should see all data")
     void testNoDataScope() {
-        loginAs(1);
+        loginAs(1L);
 
         List<TestUser> result = testUserService.listAll();
 
@@ -156,7 +156,7 @@ class DataScopeIntegrationTest {
     @Test
     @DisplayName("Nested @DataScope: inner SELF should override outer DEPT")
     void testNestedScope() {
-        loginAs(1);
+        loginAs(1L);
 
         List<TestUser> result = testUserService.outerDept();
 
@@ -167,7 +167,7 @@ class DataScopeIntegrationTest {
     @Test
     @DisplayName("Different user with DEPT scope: user 3 in dept 2")
     void testDifferentUserDeptScope() {
-        loginAs(3);
+        loginAs(3L);
 
         List<TestUser> result = testUserService.listByDept();
 
@@ -178,7 +178,7 @@ class DataScopeIntegrationTest {
     @Test
     @DisplayName("Different user with SELF scope: user 2 should see only own data")
     void testDifferentUserSelfScope() {
-        loginAs(2);
+        loginAs(2L);
 
         List<TestUser> result = testUserService.listSelf();
 
@@ -197,7 +197,7 @@ class DataScopeIntegrationTest {
     @Test
     @DisplayName("CALLER scope: should use transmitted scope for filtering")
     void testCallerScope() {
-        loginAs(1);
+        loginAs(1L);
 
         DataScopeResult transmittedScope = new DataScopeResult();
         transmittedScope.setScopeType(DataScopeType.DEPT);
@@ -217,7 +217,7 @@ class DataScopeIntegrationTest {
     @Test
     @DisplayName("CALLER scope with SELF: should use transmitted SELF scope for filtering")
     void testCallerScopeWithSelf() {
-        loginAs(1);
+        loginAs(1L);
 
         DataScopeResult transmittedScope = new DataScopeResult();
         transmittedScope.setScopeType(DataScopeType.SELF);
@@ -237,7 +237,7 @@ class DataScopeIntegrationTest {
     @Test
     @DisplayName("CALLER scope with DEPT_AND_CHILD: should use transmitted DEPT_AND_CHILD scope")
     void testCallerScopeWithDeptAndChild() {
-        loginAs(1);
+        loginAs(1L);
 
         DataScopeResult transmittedScope = new DataScopeResult();
         transmittedScope.setScopeType(DataScopeType.DEPT_AND_CHILD);
@@ -257,7 +257,7 @@ class DataScopeIntegrationTest {
     @Test
     @DisplayName("CALLER scope with no transmitted scope: should return all data")
     void testCallerScopeNoTransmittedScope() {
-        loginAs(1);
+        loginAs(1L);
 
         List<TestUser> result = testUserService.listByCaller();
 
@@ -268,7 +268,7 @@ class DataScopeIntegrationTest {
     @Test
     @DisplayName("CALLER scope with different user: should use transmitted scope with caller's context")
     void testCallerScopeWithDifferentUser() {
-        loginAs(3);
+        loginAs(3L);
 
         DataScopeResult transmittedScope = new DataScopeResult();
         transmittedScope.setScopeType(DataScopeType.DEPT);
@@ -289,7 +289,7 @@ class DataScopeIntegrationTest {
     @DisplayName("skipDataScope=true: should see all data regardless of scope type")
     void testSkipDataScope() {
         TestDataScopeHandler.setSkipDataScope(true);
-        loginAs(1);
+        loginAs(1L);
 
         List<TestUser> result = testUserService.listByDept();
 
@@ -301,7 +301,7 @@ class DataScopeIntegrationTest {
     @DisplayName("skipDataScope=true with SELF: should still see all data")
     void testSkipDataScopeWithSelf() {
         TestDataScopeHandler.setSkipDataScope(true);
-        loginAs(1);
+        loginAs(1L);
 
         List<TestUser> result = testUserService.listSelf();
 
@@ -313,7 +313,7 @@ class DataScopeIntegrationTest {
     @DisplayName("skipDataScope=true without @DataScope: should see all data (no change)")
     void testSkipDataScopeWithoutAnnotation() {
         TestDataScopeHandler.setSkipDataScope(true);
-        loginAs(1);
+        loginAs(1L);
 
         List<TestUser> result = testUserService.listAll();
 
@@ -325,7 +325,7 @@ class DataScopeIntegrationTest {
     @DisplayName("denied: resolveDeptIds returns null, falls back to userId filter")
     void testDeniedScope() {
         TestDataScopeHandler.setReturnNullDeptIds(true);
-        loginAs(1);
+        loginAs(1L);
 
         List<TestUser> result = testUserService.listByDept();
 
@@ -337,7 +337,7 @@ class DataScopeIntegrationTest {
     @DisplayName("denied with SELF: resolveDeptIds returns null, falls back to userId filter")
     void testDeniedWithSelfScope() {
         TestDataScopeHandler.setReturnNullDeptIds(true);
-        loginAs(1);
+        loginAs(1L);
 
         List<TestUser> result = testUserService.listSelf();
 
@@ -349,7 +349,7 @@ class DataScopeIntegrationTest {
     @DisplayName("denied does not affect methods without @DataScope")
     void testDeniedWithoutDataScope() {
         TestDataScopeHandler.setReturnNullDeptIds(true);
-        loginAs(1);
+        loginAs(1L);
 
         List<TestUser> result = testUserService.listAll();
 

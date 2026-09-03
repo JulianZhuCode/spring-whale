@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface UserRoleScopeViewRepository extends JpaRepository<UserRoleScopeView, UserRoleScopeView.UserRoleScopeViewId> {
 
-    List<UserRoleScopeView> findByUserId(Integer userId);
+    List<UserRoleScopeView> findByUserId(Long userId);
 }

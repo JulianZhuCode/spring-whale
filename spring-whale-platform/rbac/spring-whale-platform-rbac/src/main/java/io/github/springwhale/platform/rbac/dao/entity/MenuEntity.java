@@ -18,7 +18,7 @@ public class MenuEntity extends BaseEntity {
     /**
      * Parent menu ID
      */
-    private Integer parentId;
+    private Long parentId;
 
     /**
      * Menu code

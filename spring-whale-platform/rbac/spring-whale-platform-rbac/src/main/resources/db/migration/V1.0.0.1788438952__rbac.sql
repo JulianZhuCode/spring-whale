@@ -4,7 +4,7 @@
 
 CREATE TABLE IF NOT EXISTS flyway_error_log
 (
-    id          SERIAL PRIMARY KEY,
+    id          BIGSERIAL PRIMARY KEY,
     server_name VARCHAR(128),
     create_time TIMESTAMP,
     message     TEXT
@@ -17,8 +17,8 @@ CREATE TABLE IF NOT EXISTS flyway_error_log
 -- 1. Department / Group
 CREATE TABLE IF NOT EXISTS rbac_group
 (
-    id          SERIAL PRIMARY KEY,
-    parent_id   INTEGER,
+    id          BIGSERIAL PRIMARY KEY,
+    parent_id   BIGINT,
     path        VARCHAR(500),
     code        VARCHAR(50),
     name        VARCHAR(100) NOT NULL,
@@ -30,8 +30,8 @@ CREATE TABLE IF NOT EXISTS rbac_group
     status      INTEGER      NOT NULL DEFAULT 1,
     create_time TIMESTAMP,
     update_time TIMESTAMP,
-    create_by   INTEGER,
-    update_by   INTEGER,
+    create_by   BIGINT,
+    update_by   BIGINT,
     version     INTEGER      NOT NULL DEFAULT 0,
     del_flag    INTEGER      NOT NULL DEFAULT 0
 );
@@ -42,18 +42,18 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_group_code ON rbac_group (code) WHERE del_
 -- 2. Role
 CREATE TABLE IF NOT EXISTS rbac_role
 (
-    id          SERIAL PRIMARY KEY,
+    id          BIGSERIAL PRIMARY KEY,
     code        VARCHAR(50),
     name        VARCHAR(100) NOT NULL,
     description VARCHAR(500),
     status      INTEGER      NOT NULL DEFAULT 1,
     sort        INTEGER      NOT NULL DEFAULT 0,
-    group_id    INTEGER,
+    group_id    BIGINT,
     data_scope  VARCHAR(50),
     create_time TIMESTAMP,
     update_time TIMESTAMP,
-    create_by   INTEGER,
-    update_by   INTEGER,
+    create_by   BIGINT,
+    update_by   BIGINT,
     version     INTEGER      NOT NULL DEFAULT 0,
     del_flag    INTEGER      NOT NULL DEFAULT 0
 );
@@ -62,8 +62,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_role_code ON rbac_role (code) WHERE del_fl
 -- 3. Menu
 CREATE TABLE IF NOT EXISTS rbac_menu
 (
-    id            SERIAL PRIMARY KEY,
-    parent_id     INTEGER,
+    id            BIGSERIAL PRIMARY KEY,
+    parent_id     BIGINT,
     code          VARCHAR(100) NOT NULL,
     name          VARCHAR(100) NOT NULL,
     name_i18n_key VARCHAR(200),
@@ -77,8 +77,8 @@ CREATE TABLE IF NOT EXISTS rbac_menu
     status        INTEGER      NOT NULL DEFAULT 1,
     create_time   TIMESTAMP,
     update_time   TIMESTAMP,
-    create_by     INTEGER,
-    update_by     INTEGER,
+    create_by     BIGINT,
+    update_by     BIGINT,
     version       INTEGER      NOT NULL DEFAULT 0,
     del_flag      INTEGER      NOT NULL DEFAULT 0
 );
@@ -88,7 +88,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_menu_code ON rbac_menu (code) WHERE del_fl
 -- 4. User
 CREATE TABLE IF NOT EXISTS rbac_user
 (
-    id          SERIAL PRIMARY KEY,
+    id          BIGSERIAL PRIMARY KEY,
     username    VARCHAR(50)  NOT NULL,
     password    VARCHAR(200) NOT NULL,
     real_name   VARCHAR(50),
@@ -96,11 +96,11 @@ CREATE TABLE IF NOT EXISTS rbac_user
     phone       VARCHAR(20),
     avatar      VARCHAR(500),
     status      INTEGER      NOT NULL DEFAULT 1,
-    group_id    INTEGER,
+    group_id    BIGINT,
     create_time TIMESTAMP,
     update_time TIMESTAMP,
-    create_by   INTEGER,
-    update_by   INTEGER,
+    create_by   BIGINT,
+    update_by   BIGINT,
     version     INTEGER      NOT NULL DEFAULT 0,
     del_flag    INTEGER      NOT NULL DEFAULT 0
 );
@@ -111,13 +111,13 @@ CREATE INDEX IF NOT EXISTS idx_user_phone ON rbac_user (phone);
 -- 5. Role-Department association
 CREATE TABLE IF NOT EXISTS rbac_role_dept
 (
-    id          SERIAL PRIMARY KEY,
-    role_id     INTEGER NOT NULL,
-    group_id    INTEGER NOT NULL,
+    id          BIGSERIAL PRIMARY KEY,
+    role_id     BIGINT NOT NULL,
+    group_id    BIGINT NOT NULL,
     create_time TIMESTAMP,
     update_time TIMESTAMP,
-    create_by   INTEGER,
-    update_by   INTEGER,
+    create_by   BIGINT,
+    update_by   BIGINT,
     version     INTEGER NOT NULL DEFAULT 0,
     del_flag    INTEGER NOT NULL DEFAULT 0
 );
@@ -128,10 +128,10 @@ CREATE INDEX IF NOT EXISTS idx_role_dept_group_id ON rbac_role_dept (group_id);
 CREATE TABLE IF NOT EXISTS rbac_role_menu
 (
     id          BIGSERIAL PRIMARY KEY,
-    role_id     INTEGER NOT NULL,
-    menu_id     INTEGER NOT NULL,
+    role_id     BIGINT NOT NULL,
+    menu_id     BIGINT NOT NULL,
     create_time TIMESTAMP,
-    create_by   INTEGER,
+    create_by   BIGINT,
     UNIQUE (role_id, menu_id)
 );
 CREATE INDEX IF NOT EXISTS idx_role_menu_role_id ON rbac_role_menu (role_id);
@@ -141,10 +141,10 @@ CREATE INDEX IF NOT EXISTS idx_role_menu_menu_id ON rbac_role_menu (menu_id);
 CREATE TABLE IF NOT EXISTS rbac_user_role
 (
     id          BIGSERIAL PRIMARY KEY,
-    user_id     INTEGER NOT NULL,
-    role_id     INTEGER NOT NULL,
+    user_id     BIGINT NOT NULL,
+    role_id     BIGINT NOT NULL,
     create_time TIMESTAMP,
-    create_by   INTEGER,
+    create_by   BIGINT,
     UNIQUE (user_id, role_id)
 );
 CREATE INDEX IF NOT EXISTS idx_user_role_user_id ON rbac_user_role (user_id);

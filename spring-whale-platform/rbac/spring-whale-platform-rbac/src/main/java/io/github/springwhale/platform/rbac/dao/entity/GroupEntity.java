@@ -21,7 +21,7 @@ public class GroupEntity extends BaseEntity {
     /**
      * Parent department ID
      */
-    private Integer parentId;
+    private Long parentId;
 
     /**
      * Materialized path of ancestor IDs, e.g. "/1/3/".

@@ -64,7 +64,7 @@ public class GroupController {
     @PreAuthorize("hasAnyAuthority('rbac:group', '*')")
     @DataScope(module = "rbac:group")
     @GetMapping("/{id}")
-    public GroupVO findById(@PathVariable Integer id) {
+    public GroupVO findById(@PathVariable Long id) {
         return groupService.findById(id)
                 .orElseThrow(() -> BusinessException.create("GROUP_NOT_FOUND", "Department not found: " + id));
     }
@@ -87,7 +87,7 @@ public class GroupController {
     @PreAuthorize("hasAnyAuthority('rbac:group:update', '*')")
     @DataScope(module = "rbac:group")
     @PutMapping("/{id}")
-    public GroupVO update(@PathVariable Integer id, @Valid @RequestBody GroupRequest request) {
+    public GroupVO update(@PathVariable Long id, @Valid @RequestBody GroupRequest request) {
         return groupService.update(id, request);
     }
 
@@ -98,7 +98,7 @@ public class GroupController {
     @PreAuthorize("hasAnyAuthority('rbac:group:delete', '*')")
     @DataScope(module = "rbac:group")
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Integer id) {
+    public void delete(@PathVariable Long id) {
         groupService.delete(id);
     }
 }

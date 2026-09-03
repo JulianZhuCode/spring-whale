@@ -42,9 +42,9 @@ class DataScopeControllerTest {
     @Test
     @DisplayName("skipDataScope - super admin")
     void skipDataScope() throws Exception {
-        when(handler.skipDataScope(1)).thenReturn(true);
+        when(handler.skipDataScope(1L)).thenReturn(true);
 
-        mockMvc.perform(get("/api/rbac/datascope/skip/{userId}", 1))
+        mockMvc.perform(get("/api/rbac/datascope/skip/{userId}", 1L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.skip").value(true));
     }
@@ -52,9 +52,9 @@ class DataScopeControllerTest {
     @Test
     @DisplayName("skipDataScope - normal user")
     void skipDataScopeNormalUser() throws Exception {
-        when(handler.skipDataScope(2)).thenReturn(false);
+        when(handler.skipDataScope(2L)).thenReturn(false);
 
-        mockMvc.perform(get("/api/rbac/datascope/skip/{userId}", 2))
+        mockMvc.perform(get("/api/rbac/datascope/skip/{userId}", 2L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.skip").value(false));
     }
@@ -62,9 +62,9 @@ class DataScopeControllerTest {
     @Test
     @DisplayName("skipTenantScope - returns true")
     void skipTenantScope() throws Exception {
-        when(handler.skipTenantScope(1)).thenReturn(true);
+        when(handler.skipTenantScope(1L)).thenReturn(true);
 
-        mockMvc.perform(get("/api/rbac/datascope/skip-tenant/{userId}", 1))
+        mockMvc.perform(get("/api/rbac/datascope/skip-tenant/{userId}", 1L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.skip").value(true));
     }
@@ -72,7 +72,7 @@ class DataScopeControllerTest {
     @Test
     @DisplayName("resolveDeptIds - DEPT type")
     void resolveDeptIds() throws Exception {
-        when(handler.resolveDeptIds(eq(1), eq(DataScopeType.DEPT), isNull()))
+        when(handler.resolveDeptIds(eq(1L), eq(DataScopeType.DEPT), isNull()))
                 .thenReturn(List.of(10));
 
         mockMvc.perform(get("/api/rbac/datascope/resolve/{userId}", 1)
@@ -84,7 +84,7 @@ class DataScopeControllerTest {
     @Test
     @DisplayName("resolveDeptIds - DEPT_AND_CHILD type")
     void resolveDeptIdsDeptAndChild() throws Exception {
-        when(handler.resolveDeptIds(eq(1), eq(DataScopeType.DEPT_AND_CHILD), isNull()))
+        when(handler.resolveDeptIds(eq(1L), eq(DataScopeType.DEPT_AND_CHILD), isNull()))
                 .thenReturn(List.of(10, 11, 12));
 
         mockMvc.perform(get("/api/rbac/datascope/resolve/{userId}", 1)
@@ -96,7 +96,7 @@ class DataScopeControllerTest {
     @Test
     @DisplayName("resolveDeptIds - with module parameter")
     void resolveDeptIdsWithModule() throws Exception {
-        when(handler.resolveDeptIds(eq(1), eq(DataScopeType.CUSTOM), eq("rbac:user")))
+        when(handler.resolveDeptIds(eq(1L), eq(DataScopeType.CUSTOM), eq("rbac:user")))
                 .thenReturn(List.of(100));
 
         mockMvc.perform(get("/api/rbac/datascope/resolve/{userId}", 1)
@@ -109,7 +109,7 @@ class DataScopeControllerTest {
     @Test
     @DisplayName("resolveDeptIds - empty result")
     void resolveDeptIdsEmpty() throws Exception {
-        when(handler.resolveDeptIds(eq(1), eq(DataScopeType.SELF), isNull()))
+        when(handler.resolveDeptIds(eq(1L), eq(DataScopeType.SELF), isNull()))
                 .thenReturn(List.of());
 
         mockMvc.perform(get("/api/rbac/datascope/resolve/{userId}", 1)

@@ -71,7 +71,7 @@ public class MenuController {
     @PreAuthorize("hasAnyAuthority('rbac:menu', '*')")
     @DataScope(module = "rbac:menu")
     @GetMapping("/{id}")
-    public MenuVO findById(@PathVariable Integer id) {
+    public MenuVO findById(@PathVariable Long id) {
         return menuService.findById(id)
                 .orElseThrow(() -> BusinessException.create("MENU_NOT_FOUND", "Menu not found: " + id));
     }
@@ -94,7 +94,7 @@ public class MenuController {
     @PreAuthorize("hasAnyAuthority('rbac:menu:update', '*')")
     @DataScope(module = "rbac:menu")
     @PutMapping("/{id}")
-    public MenuVO update(@PathVariable Integer id, @Valid @RequestBody MenuRequest request) {
+    public MenuVO update(@PathVariable Long id, @Valid @RequestBody MenuRequest request) {
         return menuService.update(id, request);
     }
 
@@ -105,7 +105,7 @@ public class MenuController {
     @PreAuthorize("hasAnyAuthority('rbac:menu:delete', '*')")
     @DataScope(module = "rbac:menu")
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Integer id) {
+    public void delete(@PathVariable Long id) {
         menuService.delete(id);
     }
 
@@ -123,7 +123,7 @@ public class MenuController {
         }
 
         List<UserRoleEntity> userRoles = userRoleRepository.findByUserId(user.getId());
-        List<Integer> roleIds = userRoles.stream().map(UserRoleEntity::getRoleId).toList();
+        List<Long> roleIds = userRoles.stream().map(UserRoleEntity::getRoleId).toList();
         List<RoleEntity> roles = roleRepository.findAllById(roleIds);
 
         boolean isSuperAdmin = roles.stream().anyMatch(
@@ -132,7 +132,7 @@ public class MenuController {
             return menuService.buildTree(null);
         }
 
-        Set<Integer> menuIds = roleMenuRepository.findByRoleIdIn(roleIds).stream()
+        Set<Long> menuIds = roleMenuRepository.findByRoleIdIn(roleIds).stream()
                 .map(RoleMenuEntity::getMenuId)
                 .collect(Collectors.toSet());
         return menuService.buildTree(menuIds);

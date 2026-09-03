@@ -11,29 +11,29 @@ import java.util.Optional;
 /**
  * Role-menu association repository
  */
-public interface RoleMenuRepository extends JpaRepository<RoleMenuEntity, Integer> {
+public interface RoleMenuRepository extends JpaRepository<RoleMenuEntity, Long> {
 
     /**
      * Find all menu associations by role ID
      */
-    List<RoleMenuEntity> findByRoleId(Integer roleId);
+    List<RoleMenuEntity> findByRoleId(Long roleId);
 
     /**
      * Find all menu associations by a list of role IDs
      */
-    List<RoleMenuEntity> findByRoleIdIn(List<Integer> roleIds);
+    List<RoleMenuEntity> findByRoleIdIn(List<Long> roleIds);
 
     /**
      * Find by role ID and menu ID
      */
-    Optional<RoleMenuEntity> findByRoleIdAndMenuId(Integer roleId, Integer menuId);
+    Optional<RoleMenuEntity> findByRoleIdAndMenuId(Long roleId, Long menuId);
 
-    int deleteByRoleIdAndMenuIdIn(Integer roleId, List<Integer> menuIds);
+    int deleteByRoleIdAndMenuIdIn(Long roleId, List<Long> menuIds);
 
     /**
      * Find role IDs that have access to a menu by its code.
      * Single query: JOIN rbac_role_menu + rbac_menu.
      */
     @Query("SELECT rm.roleId FROM RoleMenuEntity rm JOIN MenuEntity m ON rm.menuId = m.id WHERE m.code = :code")
-    List<Integer> findRoleIdsByMenuCode(@Param("code") String code);
+    List<Long> findRoleIdsByMenuCode(@Param("code") String code);
 }

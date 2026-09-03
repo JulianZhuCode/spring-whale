@@ -42,7 +42,7 @@ public class RbacMenuProvider implements AdminMenuProvider {
 
     @Override
     public List<MenuItem> getMenus() {
-        Integer userId = AuthUtil.getUserId();
+        Long userId = AuthUtil.getUserId();
         if (userId == null) {
             return Collections.emptyList();
         }
@@ -56,8 +56,8 @@ public class RbacMenuProvider implements AdminMenuProvider {
         return 10;
     }
 
-    private List<MenuEntity> resolveAllowedMenus(Integer userId) {
-        List<Integer> roleIds = userRoleRepository.findByUserId(userId).stream()
+    private List<MenuEntity> resolveAllowedMenus(Long userId) {
+        List<Long> roleIds = userRoleRepository.findByUserId(userId).stream()
                 .map(UserRoleEntity::getRoleId)
                 .toList();
 
@@ -69,14 +69,14 @@ public class RbacMenuProvider implements AdminMenuProvider {
             return fetchVisibleMenus(null);
         }
 
-        Set<Integer> allowedMenuIds = roleMenuRepository.findByRoleIdIn(roleIds).stream()
+        Set<Long> allowedMenuIds = roleMenuRepository.findByRoleIdIn(roleIds).stream()
                 .map(RoleMenuEntity::getMenuId)
                 .collect(Collectors.toCollection(HashSet::new));
 
         return fetchVisibleMenus(allowedMenuIds);
     }
 
-    private List<MenuEntity> fetchVisibleMenus(Set<Integer> allowedMenuIds) {
+    private List<MenuEntity> fetchVisibleMenus(Set<Long> allowedMenuIds) {
         List<MenuEntity> source = allowedMenuIds == null
                 ? menuRepository.findAll()
                 : menuRepository.findAllById(allowedMenuIds);
@@ -89,7 +89,7 @@ public class RbacMenuProvider implements AdminMenuProvider {
     }
 
     private List<MenuItem> toMenuItems(List<MenuEntity> entities) {
-        Map<Integer, String> idToCode = entities.stream()
+        Map<Long, String> idToCode = entities.stream()
                 .collect(Collectors.toMap(MenuEntity::getId, MenuEntity::getCode));
 
         return entities.stream()
@@ -98,7 +98,7 @@ public class RbacMenuProvider implements AdminMenuProvider {
                 .toList();
     }
 
-    private MenuItem toMenuItem(MenuEntity entity, Map<Integer, String> idToCode) {
+    private MenuItem toMenuItem(MenuEntity entity, Map<Long, String> idToCode) {
         int sort = entity.getSort() != null ? entity.getSort() : 0;
         if (entity.getType() == MenuType.DIRECTORY) {
             return MenuItem.group(

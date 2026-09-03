@@ -23,17 +23,17 @@ public class UserRoleScopeView {
 
     @Id
     @Column(name = "user_role_id")
-    private Integer userRoleId;
+    private Long userRoleId;
 
     @Id
     @Column(name = "dept_group_id")
-    private Integer deptGroupId;
+    private Long deptGroupId;
 
     @Column(name = "user_id")
-    private Integer userId;
+    private Long userId;
 
     @Column(name = "role_id")
-    private Integer roleId;
+    private Long roleId;
 
     @Column(name = "data_scope")
     private String dataScope;
@@ -43,7 +43,7 @@ public class UserRoleScopeView {
 
     @Data
     public static class UserRoleScopeViewId implements Serializable {
-        private Integer userRoleId;
-        private Integer deptGroupId;
+        private Long userRoleId;
+        private Long deptGroupId;
     }
 }

@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Data
 public class TaskVO {
 
-    private Integer id;
+    private Long id;
 
     private String taskType;
 
@@ -46,7 +46,7 @@ public class TaskVO {
 
     private LocalDateTime updateTime;
 
-    private Integer createBy;
+    private Long createBy;
 
     private String createByName;
 

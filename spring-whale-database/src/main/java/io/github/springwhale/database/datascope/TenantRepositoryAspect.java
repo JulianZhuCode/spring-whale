@@ -55,7 +55,7 @@ public class TenantRepositoryAspect {
             return joinPoint.proceed();
         }
 
-        Integer tenantId = dataScopeHandler.resolveTenantId();
+        Long tenantId = dataScopeHandler.resolveTenantId();
         List<String> tenantFields = dataScopeHelper.resolveTenantIdFields(entityClass);
         if (tenantId == null || tenantFields.isEmpty()) {
             return joinPoint.proceed();

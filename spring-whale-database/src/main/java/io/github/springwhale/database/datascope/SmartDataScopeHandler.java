@@ -60,7 +60,7 @@ public class SmartDataScopeHandler implements DataScopeHandler {
 
     @Override
     public boolean skipTenantScope() {
-        Integer userId = AuthUtil.getUserId();
+        Long userId = AuthUtil.getUserId();
         if (userId == null) {
             return false;
         }
@@ -74,7 +74,7 @@ public class SmartDataScopeHandler implements DataScopeHandler {
 
     @Override
     public boolean skipDataScope() {
-        Integer userId = AuthUtil.getUserId();
+        Long userId = AuthUtil.getUserId();
         if (userId == null) {
             return false;
         }
@@ -88,7 +88,7 @@ public class SmartDataScopeHandler implements DataScopeHandler {
 
     @Override
     public List<Object> resolveDeptIds(DataScopeType scopeType, String module) {
-        Integer userId = AuthUtil.getUserId();
+        Long userId = AuthUtil.getUserId();
         if (userId == null) {
             return Collections.emptyList();
         }
@@ -100,7 +100,7 @@ public class SmartDataScopeHandler implements DataScopeHandler {
         return fetchAndCacheDeptIds(cache, userId, scopeType, module);
     }
 
-    private boolean fetchAndCacheSkipDataScope(WhaleCache cache, Integer userId) {
+    private boolean fetchAndCacheSkipDataScope(WhaleCache cache, Long userId) {
         try {
             DataScopeSkipResponse response = remoteApi.skipDataScope(userId);
             boolean result = response != null && response.skip();
@@ -118,7 +118,7 @@ public class SmartDataScopeHandler implements DataScopeHandler {
         }
     }
 
-    private boolean fetchAndCacheSkipTenantScope(WhaleCache cache, Integer userId) {
+    private boolean fetchAndCacheSkipTenantScope(WhaleCache cache, Long userId) {
         try {
             DataScopeSkipResponse response = remoteApi.skipTenantScope(userId);
             boolean result = response != null && response.skip();
@@ -136,7 +136,7 @@ public class SmartDataScopeHandler implements DataScopeHandler {
         }
     }
 
-    private List<Object> fetchAndCacheDeptIds(WhaleCache cache, Integer userId,
+    private List<Object> fetchAndCacheDeptIds(WhaleCache cache, Long userId,
                                               DataScopeType scopeType, String module) {
         try {
             DataScopeResolveResponse response = remoteApi.resolveDeptIds(userId, scopeType, module);

@@ -49,7 +49,7 @@ public class RoleEntity extends BaseEntity {
      * Group (department) ID
      */
     @DeptIdField
-    private Integer groupId;
+    private Long groupId;
 
     @Enumerated(EnumType.STRING)
     private DataScopeType dataScope;

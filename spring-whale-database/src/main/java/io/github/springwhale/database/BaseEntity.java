@@ -28,16 +28,16 @@ import java.time.LocalDateTime;
 public abstract class BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     private LocalDateTime createTime;
 
     private LocalDateTime updateTime;
 
     @UserIdField
-    private Integer createBy;
+    private Long createBy;
 
-    private Integer updateBy;
+    private Long updateBy;
 
     @Version
     private Integer version;

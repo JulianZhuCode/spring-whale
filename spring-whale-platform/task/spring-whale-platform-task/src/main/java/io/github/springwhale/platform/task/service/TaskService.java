@@ -137,7 +137,7 @@ public class TaskService {
      * it resumes from the breakpoint (skipping already-successful items).
      */
     @Transactional
-    public TaskVO start(Integer taskId) {
+    public TaskVO start(Long taskId) {
         log.info("start() called for taskId={}", taskId);
         TaskBatchEntity task = taskRepository.findById(taskId)
                 .orElseThrow(() -> BusinessException.create("TASK_NOT_FOUND", "Task not found: " + taskId));
@@ -172,7 +172,7 @@ public class TaskService {
      * but no new items will be picked up.
      */
     @Transactional
-    public TaskVO pause(Integer taskId) {
+    public TaskVO pause(Long taskId) {
         TaskBatchEntity task = taskRepository.findById(taskId)
                 .orElseThrow(() -> BusinessException.create("TASK_NOT_FOUND", "Task not found: " + taskId));
 
@@ -193,7 +193,7 @@ public class TaskService {
      * Resumes a paused task from the breakpoint.
      */
     @Transactional
-    public TaskVO resume(Integer taskId) {
+    public TaskVO resume(Long taskId) {
         log.info("resume() called for taskId={}", taskId);
         TaskBatchEntity task = taskRepository.findById(taskId)
                 .orElseThrow(() -> BusinessException.create("TASK_NOT_FOUND", "Task not found: " + taskId));
@@ -223,7 +223,7 @@ public class TaskService {
      * Cancels a task. In-flight items may still complete, but no new items are picked up.
      */
     @Transactional
-    public TaskVO cancel(Integer taskId) {
+    public TaskVO cancel(Long taskId) {
         TaskBatchEntity task = taskRepository.findById(taskId)
                 .orElseThrow(() -> BusinessException.create("TASK_NOT_FOUND", "Task not found: " + taskId));
 
@@ -254,7 +254,7 @@ public class TaskService {
      * Running / Paused tasks cannot be deleted; use cancel first.
      */
     @Transactional
-    public void delete(Integer taskId) {
+    public void delete(Long taskId) {
         TaskBatchEntity task = taskRepository.findById(taskId)
                 .orElseThrow(() -> BusinessException.create("TASK_NOT_FOUND", "Task not found: " + taskId));
 
@@ -271,14 +271,14 @@ public class TaskService {
 
     // ==================== Query Methods ====================
 
-    public Optional<TaskVO> findById(Integer id) {
+    public Optional<TaskVO> findById(Long id) {
         return taskRepository.findById(id).map(this::toVO);
     }
 
     /**
      * Returns all failed items for a given task.
      */
-    public List<TaskBatchItemEntity> findFailedItems(Integer taskId) {
+    public List<TaskBatchItemEntity> findFailedItems(Long taskId) {
         return itemRepository.findByTaskIdAndStatusOrderByIdAsc(taskId, TaskItemStatus.FAILED);
     }
 
@@ -286,7 +286,7 @@ public class TaskService {
      * Resets FAILED items back to PENDING and starts/resumes execution immediately.
      */
     @Transactional
-    public TaskVO retryFailed(Integer taskId) {
+    public TaskVO retryFailed(Long taskId) {
         TaskBatchEntity task = taskRepository.findById(taskId)
                 .orElseThrow(() -> BusinessException.create("TASK_NOT_FOUND", "Task not found: " + taskId));
 

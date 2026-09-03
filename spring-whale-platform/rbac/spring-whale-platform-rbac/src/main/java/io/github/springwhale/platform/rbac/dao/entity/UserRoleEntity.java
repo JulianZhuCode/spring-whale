@@ -20,8 +20,8 @@ import lombok.EqualsAndHashCode;
 public class UserRoleEntity extends SimpleBaseEntity {
 
     @Column(nullable = false)
-    private Integer userId;
+    private Long userId;
 
     @Column(nullable = false)
-    private Integer roleId;
+    private Long roleId;
 }

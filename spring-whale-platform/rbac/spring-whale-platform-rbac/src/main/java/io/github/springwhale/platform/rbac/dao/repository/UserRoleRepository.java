@@ -9,20 +9,20 @@ import java.util.Optional;
 /**
  * User-role association repository
  */
-public interface UserRoleRepository extends JpaRepository<UserRoleEntity, Integer> {
+public interface UserRoleRepository extends JpaRepository<UserRoleEntity, Long> {
 
     /**
      * Find all role associations by user ID
      */
-    List<UserRoleEntity> findByUserId(Integer userId);
+    List<UserRoleEntity> findByUserId(Long userId);
 
     /**
      * Find all user associations by role ID
      */
-    List<UserRoleEntity> findByRoleId(Integer roleId);
+    List<UserRoleEntity> findByRoleId(Long roleId);
 
     /**
      * Find a specific user-role association
      */
-    Optional<UserRoleEntity> findByUserIdAndRoleId(Integer userId, Integer roleId);
+    Optional<UserRoleEntity> findByUserIdAndRoleId(Long userId, Long roleId);
 }

@@ -35,7 +35,7 @@ class JwtAuthenticationFilterTest {
 
     @BeforeEach
     void setUp() {
-        validToken = jwtUtil.generateToken("testuser", 1001, null);
+        validToken = jwtUtil.generateToken("testuser", 1001L, null);
         assertTrue(jwtUtil.validateToken(validToken), "Token should be valid immediately after generation");
     }
 
@@ -77,7 +77,7 @@ class JwtAuthenticationFilterTest {
         shortLivedProps.setJwtSecret("MyTestSecretKeyForJWT2024WithAtLeast32Bytes!");
         shortLivedProps.setJwtExpiration(1L);
         JwtUtil shortLivedJwtUtil = new JwtUtil(shortLivedProps);
-        String expiredToken = shortLivedJwtUtil.generateToken("testuser", 1001, null);
+        String expiredToken = shortLivedJwtUtil.generateToken("testuser", 1001L, null);
 
         Thread.sleep(10);
 

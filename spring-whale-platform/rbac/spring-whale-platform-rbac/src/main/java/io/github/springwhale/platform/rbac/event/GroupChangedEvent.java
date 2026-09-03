@@ -8,5 +8,5 @@ import io.github.springwhale.framework.event.Event;
  * the data scope cache of all users in this group and its descendants.</p>
  */
 @Event(businessName = "GroupChanged")
-public record GroupChangedEvent(Integer groupId) {
+public record GroupChangedEvent(Long groupId) {
 }

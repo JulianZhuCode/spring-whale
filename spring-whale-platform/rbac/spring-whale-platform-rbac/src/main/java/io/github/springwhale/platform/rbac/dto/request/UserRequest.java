@@ -18,5 +18,5 @@ public class UserRequest {
     private String phone;
     private String avatar;
     private Integer status;
-    private Integer groupId;
+    private Long groupId;
 }

@@ -55,7 +55,7 @@ public class MenuService {
     /**
      * Find menu by ID
      */
-    public Optional<MenuVO> findById(Integer id) {
+    public Optional<MenuVO> findById(Long id) {
         return menuRepository.findById(id).map(MenuMapper::toVO);
     }
 
@@ -84,7 +84,7 @@ public class MenuService {
      * Update menu
      */
     @Transactional
-    public MenuVO update(Integer id, MenuRequest request) {
+    public MenuVO update(Long id, MenuRequest request) {
         MenuEntity menu = menuRepository.findById(id)
                 .orElseThrow(() -> BusinessException.create("MENU_NOT_FOUND", "Menu not found, ID: " + id));
 
@@ -108,7 +108,7 @@ public class MenuService {
      * Delete menu. Child menus are moved to the parent menu before deletion.
      */
     @Transactional
-    public void delete(Integer id) {
+    public void delete(Long id) {
         MenuEntity menu = menuRepository.findById(id)
                 .orElseThrow(() -> BusinessException.create("MENU_NOT_FOUND", "Menu not found, ID: " + id));
 
@@ -128,7 +128,7 @@ public class MenuService {
      * Build menu tree filtered by allowed menu IDs.
      * If allowedMenuIds is null, returns all menus.
      */
-    public List<MenuTreeVO> buildTree(Set<Integer> allowedMenuIds) {
+    public List<MenuTreeVO> buildTree(Set<Long> allowedMenuIds) {
         List<MenuEntity> all = menuRepository.findAll();
 
         List<MenuEntity> filtered = all;
@@ -138,15 +138,15 @@ public class MenuService {
                     .toList();
         }
 
-        Map<Integer, List<MenuTreeVO>> parentMap = filtered.stream()
+        Map<Long, List<MenuTreeVO>> parentMap = filtered.stream()
                 .sorted(Comparator.comparing(MenuEntity::getSort, Comparator.nullsLast(Comparator.naturalOrder())))
                 .map(this::toTreeVO)
                 .collect(Collectors.groupingBy(
-                        vo -> vo.getParentId() != null ? vo.getParentId() : 0,
+                        vo -> vo.getParentId() != null ? vo.getParentId() : 0L,
                         LinkedHashMap::new,
                         Collectors.toList()));
 
-        List<MenuTreeVO> roots = parentMap.getOrDefault(0, List.of());
+        List<MenuTreeVO> roots = parentMap.getOrDefault(0L, List.of());
         for (MenuTreeVO root : roots) {
             buildChildren(root, parentMap);
         }
@@ -172,7 +172,7 @@ public class MenuService {
         return entity.getName();
     }
 
-    private void buildChildren(MenuTreeVO parent, Map<Integer, List<MenuTreeVO>> parentMap) {
+    private void buildChildren(MenuTreeVO parent, Map<Long, List<MenuTreeVO>> parentMap) {
         List<MenuTreeVO> children = parentMap.get(parent.getId());
         if (children != null) {
             parent.setChildren(children);

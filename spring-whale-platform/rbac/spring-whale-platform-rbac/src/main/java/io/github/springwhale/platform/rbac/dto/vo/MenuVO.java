@@ -8,8 +8,8 @@ import lombok.Data;
  */
 @Data
 public class MenuVO {
-    private Integer id;
-    private Integer parentId;
+    private Long id;
+    private Long parentId;
     private String code;
     private String name;
     private String nameI18nKey;

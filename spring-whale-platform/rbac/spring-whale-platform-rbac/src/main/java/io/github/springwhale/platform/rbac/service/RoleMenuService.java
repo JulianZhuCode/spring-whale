@@ -26,7 +26,7 @@ public class RoleMenuService {
     /**
      * Get menu IDs assigned to a role
      */
-    public List<Integer> getMenuIdsByRoleId(Integer roleId) {
+    public List<Long> getMenuIdsByRoleId(Long roleId) {
         return roleMenuRepository.findByRoleId(roleId).stream()
                 .map(RoleMenuEntity::getMenuId)
                 .toList();
@@ -36,12 +36,12 @@ public class RoleMenuService {
      * Batch add menus to a role — skips already existing associations
      */
     @Transactional
-    public void addMenus(Integer roleId, List<Integer> menuIds) {
+    public void addMenus(Long roleId, List<Long> menuIds) {
         if (menuIds == null || menuIds.isEmpty()) {
             return;
         }
         boolean changed = false;
-        for (Integer menuId : menuIds) {
+        for (Long menuId : menuIds) {
             if (roleMenuRepository.findByRoleIdAndMenuId(roleId, menuId).isEmpty()) {
                 RoleMenuEntity entity = new RoleMenuEntity();
                 entity.setRoleId(roleId);
@@ -59,7 +59,7 @@ public class RoleMenuService {
      * Batch remove menus from a role — only removes existing associations
      */
     @Transactional
-    public void removeMenus(Integer roleId, List<Integer> menuIds) {
+    public void removeMenus(Long roleId, List<Long> menuIds) {
         if (menuIds == null || menuIds.isEmpty()) {
             return;
         }

@@ -22,19 +22,19 @@ public class RoleDeptService {
         this.eventPublisher = eventPublisher;
     }
 
-    public List<Integer> getDeptIdsByRoleId(Integer roleId) {
+    public List<Long> getDeptIdsByRoleId(Long roleId) {
         return roleDeptRepository.findByRoleId(roleId).stream()
                 .map(RoleDeptEntity::getGroupId)
                 .toList();
     }
 
     @Transactional
-    public void addDepts(Integer roleId, List<Integer> deptIds) {
+    public void addDepts(Long roleId, List<Long> deptIds) {
         if (deptIds == null || deptIds.isEmpty()) {
             return;
         }
         List<RoleDeptEntity> toSave = new ArrayList<>();
-        for (Integer deptId : deptIds) {
+        for (Long deptId : deptIds) {
             if (roleDeptRepository.findByRoleIdAndGroupId(roleId, deptId).isEmpty()) {
                 RoleDeptEntity entity = new RoleDeptEntity();
                 entity.setRoleId(roleId);
@@ -49,12 +49,12 @@ public class RoleDeptService {
     }
 
     @Transactional
-    public void removeDepts(Integer roleId, List<Integer> deptIds) {
+    public void removeDepts(Long roleId, List<Long> deptIds) {
         if (deptIds == null || deptIds.isEmpty()) {
             return;
         }
         List<RoleDeptEntity> toDelete = new ArrayList<>();
-        for (Integer deptId : deptIds) {
+        for (Long deptId : deptIds) {
             Optional<RoleDeptEntity> existing = roleDeptRepository.findByRoleIdAndGroupId(roleId, deptId);
             existing.ifPresent(toDelete::add);
         }

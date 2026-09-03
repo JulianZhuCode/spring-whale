@@ -10,5 +10,5 @@ import io.github.springwhale.framework.event.Event;
  * the data scope cache of all users assigned to this role.</p>
  */
 @Event(businessName = "RoleChanged")
-public record RoleChangedEvent(Integer roleId) {
+public record RoleChangedEvent(Long roleId) {
 }

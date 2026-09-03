@@ -42,7 +42,7 @@ public class TestDataScopeHandler implements DataScopeHandler {
     }
 
     @Override
-    public Integer resolveUserId() {
+    public Long resolveUserId() {
         AuthenticationContext ctx = AuthenticationContextHolder.getContext();
         return ctx != null ? ctx.getUserId() : null;
     }

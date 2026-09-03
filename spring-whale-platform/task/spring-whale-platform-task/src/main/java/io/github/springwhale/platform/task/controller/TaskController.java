@@ -37,7 +37,7 @@ public class TaskController {
      * GET /api/tasks/{id}
      */
     @GetMapping("/{id}")
-    public TaskVO findById(@PathVariable Integer id) {
+    public TaskVO findById(@PathVariable Long id) {
         return taskService.findById(id)
                 .orElseThrow(() -> BusinessException.create("TASK_NOT_FOUND", "Task not found: " + id));
     }
@@ -85,7 +85,7 @@ public class TaskController {
      * POST /api/tasks/{id}/start
      */
     @PostMapping("/{id}/start")
-    public TaskVO start(@PathVariable Integer id) {
+    public TaskVO start(@PathVariable Long id) {
         return taskService.start(id);
     }
 
@@ -94,7 +94,7 @@ public class TaskController {
      * POST /api/tasks/{id}/pause
      */
     @PostMapping("/{id}/pause")
-    public TaskVO pause(@PathVariable Integer id) {
+    public TaskVO pause(@PathVariable Long id) {
         return taskService.pause(id);
     }
 
@@ -103,7 +103,7 @@ public class TaskController {
      * POST /api/tasks/{id}/resume
      */
     @PostMapping("/{id}/resume")
-    public TaskVO resume(@PathVariable Integer id) {
+    public TaskVO resume(@PathVariable Long id) {
         return taskService.resume(id);
     }
 
@@ -112,7 +112,7 @@ public class TaskController {
      * POST /api/tasks/{id}/cancel
      */
     @PostMapping("/{id}/cancel")
-    public TaskVO cancel(@PathVariable Integer id) {
+    public TaskVO cancel(@PathVariable Long id) {
         return taskService.cancel(id);
     }
 
@@ -121,7 +121,7 @@ public class TaskController {
      * DELETE /api/tasks/{id}
      */
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Integer id) {
+    public void delete(@PathVariable Long id) {
         taskService.delete(id);
     }
 
@@ -130,7 +130,7 @@ public class TaskController {
      * GET /api/tasks/{id}/failed-items
      */
     @GetMapping("/{id}/failed-items")
-    public List<TaskBatchItemEntity> findFailedItems(@PathVariable Integer id) {
+    public List<TaskBatchItemEntity> findFailedItems(@PathVariable Long id) {
         return taskService.findFailedItems(id);
     }
 
@@ -139,7 +139,7 @@ public class TaskController {
      * POST /api/tasks/{id}/retry-failed
      */
     @PostMapping("/{id}/retry-failed")
-    public TaskVO retryFailed(@PathVariable Integer id) {
+    public TaskVO retryFailed(@PathVariable Long id) {
         return taskService.retryFailed(id);
     }
 }

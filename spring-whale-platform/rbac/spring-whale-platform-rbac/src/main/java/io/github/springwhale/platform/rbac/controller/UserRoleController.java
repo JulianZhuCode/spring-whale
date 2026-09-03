@@ -25,7 +25,7 @@ public class UserRoleController {
      */
     @PreAuthorize("hasAnyAuthority('rbac:user', '*')")
     @GetMapping
-    public List<Integer> getRoles(@PathVariable Integer userId) {
+    public List<Long> getRoles(@PathVariable Long userId) {
         return userRoleService.getRoleIdsByUserId(userId);
     }
 
@@ -35,7 +35,7 @@ public class UserRoleController {
      */
     @PreAuthorize("hasAnyAuthority('rbac:user:update', '*')")
     @PostMapping
-    public ResponseEntity<Map<String, String>> addRoles(@PathVariable Integer userId, @RequestBody List<Integer> roleIds) {
+    public ResponseEntity<Map<String, String>> addRoles(@PathVariable Long userId, @RequestBody List<Long> roleIds) {
         userRoleService.addRoles(userId, roleIds);
         return ResponseEntity.ok(Map.of("message", "ok"));
     }
@@ -46,7 +46,7 @@ public class UserRoleController {
      */
     @PreAuthorize("hasAnyAuthority('rbac:user:update', '*')")
     @DeleteMapping
-    public ResponseEntity<Map<String, String>> removeRoles(@PathVariable Integer userId, @RequestBody List<Integer> roleIds) {
+    public ResponseEntity<Map<String, String>> removeRoles(@PathVariable Long userId, @RequestBody List<Long> roleIds) {
         userRoleService.removeRoles(userId, roleIds);
         return ResponseEntity.ok(Map.of("message", "ok"));
     }

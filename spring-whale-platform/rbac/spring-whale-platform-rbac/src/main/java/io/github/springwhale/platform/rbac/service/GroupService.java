@@ -62,7 +62,7 @@ public class GroupService {
     /**
      * Find department by ID
      */
-    public Optional<GroupVO> findById(Integer id) {
+    public Optional<GroupVO> findById(Long id) {
         return groupRepository.findById(id).map(GroupMapper::toVO);
     }
 
@@ -93,11 +93,11 @@ public class GroupService {
      * Update department
      */
     @Transactional
-    public GroupVO update(Integer id, GroupRequest request) {
+    public GroupVO update(Long id, GroupRequest request) {
         GroupEntity group = groupRepository.findById(id)
                 .orElseThrow(() -> BusinessException.create("GROUP_NOT_FOUND", "Department not found, ID: " + id));
 
-        Integer oldParentId = group.getParentId();
+        Long oldParentId = group.getParentId();
         group.setParentId(request.getParentId());
         group.setCode(request.getCode());
         group.setName(request.getName());
@@ -124,11 +124,11 @@ public class GroupService {
      * parent department before deletion.
      */
     @Transactional
-    public void delete(Integer id) {
+    public void delete(Long id) {
         GroupEntity group = groupRepository.findById(id)
                 .orElseThrow(() -> BusinessException.create("GROUP_NOT_FOUND", "Department not found, ID: " + id));
 
-        Integer parentId = group.getParentId();
+        Long parentId = group.getParentId();
 
         // 1. Move child departments to the parent of the deleted department
         List<GroupEntity> children = groupRepository.findByPathStartingWith(group.getPath() + id + "/");
@@ -163,15 +163,15 @@ public class GroupService {
     public List<GroupTreeVO> buildDeptTree() {
         List<GroupEntity> all = groupRepository.findAll();
 
-        Map<Integer, List<GroupTreeVO>> parentMap = all.stream()
+        Map<Long, List<GroupTreeVO>> parentMap = all.stream()
                 .sorted(Comparator.comparing(GroupEntity::getSort, Comparator.nullsLast(Comparator.naturalOrder())))
                 .map(this::toTreeVO)
                 .collect(Collectors.groupingBy(
-                        vo -> vo.getParentId() != null ? vo.getParentId() : 0,
+                        vo -> vo.getParentId() != null ? vo.getParentId() : 0L,
                         LinkedHashMap::new,
                         Collectors.toList()));
 
-        List<GroupTreeVO> roots = parentMap.getOrDefault(0, List.of());
+        List<GroupTreeVO> roots = parentMap.getOrDefault(0L, List.of());
         for (GroupTreeVO root : roots) {
             buildChildren(root, parentMap);
         }
@@ -187,7 +187,7 @@ public class GroupService {
         return vo;
     }
 
-    private void buildChildren(GroupTreeVO parent, Map<Integer, List<GroupTreeVO>> parentMap) {
+    private void buildChildren(GroupTreeVO parent, Map<Long, List<GroupTreeVO>> parentMap) {
         List<GroupTreeVO> children = parentMap.get(parent.getId());
         if (children != null) {
             parent.setChildren(children);
@@ -205,7 +205,7 @@ public class GroupService {
      * @param deptId the department ID
      * @return all descendant departments (excluding the department itself)
      */
-    public List<GroupVO> findDescendants(Integer deptId) {
+    public List<GroupVO> findDescendants(Long deptId) {
         GroupEntity dept = groupRepository.findById(deptId)
                 .orElseThrow(() -> BusinessException.create("GROUP_NOT_FOUND", "Department not found, ID: " + deptId));
         String prefix = dept.getPath() + deptId + "/";
@@ -218,7 +218,7 @@ public class GroupService {
      * Build materialized path for a new department based on its parent.
      * Root nodes (parentId is null) get path "/".
      */
-    private String buildPath(Integer parentId) {
+    private String buildPath(Long parentId) {
         if (parentId == null) {
             return "/";
         }

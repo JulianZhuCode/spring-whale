@@ -23,7 +23,7 @@ public abstract class SimpleBaseEntity {
     private LocalDateTime createTime;
 
     @UserIdField
-    private Integer createBy;
+    private Long createBy;
 
     @PrePersist
     public void prePersist() {

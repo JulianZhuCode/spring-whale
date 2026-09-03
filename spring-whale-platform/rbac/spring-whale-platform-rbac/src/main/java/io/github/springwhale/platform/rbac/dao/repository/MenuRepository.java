@@ -10,7 +10,7 @@ import java.util.Optional;
 /**
  * Menu repository
  */
-public interface MenuRepository extends JpaRepository<MenuEntity, Integer>, JpaSpecificationExecutor<MenuEntity> {
+public interface MenuRepository extends JpaRepository<MenuEntity, Long>, JpaSpecificationExecutor<MenuEntity> {
 
     /**
      * Find menu by exact code
@@ -20,5 +20,5 @@ public interface MenuRepository extends JpaRepository<MenuEntity, Integer>, JpaS
     /**
      * Find all child menus by parent ID
      */
-    List<MenuEntity> findByParentId(Integer parentId);
+    List<MenuEntity> findByParentId(Long parentId);
 }

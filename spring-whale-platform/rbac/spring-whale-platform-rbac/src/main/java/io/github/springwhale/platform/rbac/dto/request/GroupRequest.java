@@ -9,7 +9,7 @@ import lombok.Data;
 @Data
 public class GroupRequest {
 
-    private Integer parentId;
+    private Long parentId;
 
     private String code;
 

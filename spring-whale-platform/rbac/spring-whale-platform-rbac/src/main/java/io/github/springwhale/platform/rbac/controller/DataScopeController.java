@@ -39,21 +39,21 @@ public class DataScopeController implements DataScopeRemoteApi {
     @Override
     @GetMapping("/api/rbac/datascope/skip/{userId}")
     @DataScope(scopeType = DataScopeType.CALLER)
-    public DataScopeSkipResponse skipDataScope(@PathVariable Integer userId) {
+    public DataScopeSkipResponse skipDataScope(@PathVariable Long userId) {
         return new DataScopeSkipResponse(handler.skipDataScope(userId));
     }
 
     @Override
     @GetMapping("/api/rbac/datascope/skip-tenant/{userId}")
     @DataScope(scopeType = DataScopeType.CALLER)
-    public DataScopeSkipResponse skipTenantScope(@PathVariable Integer userId) {
+    public DataScopeSkipResponse skipTenantScope(@PathVariable Long userId) {
         return new DataScopeSkipResponse(handler.skipTenantScope(userId));
     }
 
     @Override
     @GetMapping("/api/rbac/datascope/resolve/{userId}")
     @DataScope(scopeType = DataScopeType.CALLER)
-    public DataScopeResolveResponse resolveDeptIds(@PathVariable Integer userId,
+    public DataScopeResolveResponse resolveDeptIds(@PathVariable Long userId,
                                                    @RequestParam DataScopeType scopeType,
                                                    @RequestParam(required = false) String module) {
         List<Object> deptIds = handler.resolveDeptIds(userId, scopeType, module);
@@ -67,7 +67,7 @@ public class DataScopeController implements DataScopeRemoteApi {
      */
     @DeleteMapping("/api/rbac/datascope/cache/{userId}")
     @DataScope(scopeType = DataScopeType.CALLER)
-    public void evictCache(@PathVariable Integer userId) {
+    public void evictCache(@PathVariable Long userId) {
         handler.evictUser(userId);
     }
 }

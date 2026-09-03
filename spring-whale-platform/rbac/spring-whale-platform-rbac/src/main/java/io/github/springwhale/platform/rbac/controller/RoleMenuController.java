@@ -25,7 +25,7 @@ public class RoleMenuController {
      */
     @PreAuthorize("hasAnyAuthority('rbac:role', '*')")
     @GetMapping
-    public List<Integer> getMenus(@PathVariable Integer roleId) {
+    public List<Long> getMenus(@PathVariable Long roleId) {
         return roleMenuService.getMenuIdsByRoleId(roleId);
     }
 
@@ -35,7 +35,7 @@ public class RoleMenuController {
      */
     @PreAuthorize("hasAnyAuthority('rbac:role:update', '*')")
     @PostMapping
-    public ResponseEntity<Map<String, String>> addMenus(@PathVariable Integer roleId, @RequestBody List<Integer> menuIds) {
+    public ResponseEntity<Map<String, String>> addMenus(@PathVariable Long roleId, @RequestBody List<Long> menuIds) {
         roleMenuService.addMenus(roleId, menuIds);
         return ResponseEntity.ok(Map.of("message", "ok"));
     }
@@ -46,7 +46,7 @@ public class RoleMenuController {
      */
     @PreAuthorize("hasAnyAuthority('rbac:role:update', '*')")
     @DeleteMapping
-    public ResponseEntity<Map<String, String>> removeMenus(@PathVariable Integer roleId, @RequestBody List<Integer> menuIds) {
+    public ResponseEntity<Map<String, String>> removeMenus(@PathVariable Long roleId, @RequestBody List<Long> menuIds) {
         roleMenuService.removeMenus(roleId, menuIds);
         return ResponseEntity.ok(Map.of("message", "ok"));
     }

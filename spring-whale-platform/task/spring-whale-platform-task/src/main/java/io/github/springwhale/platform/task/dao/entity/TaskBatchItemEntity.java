@@ -16,7 +16,7 @@ import lombok.EqualsAndHashCode;
 public class TaskBatchItemEntity extends BaseEntity {
 
     @Column(nullable = false)
-    private Integer taskId;
+    private Long taskId;
 
     @Column(nullable = false)
     private String itemKey;

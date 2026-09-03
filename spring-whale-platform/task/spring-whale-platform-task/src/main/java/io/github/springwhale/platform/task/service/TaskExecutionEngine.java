@@ -24,6 +24,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -62,20 +63,20 @@ public class TaskExecutionEngine {
         }
     }
 
-    public void cancelFuture(Integer taskId) {
+    public void cancelFuture(Long taskId) {
         Future<?> future = runningFutures.get(String.valueOf(taskId));
         if (future != null) {
             future.cancel(true);
         }
     }
 
-    public void cleanupTerminalItems(Integer taskId) {
+    public void cleanupTerminalItems(Long taskId) {
         itemRepository.deleteByTaskIdAndStatusIn(taskId,
                 List.of(TaskItemStatus.SUCCESS, TaskItemStatus.SKIPPED));
         log.info("Cleaned up SUCCESS/SKIPPED items for task [{}]", taskId);
     }
 
-    public void submitAfterCommit(Integer taskId, TaskHandler handler, Map<String, Object> params) {
+    public void submitAfterCommit(Long taskId, TaskHandler handler, Map<String, Object> params) {
         log.info("submitAfterCommit() for taskId={}, transactionActive={}",
                 taskId, TransactionSynchronizationManager.isActualTransactionActive());
 
@@ -140,7 +141,7 @@ public class TaskExecutionEngine {
     }
 
     private void executeTask(TaskBatchEntity task, TaskHandler handler, Map<String, Object> params) {
-        Integer taskId = task.getId();
+        Long taskId = task.getId();
         int total = task.getTotalCount();
         int concurrency = task.getConcurrency() != null && task.getConcurrency() > 0
                 ? task.getConcurrency() : DEFAULT_CONCURRENCY;
@@ -158,8 +159,12 @@ public class TaskExecutionEngine {
         AtomicInteger skippedCount = new AtomicInteger(task.getSkippedCount() != null ? task.getSkippedCount() : 0);
         AtomicInteger completedCounter = new AtomicInteger(0);
         AtomicBoolean cancelled = new AtomicBoolean(false);
+        // A fatal error thrown by the handler's batch processing (not per-item failures,
+        // which are reported via the callback). The task must reach a terminal FAILED state
+        // instead of hanging in RUNNING.
+        AtomicReference<Throwable> batchFailure = new AtomicReference<>();
 
-        Set<Integer> savedItemIds = ConcurrentHashMap.newKeySet();
+        Set<Long> savedItemIds = ConcurrentHashMap.newKeySet();
         List<TaskBatchItemEntity> dirtyItems = Collections.synchronizedList(new ArrayList<>());
         AtomicInteger flushCounter = new AtomicInteger(0);
 
@@ -209,6 +214,7 @@ public class TaskExecutionEngine {
                 }
             } catch (Exception e) {
                 cancelled.set(true);
+                batchFailure.compareAndSet(null, e);
                 log.error("Task [{}] execution failed in processBatch at offset {}", taskId, offset, e);
             }
 
@@ -221,15 +227,24 @@ public class TaskExecutionEngine {
         log.info("Task [{}] updating final task status (success={}, fail={}, cancelled={})",
                 taskId, successCount.get(), failCount.get(), cancelled.get());
 
+        Throwable fatalError = batchFailure.get();
         new TransactionTemplate(transactionManager).execute(status -> {
             taskRepository.findById(taskId).ifPresent(finalTask -> {
                 finalTask.setSuccessCount(successCount.get());
                 finalTask.setFailCount(failCount.get());
                 finalTask.setSkippedCount(skippedCount.get());
 
-                boolean shouldComplete = finalTask.getStatus() == TaskStatus.RUNNING && !cancelled.get();
+                boolean stillRunning = finalTask.getStatus() == TaskStatus.RUNNING;
+                boolean shouldFail = stillRunning && fatalError != null;
+                boolean shouldComplete = stillRunning && !cancelled.get();
 
-                if (shouldComplete) {
+                if (shouldFail) {
+                    finalTask.setStatus(TaskStatus.FAILED);
+                    finalTask.setErrorMessage(fatalError.getMessage());
+                    finalTask.setEndTime(LocalDateTime.now());
+                    log.warn("Task [{}] marked FAILED due to fatal batch error: {}",
+                            taskId, fatalError.getMessage());
+                } else if (shouldComplete) {
                     finalTask.setStatus(TaskStatus.COMPLETED);
                     finalTask.setEndTime(LocalDateTime.now());
                 }
@@ -289,7 +304,7 @@ public class TaskExecutionEngine {
     }
 
     private TaskHandler.BatchProgressCallback createCallback(
-            Integer taskId,
+            Long taskId,
             Map<String, TaskBatchItemEntity> itemMap,
             int batchSize,
             AtomicInteger successCount,
@@ -298,7 +313,7 @@ public class TaskExecutionEngine {
             AtomicInteger completedCounter,
             AtomicBoolean cancelled,
             List<TaskBatchItemEntity> dirtyItems,
-            Set<Integer> savedItemIds,
+            Set<Long> savedItemIds,
             AtomicInteger flushCounter,
             int progressUpdateInterval) {
 
@@ -363,8 +378,8 @@ public class TaskExecutionEngine {
         };
     }
 
-    private void flushProgress(Integer taskId, List<TaskBatchItemEntity> dirtyItems,
-                               Set<Integer> savedItemIds,
+    private void flushProgress(Long taskId, List<TaskBatchItemEntity> dirtyItems,
+                               Set<Long> savedItemIds,
                                AtomicInteger successCount, AtomicInteger failCount,
                                AtomicInteger skippedCount) {
         List<TaskBatchItemEntity> toSave = new ArrayList<>();

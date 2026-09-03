@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.util.List;
 
-public interface TaskBatchRepository extends JpaRepository<TaskBatchEntity, Integer>, JpaSpecificationExecutor<TaskBatchEntity> {
+public interface TaskBatchRepository extends JpaRepository<TaskBatchEntity, Long>, JpaSpecificationExecutor<TaskBatchEntity> {
 
     List<TaskBatchEntity> findByStatusIn(List<TaskStatus> statuses);
 
@@ -17,7 +17,7 @@ public interface TaskBatchRepository extends JpaRepository<TaskBatchEntity, Inte
 
     Page<TaskBatchEntity> findByStatus(TaskStatus status, Pageable pageable);
 
-    boolean existsByIdAndStatus(Integer id, TaskStatus status);
+    boolean existsByIdAndStatus(Long id, TaskStatus status);
 
     List<TaskBatchEntity> findByTaskTypeAndStatusNotIn(String taskType, List<TaskStatus> statuses);
 }

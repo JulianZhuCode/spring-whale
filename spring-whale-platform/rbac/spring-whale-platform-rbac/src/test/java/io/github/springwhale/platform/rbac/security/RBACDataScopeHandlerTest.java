@@ -83,22 +83,22 @@ class RBACDataScopeHandlerTest {
         UserRoleScopeView view = new UserRoleScopeView();
         view.setRoleCode(RbacConstants.SUPER_ADMIN_ROLE_CODE);
 
-        when(cache.get(eq(DataScopeCacheKey.skipDataScope(1)), eq(Boolean.class), any(), any()))
+        when(cache.get(eq(DataScopeCacheKey.skipDataScope(1L)), eq(Boolean.class), any(), any()))
                 .thenAnswer(inv -> ((Supplier<?>) inv.getArgument(2)).get());
-        when(userRoleScopeViewRepository.findByUserId(1)).thenReturn(List.of(view));
+        when(userRoleScopeViewRepository.findByUserId(1L)).thenReturn(List.of(view));
 
-        boolean result = handler.skipDataScope(1);
+        boolean result = handler.skipDataScope(1L);
         assertTrue(result);
     }
 
     @Test
     @DisplayName("skipDataScope - normal user does not skip")
     void skipDataScopeNormalUser() {
-        when(cache.get(eq(DataScopeCacheKey.skipDataScope(1)), eq(Boolean.class), any(), any()))
+        when(cache.get(eq(DataScopeCacheKey.skipDataScope(1L)), eq(Boolean.class), any(), any()))
                 .thenAnswer(inv -> ((Supplier<?>) inv.getArgument(2)).get());
-        when(userRoleScopeViewRepository.findByUserId(1)).thenReturn(List.of());
+        when(userRoleScopeViewRepository.findByUserId(1L)).thenReturn(List.of());
 
-        boolean result = handler.skipDataScope(1);
+        boolean result = handler.skipDataScope(1L);
         assertFalse(result);
     }
 
@@ -113,44 +113,44 @@ class RBACDataScopeHandlerTest {
     @DisplayName("resolveDeptIds - DEPT type returns user group ID")
     void resolveDeptIdsDept() {
         UserEntity user = new UserEntity();
-        user.setId(1);
-        user.setGroupId(10);
+        user.setId(1L);
+        user.setGroupId(10L);
 
-        when(cache.getList(eq(DataScopeCacheKey.resolveDeptIds(1, DataScopeType.DEPT, null)),
+        when(cache.getList(eq(DataScopeCacheKey.resolveDeptIds(1L, DataScopeType.DEPT, null)),
                 any(), any()))
                 .thenAnswer(inv -> ((Supplier<?>) inv.getArgument(1)).get());
-        when(userRepository.findById(1)).thenReturn(Optional.of(user));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
-        List<Object> result = handler.resolveDeptIds(1, DataScopeType.DEPT, null);
-        assertEquals(List.of(10), result);
+        List<Object> result = handler.resolveDeptIds(1L, DataScopeType.DEPT, null);
+        assertEquals(List.of(10L), result);
     }
 
     @Test
     @DisplayName("resolveDeptIds - DEPT_AND_CHILD returns group and descendants")
     void resolveDeptIdsDeptAndChild() {
         UserEntity user = new UserEntity();
-        user.setId(1);
-        user.setGroupId(10);
+        user.setId(1L);
+        user.setGroupId(10L);
 
         GroupEntity child = new GroupEntity();
-        child.setId(11);
-        child.setParentId(10);
+        child.setId(11L);
+        child.setParentId(10L);
 
-        when(cache.getList(eq(DataScopeCacheKey.resolveDeptIds(1, DataScopeType.DEPT_AND_CHILD, null)),
+        when(cache.getList(eq(DataScopeCacheKey.resolveDeptIds(1L, DataScopeType.DEPT_AND_CHILD, null)),
                 any(), any()))
                 .thenAnswer(inv -> ((Supplier<?>) inv.getArgument(1)).get());
-        when(userRepository.findById(1)).thenReturn(Optional.of(user));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
         GroupEntity parent = new GroupEntity();
-        parent.setId(10);
+        parent.setId(10L);
         parent.setPath("/");
-        when(groupRepository.findById(10)).thenReturn(Optional.of(parent));
+        when(groupRepository.findById(10L)).thenReturn(Optional.of(parent));
         when(groupRepository.findByPathStartingWith(eq("/10/"))).thenReturn(List.of(child));
 
-        List<Object> result = handler.resolveDeptIds(1, DataScopeType.DEPT_AND_CHILD, null);
+        List<Object> result = handler.resolveDeptIds(1L, DataScopeType.DEPT_AND_CHILD, null);
         assertEquals(2, result.size());
-        assertTrue(result.contains(10));
-        assertTrue(result.contains(11));
+        assertTrue(result.contains(10L));
+        assertTrue(result.contains(11L));
     }
 
     @Test
@@ -163,23 +163,23 @@ class RBACDataScopeHandlerTest {
     @Test
     @DisplayName("resolveDeptIds - user not found returns empty")
     void resolveDeptIdsUserNotFound() {
-        when(cache.getList(eq(DataScopeCacheKey.resolveDeptIds(1, DataScopeType.DEPT, null)),
+        when(cache.getList(eq(DataScopeCacheKey.resolveDeptIds(1L, DataScopeType.DEPT, null)),
                 any(), any()))
                 .thenAnswer(inv -> ((Supplier<?>) inv.getArgument(1)).get());
-        when(userRepository.findById(1)).thenReturn(Optional.empty());
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
-        List<Object> result = handler.resolveDeptIds(1, DataScopeType.DEPT, null);
+        List<Object> result = handler.resolveDeptIds(1L, DataScopeType.DEPT, null);
         assertTrue(result.isEmpty());
     }
 
     @Test
     @DisplayName("resolveDeptIds - SELF/CALLER returns empty")
     void resolveDeptIdsSelf() {
-        when(cache.getList(eq(DataScopeCacheKey.resolveDeptIds(1, DataScopeType.SELF, null)),
+        when(cache.getList(eq(DataScopeCacheKey.resolveDeptIds(1L, DataScopeType.SELF, null)),
                 any(), any()))
                 .thenAnswer(inv -> ((Supplier<?>) inv.getArgument(1)).get());
 
-        List<Object> result = handler.resolveDeptIds(1, DataScopeType.SELF, null);
+        List<Object> result = handler.resolveDeptIds(1L, DataScopeType.SELF, null);
         assertTrue(result.isEmpty());
     }
 }

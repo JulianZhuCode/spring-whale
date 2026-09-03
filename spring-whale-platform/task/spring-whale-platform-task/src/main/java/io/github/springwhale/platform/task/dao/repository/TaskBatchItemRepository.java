@@ -8,19 +8,19 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.util.List;
 
-public interface TaskBatchItemRepository extends JpaRepository<TaskBatchItemEntity, Integer>, JpaSpecificationExecutor<TaskBatchItemEntity> {
+public interface TaskBatchItemRepository extends JpaRepository<TaskBatchItemEntity, Long>, JpaSpecificationExecutor<TaskBatchItemEntity> {
 
-    List<TaskBatchItemEntity> findByTaskIdOrderByIdAsc(Integer taskId);
+    List<TaskBatchItemEntity> findByTaskIdOrderByIdAsc(Long taskId);
 
-    List<TaskBatchItemEntity> findByTaskIdAndStatusOrderByIdAsc(Integer taskId, TaskItemStatus status);
+    List<TaskBatchItemEntity> findByTaskIdAndStatusOrderByIdAsc(Long taskId, TaskItemStatus status);
 
-    List<TaskBatchItemEntity> findByTaskIdAndStatus(Integer taskId, TaskItemStatus status, Pageable pageable);
+    List<TaskBatchItemEntity> findByTaskIdAndStatus(Long taskId, TaskItemStatus status, Pageable pageable);
 
-    long countByTaskIdAndStatus(Integer taskId, TaskItemStatus status);
+    long countByTaskIdAndStatus(Long taskId, TaskItemStatus status);
 
-    long countByTaskId(Integer taskId);
+    long countByTaskId(Long taskId);
 
-    void deleteByTaskId(Integer taskId);
+    void deleteByTaskId(Long taskId);
 
-    void deleteByTaskIdAndStatusIn(Integer taskId, List<TaskItemStatus> statuses);
+    void deleteByTaskIdAndStatusIn(Long taskId, List<TaskItemStatus> statuses);
 }

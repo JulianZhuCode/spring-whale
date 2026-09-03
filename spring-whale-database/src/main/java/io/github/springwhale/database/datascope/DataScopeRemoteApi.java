@@ -17,13 +17,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 public interface DataScopeRemoteApi {
 
     @GetMapping("/api/rbac/datascope/skip/{userId}")
-    DataScopeSkipResponse skipDataScope(@PathVariable Integer userId);
+    DataScopeSkipResponse skipDataScope(@PathVariable Long userId);
 
     @GetMapping("/api/rbac/datascope/skip-tenant/{userId}")
-    DataScopeSkipResponse skipTenantScope(@PathVariable Integer userId);
+    DataScopeSkipResponse skipTenantScope(@PathVariable Long userId);
 
     @GetMapping("/api/rbac/datascope/resolve/{userId}")
-    DataScopeResolveResponse resolveDeptIds(@PathVariable Integer userId,
+    DataScopeResolveResponse resolveDeptIds(@PathVariable Long userId,
                                             @RequestParam DataScopeType scopeType,
                                             @RequestParam(required = false) String module);
 }

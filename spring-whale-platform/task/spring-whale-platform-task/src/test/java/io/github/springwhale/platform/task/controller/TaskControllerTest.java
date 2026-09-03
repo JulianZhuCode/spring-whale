@@ -92,7 +92,7 @@ class TaskControllerTest {
         JsonNode first = createTask(TestTaskHandler.TASK_TYPE, Map.of("count", 3));
         JsonNode second = createTask(TestTaskHandler.TASK_TYPE, Map.of("count", 3));
 
-        assertEquals(first.get("id").asInt(), second.get("id").asInt());
+        assertEquals(first.get("id").asLong(), second.get("id").asLong());
     }
 
     @Test
@@ -120,7 +120,7 @@ class TaskControllerTest {
     @Test
     @DisplayName("all items succeed: task completes with full progress and items are cleaned up")
     void startAllSuccess() throws Exception {
-        int taskId = createTask(TestTaskHandler.TASK_TYPE, Map.of("count", 5)).get("id").asInt();
+        Long taskId = createTask(TestTaskHandler.TASK_TYPE, Map.of("count", 5)).get("id").asLong();
 
         startTask(taskId);
         JsonNode task = awaitStatus(taskId, TaskStatus.COMPLETED);
@@ -136,8 +136,8 @@ class TaskControllerTest {
     @Test
     @DisplayName("items that throw are marked FAILED and retained")
     void startWithErrorItems() throws Exception {
-        int taskId = createTask(TestTaskHandler.TASK_TYPE,
-                Map.of("count", 3, "errorKeys", List.of("item-2"))).get("id").asInt();
+        Long taskId = createTask(TestTaskHandler.TASK_TYPE,
+                Map.of("count", 3, "errorKeys", List.of("item-2"))).get("id").asLong();
 
         startTask(taskId);
         JsonNode task = awaitStatus(taskId, TaskStatus.COMPLETED);
@@ -154,8 +154,8 @@ class TaskControllerTest {
     @Test
     @DisplayName("flaky items fail first, then retry-failed resets and processes them to success")
     void retryFailedFlakyItems() throws Exception {
-        int taskId = createTask(TestTaskHandler.TASK_TYPE,
-                Map.of("count", 5, "flakyKeys", List.of("item-3", "item-4"))).get("id").asInt();
+        Long taskId = createTask(TestTaskHandler.TASK_TYPE,
+                Map.of("count", 5, "flakyKeys", List.of("item-3", "item-4"))).get("id").asLong();
 
         startTask(taskId);
         JsonNode firstRun = awaitStatus(taskId, TaskStatus.COMPLETED);
@@ -182,7 +182,7 @@ class TaskControllerTest {
     @Test
     @DisplayName("retry-failed on a task without failed items returns business error")
     void retryFailedWithoutFailures() throws Exception {
-        int taskId = createTask(TestTaskHandler.TASK_TYPE, Map.of("count", 2)).get("id").asInt();
+        Long taskId = createTask(TestTaskHandler.TASK_TYPE, Map.of("count", 2)).get("id").asLong();
         startTask(taskId);
         awaitStatus(taskId, TaskStatus.COMPLETED);
 
@@ -196,7 +196,7 @@ class TaskControllerTest {
     @Test
     @DisplayName("pausing a running task and resuming it completes the remaining work")
     void pauseAndResume() throws Exception {
-        int taskId = createTask(BlockingTaskHandler.TASK_TYPE, Map.of("count", 3)).get("id").asInt();
+        Long taskId = createTask(BlockingTaskHandler.TASK_TYPE, Map.of("count", 3)).get("id").asLong();
 
         startTask(taskId);
         awaitEntered(1);
@@ -222,7 +222,7 @@ class TaskControllerTest {
     @Test
     @DisplayName("cancelling a running task invokes the cancel hook and ends CANCELLED")
     void cancelRunning() throws Exception {
-        int taskId = createTask(BlockingTaskHandler.TASK_TYPE, Map.of("count", 3)).get("id").asInt();
+        Long taskId = createTask(BlockingTaskHandler.TASK_TYPE, Map.of("count", 3)).get("id").asLong();
 
         startTask(taskId);
         awaitEntered(1);
@@ -242,7 +242,7 @@ class TaskControllerTest {
     @Test
     @DisplayName("pausing a non-running task returns business error")
     void pauseNonRunning() throws Exception {
-        int taskId = createTask(TestTaskHandler.TASK_TYPE, Map.of("count", 2)).get("id").asInt();
+        Long taskId = createTask(TestTaskHandler.TASK_TYPE, Map.of("count", 2)).get("id").asLong();
 
         mockMvc.perform(post("/api/tasks/{id}/pause", taskId))
                 .andExpect(status().isOk())
@@ -252,7 +252,7 @@ class TaskControllerTest {
     @Test
     @DisplayName("resuming a non-paused task returns business error")
     void resumeNonPaused() throws Exception {
-        int taskId = createTask(TestTaskHandler.TASK_TYPE, Map.of("count", 2)).get("id").asInt();
+        Long taskId = createTask(TestTaskHandler.TASK_TYPE, Map.of("count", 2)).get("id").asLong();
 
         mockMvc.perform(post("/api/tasks/{id}/resume", taskId))
                 .andExpect(status().isOk())
@@ -264,7 +264,7 @@ class TaskControllerTest {
     @Test
     @DisplayName("starting an already finished task returns business error")
     void startFinishedTask() throws Exception {
-        int taskId = createTask(TestTaskHandler.TASK_TYPE, Map.of("count", 2)).get("id").asInt();
+        Long taskId = createTask(TestTaskHandler.TASK_TYPE, Map.of("count", 2)).get("id").asLong();
         startTask(taskId);
         awaitStatus(taskId, TaskStatus.COMPLETED);
 
@@ -284,7 +284,7 @@ class TaskControllerTest {
     @Test
     @DisplayName("deleting a terminal task removes it; deleting an active one is rejected")
     void deleteTask() throws Exception {
-        int completedId = createTask(TestTaskHandler.TASK_TYPE, Map.of("count", 2)).get("id").asInt();
+        Long completedId = createTask(TestTaskHandler.TASK_TYPE, Map.of("count", 2)).get("id").asLong();
         startTask(completedId);
         awaitStatus(completedId, TaskStatus.COMPLETED);
 
@@ -293,7 +293,7 @@ class TaskControllerTest {
         mockMvc.perform(get("/api/tasks/{id}", completedId))
                 .andExpect(jsonPath("$.code").value("TASK_NOT_FOUND"));
 
-        int activeId = createTask(TestTaskHandler.TASK_TYPE, Map.of("count", 2)).get("id").asInt();
+        Long activeId = createTask(TestTaskHandler.TASK_TYPE, Map.of("count", 2)).get("id").asLong();
         mockMvc.perform(delete("/api/tasks/{id}", activeId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("TASK_ACTIVE"));
@@ -346,13 +346,13 @@ class TaskControllerTest {
         return dataOf(result);
     }
 
-    private void startTask(int taskId) throws Exception {
+    private void startTask(Long taskId) throws Exception {
         mockMvc.perform(post("/api/tasks/{id}/start", taskId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value("RUNNING"));
     }
 
-    private JsonNode awaitStatus(int taskId, TaskStatus expected) throws Exception {
+    private JsonNode awaitStatus(Long taskId, TaskStatus expected) throws Exception {
         long deadline = System.currentTimeMillis() + TIMEOUT_MS;
         JsonNode data = null;
         while (System.currentTimeMillis() < deadline) {
@@ -385,7 +385,7 @@ class TaskControllerTest {
         throw new AssertionError("Blocking handler did not enter processing within timeout");
     }
 
-    private void awaitItemCount(int taskId, long expected) throws Exception {
+    private void awaitItemCount(Long taskId, long expected) throws Exception {
         long deadline = System.currentTimeMillis() + TIMEOUT_MS;
         while (System.currentTimeMillis() < deadline) {
             if (itemRepository.countByTaskId(taskId) == expected) {

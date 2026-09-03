@@ -59,5 +59,5 @@ public class UserEntity extends BaseEntity {
      * Department ID
      */
     @DeptIdField
-    private Integer groupId;
+    private Long groupId;
 }

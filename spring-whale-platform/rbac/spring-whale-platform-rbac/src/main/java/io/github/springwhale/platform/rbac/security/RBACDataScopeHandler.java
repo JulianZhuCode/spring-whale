@@ -57,7 +57,7 @@ public class RBACDataScopeHandler implements DataScopeHandler {
         return skipDataScope(AuthUtil.getUserId());
     }
 
-    public boolean skipDataScope(Integer userId) {
+    public boolean skipDataScope(Long userId) {
         if (userId == null) {
             return false;
         }
@@ -66,7 +66,7 @@ public class RBACDataScopeHandler implements DataScopeHandler {
                 () -> doSkipDataScope(userId), skipTtl);
     }
 
-    public boolean skipTenantScope(Integer userId) {
+    public boolean skipTenantScope(Long userId) {
         if (userId == null) {
             return false;
         }
@@ -75,7 +75,7 @@ public class RBACDataScopeHandler implements DataScopeHandler {
                 () -> doSkipDataScope(userId), skipTtl);
     }
 
-    private boolean doSkipDataScope(Integer userId) {
+    private boolean doSkipDataScope(Long userId) {
         List<UserRoleScopeView> rows = userRoleScopeViewRepository.findByUserId(userId);
         return rows.stream().anyMatch(r -> RbacConstants.SUPER_ADMIN_ROLE_CODE.equals(r.getRoleCode()));
     }
@@ -85,7 +85,7 @@ public class RBACDataScopeHandler implements DataScopeHandler {
         return resolveDeptIds(AuthUtil.getUserId(), scopeType, module);
     }
 
-    public List<Object> resolveDeptIds(Integer userId, DataScopeType scopeType, String module) {
+    public List<Object> resolveDeptIds(Long userId, DataScopeType scopeType, String module) {
         if (userId == null) {
             return Collections.emptyList();
         }
@@ -94,7 +94,7 @@ public class RBACDataScopeHandler implements DataScopeHandler {
                 () -> doResolveDeptIds(userId, scopeType, module), deptTtl);
     }
 
-    private List<Object> doResolveDeptIds(Integer userId, DataScopeType scopeType, String module) {
+    private List<Object> doResolveDeptIds(Long userId, DataScopeType scopeType, String module) {
         UserEntity user = userRepository.findById(userId).orElse(null);
         if (user == null || user.getGroupId() == null) {
             return Collections.emptyList();
@@ -108,26 +108,26 @@ public class RBACDataScopeHandler implements DataScopeHandler {
         };
     }
 
-    private List<Object> resolveDeptAndChildren(Integer groupId) {
+    private List<Object> resolveDeptAndChildren(Long groupId) {
         Set<Object> ids = new LinkedHashSet<>();
         ids.add(groupId);
         ids.addAll(findDescendantIds(groupId));
         return new ArrayList<>(ids);
     }
 
-    private List<Object> resolveFromView(Integer userId, String module, Integer userGroupId) {
+    private List<Object> resolveFromView(Long userId, String module, Long userGroupId) {
         List<UserRoleScopeView> rows = userRoleScopeViewRepository.findByUserId(userId);
         if (rows.isEmpty()) {
             return Collections.emptyList();
         }
 
-        Set<Integer> moduleRoleIds = null;
+        Set<Long> moduleRoleIds = null;
         if (module != null && !module.isEmpty()) {
             moduleRoleIds = new HashSet<>(roleMenuRepository.findRoleIdsByMenuCode(module));
         }
 
         // Pre-group CUSTOM dept ids by roleId for O(1) lookup
-        Map<Integer, List<Integer>> customDeptMap = new HashMap<>();
+        Map<Long, List<Long>> customDeptMap = new HashMap<>();
         for (UserRoleScopeView row : rows) {
             if (row.getDeptGroupId() != null && row.getDeptGroupId() != 0) {
                 customDeptMap.computeIfAbsent(row.getRoleId(), k -> new ArrayList<>()).add(row.getDeptGroupId());
@@ -135,11 +135,11 @@ public class RBACDataScopeHandler implements DataScopeHandler {
         }
 
         Set<Object> deptIds = new LinkedHashSet<>();
-        List<Integer> descendantIds = null;
+        List<Long> descendantIds = null;
 
-        Set<Integer> seenRoleIds = new HashSet<>();
+        Set<Long> seenRoleIds = new HashSet<>();
         for (UserRoleScopeView row : rows) {
-            Integer roleId = row.getRoleId();
+            Long roleId = row.getRoleId();
 
             if (moduleRoleIds != null && !moduleRoleIds.isEmpty()
                     && !moduleRoleIds.contains(roleId)) {
@@ -165,7 +165,7 @@ public class RBACDataScopeHandler implements DataScopeHandler {
                     deptIds.addAll(descendantIds);
                 }
                 case CUSTOM -> {
-                    List<Integer> customDeptIds = customDeptMap.get(roleId);
+                    List<Long> customDeptIds = customDeptMap.get(roleId);
                     if (customDeptIds != null) {
                         deptIds.addAll(customDeptIds);
                     }
@@ -190,7 +190,7 @@ public class RBACDataScopeHandler implements DataScopeHandler {
         }
     }
 
-    private List<Integer> findDescendantIds(Integer groupId) {
+    private List<Long> findDescendantIds(Long groupId) {
         GroupEntity group = groupRepository.findById(groupId).orElse(null);
         if (group == null || group.getPath() == null) {
             return Collections.emptyList();
@@ -218,7 +218,7 @@ public class RBACDataScopeHandler implements DataScopeHandler {
      *
      * @param userId the user whose cache entries should be evicted
      */
-    public void evictUser(Integer userId) {
+    public void evictUser(Long userId) {
         if (userId == null) {
             return;
         }

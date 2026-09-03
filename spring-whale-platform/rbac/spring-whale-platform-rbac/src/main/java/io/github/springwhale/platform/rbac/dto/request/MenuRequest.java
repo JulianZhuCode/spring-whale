@@ -11,7 +11,7 @@ import lombok.Data;
 @Data
 public class MenuRequest {
 
-    private Integer parentId;
+    private Long parentId;
 
     @NotBlank(message = "Menu code must not be empty")
     private String code;

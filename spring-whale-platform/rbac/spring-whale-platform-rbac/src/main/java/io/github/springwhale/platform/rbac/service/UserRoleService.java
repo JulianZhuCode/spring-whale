@@ -27,7 +27,7 @@ public class UserRoleService {
     /**
      * Get role IDs assigned to a user
      */
-    public List<Integer> getRoleIdsByUserId(Integer userId) {
+    public List<Long> getRoleIdsByUserId(Long userId) {
         return userRoleRepository.findByUserId(userId).stream()
                 .map(UserRoleEntity::getRoleId)
                 .toList();
@@ -37,12 +37,12 @@ public class UserRoleService {
      * Batch add roles to a user — skips already existing associations
      */
     @Transactional
-    public void addRoles(Integer userId, List<Integer> roleIds) {
+    public void addRoles(Long userId, List<Long> roleIds) {
         if (roleIds == null || roleIds.isEmpty()) {
             return;
         }
         boolean changed = false;
-        for (Integer roleId : roleIds) {
+        for (Long roleId : roleIds) {
             if (userRoleRepository.findByUserIdAndRoleId(userId, roleId).isEmpty()) {
                 UserRoleEntity entity = new UserRoleEntity();
                 entity.setUserId(userId);
@@ -60,12 +60,12 @@ public class UserRoleService {
      * Batch remove roles from a user — only removes existing associations
      */
     @Transactional
-    public void removeRoles(Integer userId, List<Integer> roleIds) {
+    public void removeRoles(Long userId, List<Long> roleIds) {
         if (roleIds == null || roleIds.isEmpty()) {
             return;
         }
         boolean changed = false;
-        for (Integer roleId : roleIds) {
+        for (Long roleId : roleIds) {
             Optional<UserRoleEntity> existing = userRoleRepository.findByUserIdAndRoleId(userId, roleId);
             if (existing.isPresent()) {
                 userRoleRepository.delete(existing.get());

@@ -14,8 +14,8 @@ import lombok.EqualsAndHashCode;
 public class RoleDeptEntity extends BaseEntity {
 
     @Column(nullable = false)
-    private Integer roleId;
+    private Long roleId;
 
     @Column(nullable = false)
-    private Integer groupId;
+    private Long groupId;
 }

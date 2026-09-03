@@ -8,5 +8,5 @@ import io.github.springwhale.framework.event.Event;
  * the affected user's data scope cache.</p>
  */
 @Event(businessName = "UserRoleChanged")
-public record UserRoleChangedEvent(Integer userId, Integer roleId) {
+public record UserRoleChangedEvent(Long userId, Long roleId) {
 }

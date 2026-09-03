@@ -69,6 +69,15 @@ public class TestTaskHandler implements TaskHandler {
     }
 
     @Override
+    public void processBatch(List<String> itemKeys, Map<String, Object> params,
+                             TaskHandler.BatchProgressCallback callback) throws Exception {
+        if (Boolean.TRUE.equals(params == null ? null : params.get("fatalBatch"))) {
+            throw new IllegalStateException("simulated fatal batch failure");
+        }
+        TaskHandler.super.processBatch(itemKeys, params, callback);
+    }
+
+    @Override
     public void beforeStart(Map<String, Object> params) {
         beforeStartCount.incrementAndGet();
     }

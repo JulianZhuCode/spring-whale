@@ -63,7 +63,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
      * @param userId User ID
      * @return list of authorities
      */
-    private List<GrantedAuthority> getUserAuthorities(Integer userId) {
+    private List<GrantedAuthority> getUserAuthorities(Long userId) {
         // 1. Query all role associations for the user
         List<UserRoleEntity> userRoles = userRoleRepository.findByUserId(userId);
 
@@ -72,7 +72,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         }
 
         // 2. Get all role IDs
-        List<Integer> roleIds = userRoles.stream()
+        List<Long> roleIds = userRoles.stream()
                 .map(UserRoleEntity::getRoleId)
                 .collect(Collectors.toList());
 
@@ -102,7 +102,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         List<RoleMenuEntity> roleMenus = roleMenuRepository.findByRoleIdIn(roleIds);
 
         if (!roleMenus.isEmpty()) {
-            List<Integer> menuIds = roleMenus.stream()
+            List<Long> menuIds = roleMenus.stream()
                     .map(RoleMenuEntity::getMenuId)
                     .distinct()
                     .collect(Collectors.toList());

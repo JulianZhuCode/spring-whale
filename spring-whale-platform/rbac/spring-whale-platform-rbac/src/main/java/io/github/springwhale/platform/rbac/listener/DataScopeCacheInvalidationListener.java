@@ -117,18 +117,18 @@ public class DataScopeCacheInvalidationListener {
             if (event.groupId() == null) {
                 return;
             }
-            List<Integer> affectedGroupIds = groupRepository.findByPathStartingWith(
+            List<Long> affectedGroupIds = groupRepository.findByPathStartingWith(
                     "/" + event.groupId() + "/").stream()
                     .map(group -> group.getId())
                     .collect(java.util.stream.Collectors.toList());
             affectedGroupIds.add(event.groupId());
 
-            List<Integer> userIds = userRepository.findAll().stream()
+            List<Long> userIds = userRepository.findAll().stream()
                     .filter(user -> user.getGroupId() != null && affectedGroupIds.contains(user.getGroupId()))
                     .map(UserEntity::getId)
                     .collect(java.util.stream.Collectors.toList());
 
-            List<Integer> customDataScopeUserIds = roleDeptRepository.findByGroupId(event.groupId()).stream()
+            List<Long> customDataScopeUserIds = roleDeptRepository.findByGroupId(event.groupId()).stream()
                     .flatMap(rd -> userRoleRepository.findByRoleId(rd.getRoleId()).stream())
                     .map(UserRoleEntity::getUserId)
                     .filter(Objects::nonNull)

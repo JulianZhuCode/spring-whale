@@ -7,13 +7,13 @@ import lombok.Data;
  */
 @Data
 public class UserVO {
-    private Integer id;
+    private Long id;
     private String username;
     private String realName;
     private String email;
     private String phone;
     private String avatar;
     private Integer status;
-    private Integer groupId;
+    private Long groupId;
     private String groupName;
 }

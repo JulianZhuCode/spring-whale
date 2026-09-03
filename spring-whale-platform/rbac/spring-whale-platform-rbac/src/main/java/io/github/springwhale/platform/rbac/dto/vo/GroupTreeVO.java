@@ -7,8 +7,8 @@ import java.util.List;
 
 @Data
 public class GroupTreeVO {
-    private Integer id;
-    private Integer parentId;
+    private Long id;
+    private Long parentId;
     private String code;
     private String name;
     private List<GroupTreeVO> children = new ArrayList<>();

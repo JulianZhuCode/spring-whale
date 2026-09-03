@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AuthenticationContext {
-    private Integer userId;
+    private Long userId;
     private String username;
-    private Integer tenantId;
+    private Long tenantId;
 }

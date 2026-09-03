@@ -61,7 +61,7 @@ class RoleDeptControllerTest {
     void getDepts() throws Exception {
         RoleDeptEntity dept = new RoleDeptEntity();
         dept.setRoleId(role.getId());
-        dept.setGroupId(100);
+        dept.setGroupId(100L);
         roleDeptRepository.save(dept);
 
         mockMvc.perform(get("/api/rbac/roles/{roleId}/depts", role.getId()))
@@ -83,7 +83,7 @@ class RoleDeptControllerTest {
     @WithMockUser(username = "admin", authorities = {"rbac:role:update"})
     @DisplayName("add depts to role")
     void addDepts() throws Exception {
-        List<Integer> deptIds = List.of(100, 200);
+        List<Long> deptIds = List.of(100L, 200L);
 
         mockMvc.perform(post("/api/rbac/roles/{roleId}/depts", role.getId())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -96,7 +96,7 @@ class RoleDeptControllerTest {
     @WithMockUser(username = "admin", authorities = {"rbac:role:update"})
     @DisplayName("add empty dept list to role")
     void addDeptsEmpty() throws Exception {
-        List<Integer> deptIds = List.of();
+        List<Long> deptIds = List.of();
 
         mockMvc.perform(post("/api/rbac/roles/{roleId}/depts", role.getId())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -110,10 +110,10 @@ class RoleDeptControllerTest {
     void removeDepts() throws Exception {
         RoleDeptEntity dept = new RoleDeptEntity();
         dept.setRoleId(role.getId());
-        dept.setGroupId(100);
+        dept.setGroupId(100L);
         roleDeptRepository.save(dept);
 
-        List<Integer> deptIds = List.of(100);
+        List<Long> deptIds = List.of(100L);
 
         mockMvc.perform(delete("/api/rbac/roles/{roleId}/depts", role.getId())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -126,7 +126,7 @@ class RoleDeptControllerTest {
     @WithMockUser(username = "admin", authorities = {"rbac:role:update"})
     @DisplayName("remove empty dept list from role")
     void removeDeptsEmpty() throws Exception {
-        List<Integer> deptIds = List.of();
+        List<Long> deptIds = List.of();
 
         mockMvc.perform(delete("/api/rbac/roles/{roleId}/depts", role.getId())
                         .contentType(MediaType.APPLICATION_JSON)

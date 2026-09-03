@@ -50,7 +50,7 @@ public class UserController {
     @PreAuthorize("hasAnyAuthority('rbac:user', '*')")
     @DataScope(module = "rbac:user")
     @GetMapping("/{id}")
-    public UserVO findById(@PathVariable Integer id) {
+    public UserVO findById(@PathVariable Long id) {
         return userService.findById(id)
                 .orElseThrow(() -> BusinessException.create("USER_NOT_FOUND", "User not found: " + id));
     }
@@ -73,7 +73,7 @@ public class UserController {
     @PreAuthorize("hasAnyAuthority('rbac:user:update', '*')")
     @DataScope(module = "rbac:user")
     @PutMapping("/{id}")
-    public UserVO update(@PathVariable Integer id, @Valid @RequestBody UserRequest request) {
+    public UserVO update(@PathVariable Long id, @Valid @RequestBody UserRequest request) {
         return userService.update(id, request);
     }
 
@@ -84,7 +84,7 @@ public class UserController {
     @PreAuthorize("hasAnyAuthority('rbac:user:delete', '*')")
     @DataScope(module = "rbac:user")
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Integer id) {
+    public void delete(@PathVariable Long id) {
         userService.delete(id);
     }
 }

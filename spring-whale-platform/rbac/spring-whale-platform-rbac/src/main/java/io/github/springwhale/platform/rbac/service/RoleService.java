@@ -67,7 +67,7 @@ public class RoleService {
     /**
      * Find role by ID
      */
-    public Optional<RoleVO> findById(Integer id) {
+    public Optional<RoleVO> findById(Long id) {
         return roleRepository.findById(id)
                 .map(RoleMapper::toVO)
                 .map(this::enrichGroupName);
@@ -95,7 +95,7 @@ public class RoleService {
      * Update role
      */
     @Transactional
-    public RoleVO update(Integer id, RoleRequest request) {
+    public RoleVO update(Long id, RoleRequest request) {
         RoleEntity role = roleRepository.findById(id)
                 .orElseThrow(() -> BusinessException.create("ROLE_NOT_FOUND", "Role not found, ID: " + id));
 
@@ -116,7 +116,7 @@ public class RoleService {
      * Delete role
      */
     @Transactional
-    public void delete(Integer id) {
+    public void delete(Long id) {
         RoleEntity role = roleRepository.findById(id)
                 .orElseThrow(() -> BusinessException.create("ROLE_NOT_FOUND", "Role not found, ID: " + id));
         roleRepository.delete(role);
@@ -127,13 +127,13 @@ public class RoleService {
 
     private void enrichGroupNames(List<RoleVO> vos) {
         if (vos == null || vos.isEmpty()) return;
-        List<Integer> groupIds = vos.stream()
+        List<Long> groupIds = vos.stream()
                 .map(RoleVO::getGroupId)
                 .filter(gid -> gid != null)
                 .distinct()
                 .toList();
         if (groupIds.isEmpty()) return;
-        Map<Integer, String> groupNameMap = groupRepository.findAllByIdIn(groupIds).stream()
+        Map<Long, String> groupNameMap = groupRepository.findAllByIdIn(groupIds).stream()
                 .collect(Collectors.toMap(GroupEntity::getId, GroupEntity::getName));
         vos.forEach(vo -> {
             if (vo.getGroupId() != null) {

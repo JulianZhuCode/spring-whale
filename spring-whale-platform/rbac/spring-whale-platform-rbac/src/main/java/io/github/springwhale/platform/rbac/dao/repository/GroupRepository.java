@@ -9,12 +9,12 @@ import java.util.List;
 /**
  * Group (department) repository
  */
-public interface GroupRepository extends JpaRepository<GroupEntity, Integer>, JpaSpecificationExecutor<GroupEntity> {
+public interface GroupRepository extends JpaRepository<GroupEntity, Long>, JpaSpecificationExecutor<GroupEntity> {
 
     /**
      * Find all groups by IDs (batch query)
      */
-    List<GroupEntity> findAllByIdIn(List<Integer> ids);
+    List<GroupEntity> findAllByIdIn(List<Long> ids);
 
     /**
      * Find all descendants of a department by materialized path prefix.

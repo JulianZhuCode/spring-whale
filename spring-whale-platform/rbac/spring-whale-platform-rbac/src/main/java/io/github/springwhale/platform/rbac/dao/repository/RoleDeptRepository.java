@@ -6,11 +6,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.Optional;
 
-public interface RoleDeptRepository extends JpaRepository<RoleDeptEntity, Integer> {
+public interface RoleDeptRepository extends JpaRepository<RoleDeptEntity, Long> {
 
-    List<RoleDeptEntity> findByRoleId(Integer roleId);
+    List<RoleDeptEntity> findByRoleId(Long roleId);
 
-    List<RoleDeptEntity> findByGroupId(Integer groupId);
+    List<RoleDeptEntity> findByGroupId(Long groupId);
 
-    Optional<RoleDeptEntity> findByRoleIdAndGroupId(Integer roleId, Integer groupId);
+    Optional<RoleDeptEntity> findByRoleIdAndGroupId(Long roleId, Long groupId);
 }
