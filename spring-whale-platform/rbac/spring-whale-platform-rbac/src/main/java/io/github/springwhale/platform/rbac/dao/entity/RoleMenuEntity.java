@@ -19,15 +19,9 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class RoleMenuEntity extends SimpleBaseEntity {
 
-    /**
-     * Role ID
-     */
-    @Column(name = "role_id", nullable = false)
+    @Column(nullable = false)
     private Integer roleId;
 
-    /**
-     * Menu ID
-     */
-    @Column(name = "menu_id", nullable = false)
+    @Column(nullable = false)
     private Integer menuId;
 }

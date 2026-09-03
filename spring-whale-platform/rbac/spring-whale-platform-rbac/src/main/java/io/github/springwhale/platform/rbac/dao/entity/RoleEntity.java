@@ -11,9 +11,7 @@ import lombok.EqualsAndHashCode;
  * Role entity
  */
 @Entity
-@Table(name = "rbac_role", indexes = {
-        @Index(name = "idx_role_code", columnList = "code")
-})
+@Table(name = "rbac_role")
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class RoleEntity extends BaseEntity {
@@ -22,19 +20,18 @@ public class RoleEntity extends BaseEntity {
      * Role code, optional — used for role-based access control (ROLE_ prefix).
      * When empty, the role only grants menu-level permissions.
      */
-    @Column(unique = true, length = 50)
+    @Column(unique = true)
     private String code;
 
     /**
      * Role name
      */
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false)
     private String name;
 
     /**
      * Role description
      */
-    @Column(length = 500)
     private String description;
 
     /**

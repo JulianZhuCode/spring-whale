@@ -19,15 +19,9 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class UserRoleEntity extends SimpleBaseEntity {
 
-    /**
-     * User ID
-     */
-    @Column(name = "user_id", nullable = false)
+    @Column(nullable = false)
     private Integer userId;
 
-    /**
-     * Role ID
-     */
-    @Column(name = "role_id", nullable = false)
+    @Column(nullable = false)
     private Integer roleId;
 }

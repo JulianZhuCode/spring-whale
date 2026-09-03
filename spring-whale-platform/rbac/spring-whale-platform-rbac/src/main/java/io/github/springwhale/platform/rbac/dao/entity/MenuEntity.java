@@ -10,10 +10,7 @@ import lombok.EqualsAndHashCode;
  * Menu entity
  */
 @Entity
-@Table(name = "rbac_menu", indexes = {
-        @Index(name = "idx_menu_parent_id", columnList = "parent_id"),
-        @Index(name = "idx_menu_code", columnList = "code")
-})
+@Table(name = "rbac_menu")
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class MenuEntity extends BaseEntity {
@@ -26,13 +23,13 @@ public class MenuEntity extends BaseEntity {
     /**
      * Menu code
      */
-    @Column(nullable = false, unique = true, length = 100)
+    @Column(nullable = false, unique = true)
     private String code;
 
     /**
      * Menu name (fallback when i18n key is not resolved)
      */
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false)
     private String name;
 
     /**
@@ -40,7 +37,6 @@ public class MenuEntity extends BaseEntity {
      * When set, the UI resolves the display name from i18n messages;
      * {@link #name} serves as fallback.
      */
-    @Column(length = 200)
     private String nameI18nKey;
 
     /**
@@ -53,25 +49,21 @@ public class MenuEntity extends BaseEntity {
     /**
      * Route path
      */
-    @Column(length = 200)
     private String path;
 
     /**
      * Component path
      */
-    @Column(length = 200)
     private String component;
 
     /**
      * Permission identifier
      */
-    @Column(length = 100)
     private String permission;
 
     /**
      * Icon
      */
-    @Column(length = 50)
     private String icon;
 
     /**
