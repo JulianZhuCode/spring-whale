@@ -1,26 +1,3 @@
--- ================================================================
--- Initialize RBAC UI menus
--- Menu hierarchy:
---   System (directory)
---     └── RBAC (directory)
---         ├── User Management (menu)
---         │   ├── User Create (button)
---         │   ├── User Update (button)
---         │   └── User Delete (button)
---         ├── Role Management (menu)
---         │   ├── Role Create (button)
---         │   ├── Role Update (button)
---         │   └── Role Delete (button)
---         ├── Menu Management (menu)
---         │   ├── Menu Create (button)
---         │   ├── Menu Update (button)
---         │   └── Menu Delete (button)
---         └── Group Management (menu)
---             ├── Group Create (button)
---             ├── Group Update (button)
---             └── Group Delete (button)
--- ================================================================
-
 -- Level 0: System root directory
 INSERT INTO rbac_menu (parent_id, code, name, name_i18n_key, type, path, component, permission, icon, sort, visible,
                        status, version, del_flag, create_time, update_time)
