@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.flyway.autoconfigure.FlywayAutoConfiguration;
@@ -35,6 +36,7 @@ import javax.sql.DataSource;
 public class FlywayConfiguration {
 
     @Bean
+    @ConditionalOnMissingBean
     public FlywayMigrationStrategy flywayMigrationStrategy(DataSource dataSource,
                                                            @Value("${spring.application.name}") String serverName,
                                                            ApplicationEventPublisher eventPublisher) {

@@ -19,7 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(properties = {
         "spring.autoconfigure.exclude=" +
-                "io.github.springwhale.framework.event.autoconfigure.LocalEventConfiguration"
+                "io.github.springwhale.framework.event.autoconfigure.LocalEventConfiguration",
+        "spring.cloud.compatibility-verifier.enabled=false"
 })
 @Import({TestDataScopeConfiguration.class, SpringWhaleDatabaseConfiguration.class})
 @Transactional

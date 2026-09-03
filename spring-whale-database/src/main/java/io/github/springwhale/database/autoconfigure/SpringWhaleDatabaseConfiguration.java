@@ -1,8 +1,11 @@
 package io.github.springwhale.database.autoconfigure;
 
 import io.github.springwhale.database.datascope.*;
+import io.github.springwhale.framework.core.cache.WhaleCacheManager;
 import org.jspecify.annotations.NonNull;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -34,6 +37,7 @@ import java.util.List;
  * </pre>
  */
 @AutoConfiguration
+@AutoConfigureAfter(DataScopeFeignAutoConfiguration.class)
 @EnableConfigurationProperties(DataScopeProperties.class)
 public class SpringWhaleDatabaseConfiguration {
 
@@ -41,6 +45,16 @@ public class SpringWhaleDatabaseConfiguration {
     @ConditionalOnMissingBean
     public DataScopeHelper dataScopeHelper() {
         return new DataScopeHelper();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(DataScopeHandler.class)
+    @ConditionalOnBean(DataScopeRemoteApi.class)
+    @ConditionalOnProperty(prefix = "spring.whale.database.datascope", name = "remote-rbac-url")
+    public SmartDataScopeHandler smartDataScopeHandler(WhaleCacheManager cacheManager,
+                                                       DataScopeRemoteApi dataScopeRemoteApi,
+                                                       DataScopeProperties properties) {
+        return new SmartDataScopeHandler(cacheManager, dataScopeRemoteApi, properties);
     }
 
     @Bean
