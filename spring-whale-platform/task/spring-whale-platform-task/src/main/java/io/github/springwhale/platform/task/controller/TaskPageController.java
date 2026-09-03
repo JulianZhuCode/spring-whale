@@ -33,11 +33,11 @@ public class TaskPageController {
         Page<?> taskPage;
 
         if (taskType != null && !taskType.isBlank()) {
-            taskPage = taskService.findByTaskType(taskType, page, size);
+            taskPage = taskService.findByTaskType(taskType, page, size, sort);
         } else if (status != null && !status.isBlank()) {
             TaskStatus taskStatus = parseStatus(status);
             if (taskStatus != null) {
-                taskPage = taskService.findByStatus(taskStatus, page, size);
+                taskPage = taskService.findByStatus(taskStatus, page, size, sort);
             } else {
                 taskPage = taskService.findAll(page, size, sort);
             }

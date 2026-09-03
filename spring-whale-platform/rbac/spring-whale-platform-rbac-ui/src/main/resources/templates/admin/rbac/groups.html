@@ -44,9 +44,13 @@
                 </div>
                 <div class="col-md-3">
                     <select class="form-select" data-search-field="status">
-                        <option value="" th:text="#{rbac.groups.all_status}">All Status</option>
-                        <option th:selected="${selectedStatus != null and selectedStatus == '1'}" value="1" th:text="#{status.active}">Active</option>
-                        <option th:selected="${selectedStatus != null and selectedStatus == '0'}" value="0" th:text="#{status.disabled}">Disabled</option>
+                        <option th:text="#{rbac.groups.all_status}" value="">All Status</option>
+                        <option th:selected="${selectedStatus != null and selectedStatus == '1'}" th:text="#{status.active}"
+                                value="1">Active
+                        </option>
+                        <option th:selected="${selectedStatus != null and selectedStatus == '0'}" th:text="#{status.disabled}"
+                                value="0">Disabled
+                        </option>
                     </select>
                 </div>
             </div>
@@ -86,7 +90,7 @@
         </th:block>
     </th:block>
 
-<!-- Group Modal -->
+    <!-- Group Modal -->
     <div class="modal fade" id="group-modal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -99,8 +103,14 @@
                         <div class="mb-3">
                             <label class="form-label" for="group-parentId" th:text="#{rbac.groups.parent_id}">Parent
                                 ID</label>
-                            <input class="form-control" id="group-parentId" name="parentId" type="number" data-int-field>
+                            <input class="form-control" data-int-field id="group-parentId" name="parentId"
+                                   type="number">
                             <div class="invalid-feedback" data-field="parentId"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="group-code" th:text="#{rbac.groups.code}">Code</label>
+                            <input class="form-control" id="group-code" name="code" required type="text">
+                            <div class="invalid-feedback" data-field="code"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="group-name" th:text="#{rbac.groups.name}">Name</label>
@@ -129,12 +139,12 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="group-sort" th:text="#{rbac.groups.sort}">Sort</label>
-                            <input class="form-control" id="group-sort" name="sort" type="number" data-int-field>
+                            <input class="form-control" data-int-field id="group-sort" name="sort" type="number">
                             <div class="invalid-feedback" data-field="sort"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="group-status" th:text="#{rbac.groups.status}">Status</label>
-                            <select class="form-select" id="group-status" name="status" data-int-field>
+                            <select class="form-select" data-int-field id="group-status" name="status">
                                 <option th:text="#{status.active}" value="1">Active</option>
                                 <option th:text="#{status.disabled}" value="0">Disabled</option>
                             </select>

@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS task_batch (
     skipped_count INTEGER      NOT NULL DEFAULT 0,
     params        TEXT,
     error_message VARCHAR(2000),
+    concurrency   INTEGER,
     start_time    TIMESTAMP,
     end_time      TIMESTAMP,
     create_time   TIMESTAMP,

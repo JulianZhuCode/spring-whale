@@ -36,6 +36,8 @@ public class TaskBatchEntity extends BaseEntity {
 
     private String errorMessage;
 
+    private Integer concurrency;
+
     private LocalDateTime startTime;
 
     private LocalDateTime endTime;

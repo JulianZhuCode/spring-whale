@@ -56,26 +56,28 @@ public class TaskController {
 
     /**
      * Find tasks by status.
-     * GET /api/tasks/by-status?status=RUNNING
+     * GET /api/tasks/by-status?status=RUNNING&page=0&size=20&sort=createTime,desc
      */
     @GetMapping("/by-status")
     public Page<TaskVO> findByStatus(
             @RequestParam TaskStatus status,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        return taskService.findByStatus(status, page, size);
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String sort) {
+        return taskService.findByStatus(status, page, size, sort);
     }
 
     /**
      * Find tasks by type.
-     * GET /api/tasks/by-type?type=WORD_AUDIO
+     * GET /api/tasks/by-type?type=WORD_AUDIO&page=0&size=20&sort=createTime,desc
      */
     @GetMapping("/by-type")
     public Page<TaskVO> findByType(
             @RequestParam String type,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        return taskService.findByTaskType(type, page, size);
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String sort) {
+        return taskService.findByTaskType(type, page, size, sort);
     }
 
     /**

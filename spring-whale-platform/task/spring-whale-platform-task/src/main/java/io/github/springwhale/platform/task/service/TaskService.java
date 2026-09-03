@@ -16,8 +16,6 @@ import io.github.springwhale.platform.task.enums.TaskStatus;
 import io.github.springwhale.platform.task.handler.TaskHandler;
 import io.github.springwhale.platform.task.mapper.TaskMapper;
 import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,44 +23,46 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.StringUtils;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Core service for batch task management.
  * <p>
  * Provides task lifecycle management: creation, execution (with concurrency),
  * pause, resume (breakpoint), cancel, and progress tracking.
+ * Delegates execution to {@link TaskExecutionEngine}.
  * </p>
  */
 @Slf4j
-@RequiredArgsConstructor
 public class TaskService {
 
-    private static final int STATUS_CHECK_INTERVAL = 100;
     private final TaskBatchRepository taskRepository;
     private final TaskBatchItemRepository itemRepository;
     private final TaskMapper taskMapper;
     private final List<TaskHandler> handlers;
     private final PlatformTransactionManager transactionManager;
-    private final Map<String, Future<?>> runningFutures = new ConcurrentHashMap<>();
+    private final TaskExecutionEngine executionEngine;
     private final ObjectMapper objectMapper = new ObjectMapper()
             .setSerializationInclusion(JsonInclude.Include.NON_NULL)
             .findAndRegisterModules();
     private Map<String, TaskHandler> handlerMap;
-    private ExecutorService taskExecutor;
+
+    public TaskService(TaskBatchRepository taskRepository,
+                       TaskBatchItemRepository itemRepository,
+                       TaskMapper taskMapper,
+                       List<TaskHandler> handlers,
+                       PlatformTransactionManager transactionManager) {
+        this.taskRepository = taskRepository;
+        this.itemRepository = itemRepository;
+        this.taskMapper = taskMapper;
+        this.handlers = handlers;
+        this.transactionManager = transactionManager;
+        this.executionEngine = new TaskExecutionEngine(taskRepository, itemRepository, transactionManager);
+    }
 
     @PostConstruct
     public void init() {
@@ -70,15 +70,8 @@ public class TaskService {
         for (TaskHandler h : handlers) {
             this.handlerMap.put(h.getTaskType(), h);
         }
-        this.taskExecutor = Executors.newVirtualThreadPerTaskExecutor();
-        log.info("TaskService initialized with virtual threads");
-    }
-
-    @PreDestroy
-    public void destroy() {
-        if (taskExecutor != null) {
-            taskExecutor.shutdown();
-        }
+        this.executionEngine.init();
+        log.info("TaskService initialized");
     }
 
     private TaskHandler getHandler(String taskType) {
@@ -117,6 +110,7 @@ public class TaskService {
         task.setTaskType(request.getTaskType());
         task.setStatus(TaskStatus.PENDING);
         task.setParams(toJson(params));
+        task.setConcurrency(request.getConcurrency());
 
         List<String> itemKeys = handler.enumerateItems(params);
         task.setTotalCount(itemKeys.size());
@@ -133,7 +127,8 @@ public class TaskService {
         }
         itemRepository.saveAll(items);
 
-        log.info("Created task [{}] type={}, items={}", task.getId(), request.getTaskType(), itemKeys.size());
+        log.info("Created task [{}] type={}, items={}, concurrency={}",
+                task.getId(), request.getTaskType(), itemKeys.size(), task.getConcurrency());
         return toVO(task);
     }
 
@@ -167,7 +162,7 @@ public class TaskService {
         taskRepository.save(task);
         log.info("Task [{}] status set to RUNNING, submitting for execution after commit", taskId);
 
-        submitAfterCommit(taskId, handler, params);
+        executionEngine.submitAfterCommit(taskId, handler, params);
 
         return toVO(task);
     }
@@ -188,10 +183,7 @@ public class TaskService {
         task.setStatus(TaskStatus.PAUSED);
         taskRepository.save(task);
 
-        Future<?> future = runningFutures.get(String.valueOf(taskId));
-        if (future != null) {
-            future.cancel(true);
-        }
+        executionEngine.cancelFuture(taskId);
 
         log.info("Paused task [{}]", taskId);
         return toVO(task);
@@ -222,7 +214,7 @@ public class TaskService {
         taskRepository.save(task);
         log.info("Task [{}] status set to RUNNING, submitting for execution after commit", taskId);
 
-        submitAfterCommit(taskId, handler, params);
+        executionEngine.submitAfterCommit(taskId, handler, params);
 
         return toVO(task);
     }
@@ -240,10 +232,7 @@ public class TaskService {
         }
 
         if (task.getStatus() == TaskStatus.RUNNING) {
-            Future<?> future = runningFutures.get(String.valueOf(taskId));
-            if (future != null) {
-                future.cancel(true);
-            }
+            executionEngine.cancelFuture(taskId);
         }
 
         TaskHandler handler = getHandler(task.getTaskType());
@@ -254,7 +243,7 @@ public class TaskService {
         task.setEndTime(LocalDateTime.now());
         taskRepository.save(task);
 
-        cleanupTerminalItems(taskId);
+        executionEngine.cleanupTerminalItems(taskId);
 
         log.info("Cancelled task [{}]", taskId);
         return toVO(task);
@@ -284,16 +273,6 @@ public class TaskService {
 
     public Optional<TaskVO> findById(Integer id) {
         return taskRepository.findById(id).map(this::toVO);
-    }
-
-    /**
-     * 终态清理：删除已完成的 items（SUCCESS/SKIPPED），保留 FAILED 供重试。
-     * 应在任务进入终态（COMPLETED/CANCELLED/FAILED）的事务内调用。
-     */
-    private void cleanupTerminalItems(Integer taskId) {
-        itemRepository.deleteByTaskIdAndStatusIn(taskId,
-                List.of(TaskItemStatus.SUCCESS, TaskItemStatus.SKIPPED));
-        log.info("Cleaned up SUCCESS/SKIPPED items for task [{}]", taskId);
     }
 
     /**
@@ -335,6 +314,7 @@ public class TaskService {
 
         task.setEndTime(null);
         task.setFailCount(0);
+        task.setTotalCount(task.getSuccessCount() + resetCount);
 
         TaskHandler handler = getHandler(task.getTaskType());
         Map<String, Object> params = parseParams(task.getParams());
@@ -346,10 +326,10 @@ public class TaskService {
         task.setStatus(TaskStatus.RUNNING);
         taskRepository.save(task);
 
-        log.info("Retry: reset {} failed items to PENDING for task [{}], failCount cleared, status set to RUNNING",
-                resetCount, taskId);
+        log.info("Retry: reset {} failed items to PENDING for task [{}], totalCount={}, failCount=0",
+                resetCount, taskId, task.getTotalCount());
 
-        submitAfterCommit(taskId, handler, params);
+        executionEngine.submitAfterCommit(taskId, handler, params);
         return toVO(task);
     }
 
@@ -359,13 +339,15 @@ public class TaskService {
         return taskRepository.findAll(pageable).map(this::toVO);
     }
 
-    public Page<TaskVO> findByStatus(TaskStatus status, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createTime"));
+    public Page<TaskVO> findByStatus(TaskStatus status, int page, int size, String sort) {
+        Sort sortObj = SortUtils.buildSort(sort);
+        Pageable pageable = PageRequest.of(page, size, sortObj);
         return taskRepository.findByStatus(status, pageable).map(this::toVO);
     }
 
-    public Page<TaskVO> findByTaskType(String taskType, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createTime"));
+    public Page<TaskVO> findByTaskType(String taskType, int page, int size, String sort) {
+        Sort sortObj = SortUtils.buildSort(sort);
+        Pageable pageable = PageRequest.of(page, size, sortObj);
         return taskRepository.findByTaskType(taskType, pageable).map(this::toVO);
     }
 
@@ -384,248 +366,6 @@ public class TaskService {
             log.warn("Recovered interrupted task [{}], marked as PAUSED", task.getId());
         }
         return count;
-    }
-
-    // ==================== Execution Engine ====================
-
-    private void submitAfterCommit(Integer taskId, TaskHandler handler, Map<String, Object> params) {
-        log.info("submitAfterCommit() for taskId={}, transactionActive={}",
-                taskId, TransactionSynchronizationManager.isActualTransactionActive());
-
-        if (TransactionSynchronizationManager.isActualTransactionActive()) {
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                    log.info("afterCommit() triggered for taskId={}", taskId);
-                    TaskBatchEntity freshTask = taskRepository.findById(taskId).orElse(null);
-                    if (freshTask != null && freshTask.getStatus() == TaskStatus.RUNNING) {
-                        log.info("Task [{}] is RUNNING after commit, submitting for execution", taskId);
-                        submitForExecution(freshTask, handler, params);
-                    } else {
-                        log.warn("Task [{}] not RUNNING after commit (status={}), skipping execution",
-                                taskId, freshTask != null ? freshTask.getStatus() : "null");
-                    }
-                }
-            });
-        } else {
-            log.info("No active transaction for taskId={}, submitting immediately", taskId);
-            TaskBatchEntity freshTask = taskRepository.findById(taskId).orElse(null);
-            if (freshTask != null && freshTask.getStatus() == TaskStatus.RUNNING) {
-                submitForExecution(freshTask, handler, params);
-            }
-        }
-    }
-
-    private void submitForExecution(TaskBatchEntity task, TaskHandler handler, Map<String, Object> params) {
-        log.info("submitForExecution() for taskId={}, handler={}, thread={}",
-                task.getId(), handler.getTaskType(), Thread.currentThread().getName());
-        Future<?> future = taskExecutor.submit(() -> {
-            String threadName = Thread.currentThread().getName();
-            log.info("Task [{}] execution started on thread={}", task.getId(), threadName);
-            try {
-                executeTask(task, handler, params);
-                log.info("Task [{}] execution completed on thread={}", task.getId(), threadName);
-            } catch (Exception e) {
-                log.error("Task [{}] execution failed with unexpected error", task.getId(), e);
-                new TransactionTemplate(transactionManager).execute(status -> {
-                    taskRepository.findById(task.getId()).ifPresent(t -> {
-                        if (t.getStatus() == TaskStatus.RUNNING) {
-                            t.setStatus(TaskStatus.FAILED);
-                            t.setErrorMessage(e.getMessage());
-                            t.setEndTime(LocalDateTime.now());
-                            taskRepository.save(t);
-                            log.warn("Task [{}] status set to FAILED due to exception: {}", task.getId(), e.getMessage());
-                        } else {
-                            log.info("Task [{}] status is {} (not RUNNING), skipping FAILED transition",
-                                    task.getId(), t.getStatus());
-                        }
-                    });
-                    cleanupTerminalItems(task.getId());
-                    return null;
-                });
-            } finally {
-                runningFutures.remove(String.valueOf(task.getId()));
-                log.info("Task [{}] future removed from runningFutures", task.getId());
-            }
-        });
-        runningFutures.put(String.valueOf(task.getId()), future);
-        log.info("Task [{}] submitted to thread pool, future={}", task.getId(), future);
-    }
-
-    private void executeTask(TaskBatchEntity task, TaskHandler handler, Map<String, Object> params) {
-        Integer taskId = task.getId();
-        log.info("executeTask() started for taskId={}, thread={}", taskId, Thread.currentThread().getName());
-
-        if (!taskRepository.existsByIdAndStatus(taskId, TaskStatus.RUNNING)) {
-            log.info("Task [{}] is not RUNNING, skipping execution", taskId);
-            return;
-        }
-
-        List<TaskBatchItemEntity> pendingItems = itemRepository
-                .findByTaskIdAndStatusOrderByIdAsc(taskId, TaskItemStatus.PENDING);
-
-        int total = task.getTotalCount();
-        AtomicInteger successCount = new AtomicInteger(task.getSuccessCount() != null ? task.getSuccessCount() : 0);
-        AtomicInteger failCount = new AtomicInteger(task.getFailCount() != null ? task.getFailCount() : 0);
-        AtomicInteger skippedCount = new AtomicInteger(task.getSkippedCount() != null ? task.getSkippedCount() : 0);
-        AtomicInteger completedCounter = new AtomicInteger(0);
-        AtomicBoolean cancelled = new AtomicBoolean(false);
-
-        log.info("Task [{}]: starting {} pending items (total={}, success={}, fail={}, skipped={})",
-                taskId, pendingItems.size(), total, successCount.get(), failCount.get(), skippedCount.get());
-
-        Map<String, TaskBatchItemEntity> itemMap = new ConcurrentHashMap<>();
-        List<String> itemKeys = new ArrayList<>(pendingItems.size());
-        for (TaskBatchItemEntity item : pendingItems) {
-            itemMap.put(item.getItemKey(), item);
-            itemKeys.add(item.getItemKey());
-        }
-
-        Set<Integer> savedItemIds = ConcurrentHashMap.newKeySet();
-        List<TaskBatchItemEntity> dirtyItems = Collections.synchronizedList(new ArrayList<>());
-        AtomicInteger flushCounter = new AtomicInteger(0);
-
-        int progressUpdateInterval = Math.max(20, Math.min(100, pendingItems.size() / 50));
-
-        TaskHandler.BatchProgressCallback callback = new TaskHandler.BatchProgressCallback() {
-            @Override
-            public void onItemResult(String itemKey, boolean success) {
-                applyResult(itemKey, success, null);
-            }
-
-            @Override
-            public void onItemResult(String itemKey, boolean success, String errorMessage) {
-                applyResult(itemKey, success, errorMessage);
-            }
-
-            private void applyResult(String itemKey, boolean success, String errorMessage) {
-                if (cancelled.get()) {
-                    return;
-                }
-
-                TaskBatchItemEntity itemEntity = itemMap.get(itemKey);
-                if (itemEntity == null) {
-                    return;
-                }
-
-                if (success) {
-                    itemEntity.setStatus(TaskItemStatus.SUCCESS);
-                    successCount.incrementAndGet();
-                } else {
-                    itemEntity.setStatus(TaskItemStatus.FAILED);
-                    itemEntity.setErrorMessage(errorMessage != null ? errorMessage : "Handler returned false");
-                    failCount.incrementAndGet();
-                }
-
-                dirtyItems.add(itemEntity);
-
-                int completed = completedCounter.incrementAndGet();
-
-                if (completed % STATUS_CHECK_INTERVAL == 0) {
-                    if (!taskRepository.existsByIdAndStatus(taskId, TaskStatus.RUNNING)) {
-                        cancelled.set(true);
-                        log.info("Task [{}] no longer running after {} items, stopping", taskId, completed);
-                        return;
-                    }
-                }
-
-                if (flushCounter.incrementAndGet() % progressUpdateInterval == 0 || completed == pendingItems.size()) {
-                    flushProgress(taskId, dirtyItems, savedItemIds, successCount, failCount, skippedCount);
-                }
-            }
-
-            @Override
-            public boolean isCancelled() {
-                return cancelled.get();
-            }
-
-            @Override
-            public void flush() {
-                flushProgress(taskId, dirtyItems, savedItemIds, successCount, failCount, skippedCount);
-                log.info("Task [{}] explicit flush: success={}, fail={}, completed={}/{}",
-                        taskId, successCount.get(), failCount.get(),
-                        completedCounter.get(), pendingItems.size());
-            }
-        };
-
-        try {
-            log.info("Task [{}] calling handler.processBatch with {} items", taskId, itemKeys.size());
-            handler.processBatch(itemKeys, params, callback);
-            log.info("Task [{}] handler.processBatch returned, successCount={}, failCount={}",
-                    taskId, successCount.get(), failCount.get());
-        } catch (Exception e) {
-            cancelled.set(true);
-            log.error("Task [{}] execution failed in processBatch", taskId, e);
-        }
-
-        log.info("Task [{}] flushing final progress...", taskId);
-        flushProgress(taskId, dirtyItems, savedItemIds, successCount, failCount, skippedCount);
-
-        log.info("Task [{}] updating final task status (success={}, fail={}, cancelled={})",
-                taskId, successCount.get(), failCount.get(), cancelled.get());
-
-        new TransactionTemplate(transactionManager).execute(status -> {
-            taskRepository.findById(taskId).ifPresent(finalTask -> {
-                finalTask.setSuccessCount(successCount.get());
-                finalTask.setFailCount(failCount.get());
-                finalTask.setSkippedCount(skippedCount.get());
-
-                boolean shouldComplete = finalTask.getStatus() == TaskStatus.RUNNING && !cancelled.get();
-
-                if (shouldComplete) {
-                    finalTask.setStatus(TaskStatus.COMPLETED);
-                    finalTask.setEndTime(LocalDateTime.now());
-                }
-                taskRepository.save(finalTask);
-
-                if (shouldComplete) {
-                    handler.afterComplete(params);
-                    log.info("Task [{}] completed: success={}, fail={}",
-                            taskId, successCount.get(), failCount.get());
-                } else {
-                    log.info("Task [{}] finished with status={}, success={}, fail={}",
-                            taskId, finalTask.getStatus(), successCount.get(), failCount.get());
-                }
-            });
-            // 终态清理：删除已完成的 items（SUCCESS/SKIPPED），保留 FAILED 供重试
-            cleanupTerminalItems(taskId);
-            return null;
-        });
-    }
-
-    private void flushProgress(Integer taskId, List<TaskBatchItemEntity> dirtyItems,
-                               Set<Integer> savedItemIds,
-                               AtomicInteger successCount, AtomicInteger failCount,
-                               AtomicInteger skippedCount) {
-        List<TaskBatchItemEntity> toSave = new ArrayList<>();
-        synchronized (dirtyItems) {
-            Iterator<TaskBatchItemEntity> it = dirtyItems.iterator();
-            while (it.hasNext()) {
-                TaskBatchItemEntity item = it.next();
-                if (item.getStatus() != TaskItemStatus.PENDING && savedItemIds.add(item.getId())) {
-                    toSave.add(item);
-                }
-                it.remove();
-            }
-        }
-
-        if (toSave.isEmpty()) {
-            return;
-        }
-
-        log.info("flushProgress: taskId={}, saving {} items, success={}, fail={}",
-                taskId, toSave.size(), successCount.get(), failCount.get());
-
-        new TransactionTemplate(transactionManager).execute(status -> {
-            itemRepository.saveAll(toSave);
-            taskRepository.findById(taskId).ifPresent(t -> {
-                t.setSuccessCount(successCount.get());
-                t.setFailCount(failCount.get());
-                t.setSkippedCount(skippedCount.get());
-                taskRepository.save(t);
-            });
-            return null;
-        });
     }
 
     // ==================== Conversion ====================
