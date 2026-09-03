@@ -1,13 +1,12 @@
 package io.github.springwhale.platform.rbac.service;
 
+import io.github.springwhale.framework.event.EventPublisher;
 import io.github.springwhale.platform.rbac.dao.entity.RoleMenuEntity;
 import io.github.springwhale.platform.rbac.dao.repository.RoleMenuRepository;
-import io.github.springwhale.framework.event.EventPublisher;
 import io.github.springwhale.platform.rbac.event.RoleChangedEvent;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Role-menu association service
@@ -64,15 +63,8 @@ public class RoleMenuService {
         if (menuIds == null || menuIds.isEmpty()) {
             return;
         }
-        boolean changed = false;
-        for (Integer menuId : menuIds) {
-            Optional<RoleMenuEntity> existing = roleMenuRepository.findByRoleIdAndMenuId(roleId, menuId);
-            if (existing.isPresent()) {
-                roleMenuRepository.delete(existing.get());
-                changed = true;
-            }
-        }
-        if (changed) {
+        int i = roleMenuRepository.deleteByRoleIdAndMenuIdIn(roleId, menuIds);
+        if (i > 0) {
             eventPublisher.publishAfterCommit(new RoleChangedEvent(roleId));
         }
     }

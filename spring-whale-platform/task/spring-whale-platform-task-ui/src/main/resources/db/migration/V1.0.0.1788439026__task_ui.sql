@@ -7,7 +7,7 @@ INSERT INTO rbac_menu (parent_id, code, name, name_i18n_key, type, path, compone
                        status, version, del_flag, create_time, update_time)
 VALUES ((SELECT id FROM rbac_menu WHERE code = 'system'), 'task', 'Task Management', 'menu.task', 'DIRECTORY', NULL,
         NULL,
-        NULL, 'list', 6, 1, 1, 0, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        NULL, '⚙️', 6, 1, 1, 0, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON CONFLICT (code)
 WHERE del_flag = 0 DO NOTHING;
 
@@ -15,13 +15,13 @@ WHERE del_flag = 0 DO NOTHING;
 INSERT INTO rbac_menu (parent_id, code, name, name_i18n_key, type, path, component, permission, icon, sort, visible,
                        status, version, del_flag, create_time, update_time)
 VALUES ((SELECT id FROM rbac_menu WHERE code = 'task'), 'task:batch', 'Batch Task', 'menu.task.batch', 'MENU',
-        '/admin/task/batches', NULL, 'task:batch', 'activity', 1, 1, 1, 0, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        '/admin/task/batch', NULL, 'task:batch', 'activity', 1, 1, 1, 0, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON CONFLICT (code)
 WHERE del_flag = 0 DO NOTHING;
 
 INSERT INTO rbac_menu (parent_id, code, name, name_i18n_key, type, path, component, permission, icon, sort, visible,
                        status, version, del_flag, create_time, update_time)
-VALUES ((SELECT id FROM rbac_menu WHERE code = 'task:batch'), 'task:batch:delete', 'Batch Task Delete', NULL, 'BUTTON',
+VALUES ((SELECT id FROM rbac_menu WHERE code = 'task:batch'), 'task:batch:delete', 'Batch Task Delete', 'button.delete', 'BUTTON',
         NULL, NULL, 'task:batch:delete', NULL, 1, 1, 1, 0, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON CONFLICT (code)
 WHERE del_flag = 0 DO NOTHING;

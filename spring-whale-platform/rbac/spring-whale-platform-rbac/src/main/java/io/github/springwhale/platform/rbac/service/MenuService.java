@@ -10,6 +10,8 @@ import io.github.springwhale.platform.rbac.dto.vo.MenuTreeVO;
 import io.github.springwhale.platform.rbac.dto.vo.MenuVO;
 import io.github.springwhale.platform.rbac.enums.MenuType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +28,7 @@ import java.util.stream.Collectors;
 public class MenuService {
 
     private final MenuRepository menuRepository;
+    private final MessageSource messageSource;
 
     /**
      * Find all menus with pagination
@@ -155,10 +158,18 @@ public class MenuService {
         vo.setId(entity.getId());
         vo.setParentId(entity.getParentId());
         vo.setCode(entity.getCode());
-        vo.setName(entity.getName());
+        vo.setName(resolveName(entity));
         vo.setType(entity.getType());
         vo.setPermission(entity.getPermission());
         return vo;
+    }
+
+    private String resolveName(MenuEntity entity) {
+        if (entity.getNameI18nKey() != null && !entity.getNameI18nKey().isEmpty()) {
+            return messageSource.getMessage(entity.getNameI18nKey(), null,
+                    entity.getName(), LocaleContextHolder.getLocale());
+        }
+        return entity.getName();
     }
 
     private void buildChildren(MenuTreeVO parent, Map<Integer, List<MenuTreeVO>> parentMap) {

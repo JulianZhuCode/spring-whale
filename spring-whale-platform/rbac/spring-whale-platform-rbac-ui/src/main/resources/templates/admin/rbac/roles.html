@@ -81,28 +81,28 @@
                     <button class="btn btn-outline-primary btn-sm"
                             data-modal="role-modal"
                             th:data-edit-id="${item.id}"
-                            th:if="${#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:role:update')}"
+                            th:if="${item.code != 'SUPER_ADMIN' and (#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:role:update'))}"
                             th:text="#{action.edit}">Edit
                     </button>
                     <button class="btn btn-outline-success btn-sm"
                             data-menu-modal="menu-assign-modal"
                             th:data-role-id="${item.id}"
                             th:data-role-name="${item.name}"
-                            th:if="${#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:role:update')}">
+                            th:if="${item.code != 'SUPER_ADMIN' and (#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:role:update'))}">
                         <i class="bi bi-list-check me-1"></i><span th:text="#{rbac.roles.assign_menus}">Assign Menus</span>
                     </button>
                     <button class="btn btn-outline-info btn-sm"
                             data-dept-modal="dept-assign-modal"
                             th:data-role-id="${item.id}"
                             th:data-role-name="${item.name}"
-                            th:if="${item.dataScope != null and item.dataScope.name() == 'CUSTOM' and (#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:role:update'))}">
+                            th:if="${item.code != 'SUPER_ADMIN' and item.dataScope != null and item.dataScope.name() == 'CUSTOM' and (#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:role:update'))}">
                         <i class="bi bi-diagram-3 me-1"></i><span th:text="#{rbac.roles.assign_depts}">Assign Depts</span>
                     </button>
                     <button class="btn btn-outline-danger btn-sm"
                             data-delete-api="/api/rbac/roles"
                             th:data-delete-id="${item.id}"
                             th:data-delete-name="${item.name}"
-                            th:if="${#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:role:delete')}"
+                            th:if="${item.code != 'SUPER_ADMIN' and (#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:role:delete'))}"
                             th:text="#{action.delete}">Delete
                     </button>
                 </div>
@@ -226,7 +226,6 @@
             </div>
         </div>
     </div>
-</main>
 
 <script th:inline="javascript">
 (function() {
@@ -708,6 +707,7 @@
     });
 })();
 </script>
+</main>
 
 </body>
 </html>

@@ -33,7 +33,7 @@ public class GroupEntity extends BaseEntity {
     /**
      * Department code
      */
-    @Column(nullable = false, unique = true)
+    @Column(unique = true)
     private String code;
 
     /**

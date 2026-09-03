@@ -20,7 +20,7 @@
         emptyMessage=#{rbac.groups.empty},
         baseUrl='/admin/rbac/groups',
         page=${page},
-        colspan=7,
+        colspan=6,
         headers=~{::#group-headers},
         rows=~{::#group-row},
         filter=~{::#group-filter}
@@ -52,7 +52,6 @@
             </div>
         </th:block>
         <th:block id="group-headers">
-            <th th:text="#{rbac.groups.code}">Code</th>
             <th th:text="#{rbac.groups.name}">Name</th>
             <th th:text="#{rbac.groups.description}">Description</th>
             <th th:text="#{rbac.groups.leader}">Leader</th>
@@ -61,7 +60,6 @@
             <th th:text="#{rbac.groups.actions}">Actions</th>
         </th:block>
         <th:block id="group-row">
-            <td><code th:text="${item.code}">IT</code></td>
             <td th:text="${item.name}">IT Dept</td>
             <td th:text="${item.description}">IT Department</td>
             <td th:text="${item.leader}">John</td>
@@ -103,11 +101,6 @@
                                 ID</label>
                             <input class="form-control" id="group-parentId" name="parentId" type="number" data-int-field>
                             <div class="invalid-feedback" data-field="parentId"></div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label" for="group-code" th:text="#{rbac.groups.code}">Code</label>
-                            <input class="form-control" id="group-code" name="code" required type="text">
-                            <div class="invalid-feedback" data-field="code"></div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="group-name" th:text="#{rbac.groups.name}">Name</label>

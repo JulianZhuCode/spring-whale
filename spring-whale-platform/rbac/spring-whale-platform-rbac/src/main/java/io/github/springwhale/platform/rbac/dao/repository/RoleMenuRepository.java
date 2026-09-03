@@ -28,6 +28,8 @@ public interface RoleMenuRepository extends JpaRepository<RoleMenuEntity, Intege
      */
     Optional<RoleMenuEntity> findByRoleIdAndMenuId(Integer roleId, Integer menuId);
 
+    int deleteByRoleIdAndMenuIdIn(Integer roleId, List<Integer> menuIds);
+
     /**
      * Find role IDs that have access to a menu by its code.
      * Single query: JOIN rbac_role_menu + rbac_menu.

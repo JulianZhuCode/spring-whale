@@ -8,6 +8,7 @@ import io.github.springwhale.platform.rbac.listener.DataScopeCacheInvalidationLi
 import io.github.springwhale.platform.rbac.security.RBACDataScopeHandler;
 import io.github.springwhale.platform.rbac.service.*;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -44,8 +45,8 @@ public class ServiceConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public MenuService menuService(MenuRepository menuRepository) {
-        return new MenuService(menuRepository);
+    public MenuService menuService(MenuRepository menuRepository, MessageSource messageSource) {
+        return new MenuService(menuRepository, messageSource);
     }
 
     @Bean

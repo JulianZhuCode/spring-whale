@@ -15,12 +15,7 @@ import io.github.springwhale.platform.rbac.dao.repository.UserRoleRepository;
 import io.github.springwhale.platform.rbac.enums.MenuType;
 import lombok.RequiredArgsConstructor;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -99,13 +94,13 @@ public class RbacMenuProvider implements AdminMenuProvider {
 
         return entities.stream()
                 .map(entity -> toMenuItem(entity, idToCode))
-                .filter(java.util.Objects::nonNull)
+                .filter(Objects::nonNull)
                 .toList();
     }
 
     private MenuItem toMenuItem(MenuEntity entity, Map<Integer, String> idToCode) {
         int sort = entity.getSort() != null ? entity.getSort() : 0;
-        if (entity.getParentId() == null) {
+        if (entity.getType() == MenuType.DIRECTORY) {
             return MenuItem.group(
                     entity.getCode(),
                     entity.getName(),

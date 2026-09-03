@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS rbac_group
     id          SERIAL PRIMARY KEY,
     parent_id   INTEGER,
     path        VARCHAR(500),
-    code        VARCHAR(50)  NOT NULL,
+    code        VARCHAR(50),
     name        VARCHAR(100) NOT NULL,
     description VARCHAR(500),
     leader      VARCHAR(50),
@@ -189,12 +189,12 @@ WHERE del_flag = 0 DO NOTHING;
 INSERT INTO rbac_user (username, password, real_name, status, group_id,
                        create_time, update_time)
 VALUES ('admin',
-        '$2a$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW',
+        '$2a$10$0IP1v/3g/QPTGYa8LWfXoOjaWGEJ333alwKWHWMpSDfBvSOvKp2UO',
         'Super Administrator', 1,
         (SELECT id FROM rbac_group WHERE code = 'ROOT' AND del_flag = 0),
         CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON CONFLICT (username)
-WHERE del_flag = 0 DO NOTHING;
+WHERE del_flag = 0 DO UPDATE SET password = EXCLUDED.password;
 
 -- Assign SUPER_ADMIN role to admin user
 INSERT INTO rbac_user_role (user_id, role_id, create_time)

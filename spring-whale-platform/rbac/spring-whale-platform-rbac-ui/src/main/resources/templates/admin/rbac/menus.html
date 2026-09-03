@@ -77,8 +77,8 @@
             <td>
                 <span class="badge bg-info text-dark" th:if="${item.type.name() == 'DIRECTORY'}"
                       th:text="#{rbac.menus.type.directory}">Directory</span>
-                <span class="badge bg-warning text-dark" th:if="${item.type.name() == 'MENU'}" th:text="#{rbac.menus.badge.button}">Button</span>
-                <span class="badge badge-purple" th:if="${item.type.name() == 'BUTTON'}" th:text="#{rbac.menus.badge.api}">API</span>
+                <span class="badge bg-warning text-dark" th:if="${item.type.name() == 'MENU'}" th:text="#{rbac.menus.type.menu}">Menu</span>
+                <span class="badge badge-purple" th:if="${item.type.name() == 'BUTTON'}" th:text="#{rbac.menus.type.button}">Button</span>
             </td>
             <td th:text="${item.path}">/admin/rbac/users</td>
             <td><code th:text="${item.permission}">user:list</code></td>

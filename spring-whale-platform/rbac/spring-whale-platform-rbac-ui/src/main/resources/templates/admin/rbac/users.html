@@ -74,20 +74,20 @@
                 <div class="d-flex gap-1">
                     <button class="btn btn-outline-primary btn-sm"
                             data-modal="user-modal" th:attr="data-edit-id=${item.id}"
-                            th:if="${#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:user:update')}"
+                            th:if="${item.username != 'admin' and (#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:user:update'))}"
                             th:text="#{action.edit}">Edit
                     </button>
                     <button class="btn btn-outline-success btn-sm"
                             data-role-modal="role-assign-modal"
                             th:data-user-id="${item.id}"
                             th:data-user-name="${item.username}"
-                            th:if="${#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:user:update')}">
+                            th:if="${item.username != 'admin' and (#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:user:update'))}">
                         <i class="bi bi-person-check me-1"></i><span th:text="#{rbac.users.assign_roles}">Assign Roles</span>
                     </button>
                     <button class="btn btn-outline-danger btn-sm"
                             data-delete-api="/api/rbac/users"
                             th:attr="data-delete-id=${item.id},data-delete-name=${item.username}"
-                            th:if="${#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:user:delete')}"
+                            th:if="${item.username != 'admin' and (#sets.contains(userAuthorities, '*') or #sets.contains(userAuthorities, 'rbac:user:delete'))}"
                             th:text="#{action.delete}">Delete
                     </button>
                 </div>
@@ -183,7 +183,6 @@
             </div>
         </div>
     </div>
-</main>
 
 <script th:inline="javascript">
 (function() {
@@ -231,9 +230,11 @@
                 fetch('/api/rbac/roles?page=0&size=1000').then(function(r) { return r.json(); }),
                 fetch('/api/rbac/users/' + userId + '/roles').then(function(r) { return r.json(); })
             ]).then(function(results) {
-                var rolePage = results[0];
-                var roleList = rolePage.content || rolePage.data || rolePage || [];
-                var checkedIds = results[1] || [];
+                var roleResp = results[0];
+                var rolePage = roleResp.data || {};
+                var roleList = rolePage.content || [];
+                var checkedResp = results[1];
+                var checkedIds = (checkedResp && checkedResp.data) || [];
                 container.innerHTML = '';
 
                 if (roleList.length === 0) {
@@ -302,6 +303,7 @@
     });
 })();
 </script>
+</main>
 
 </body>
 </html>

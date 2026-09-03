@@ -88,7 +88,7 @@
                          th:text="${item.progress} + '%'">0%</div>
                 </div>
                 <small class="text-muted" th:if="${item.formattedRemainingTime != null and !item.formattedRemainingTime.isEmpty()}"
-                       th:text="'预计剩余: ' + ${item.formattedRemainingTime}">预计剩余: 5分30秒</small>
+                       th:text="#{task.detail_remaining_prefix(${item.formattedRemainingTime})}">Estimated remaining: 5m30s</small>
             </td>
             <td th:text="${item.totalCount}">100</td>
             <td class="text-success" th:text="${item.successCount}">95</td>
@@ -120,7 +120,7 @@
                     <button class="btn btn-sm btn-warning"
                             th:if="${(item.status.name() == 'COMPLETED' or item.status.name() == 'CANCELLED' or item.status.name() == 'FAILED') and item.failCount != null and item.failCount > 0}"
                             th:data-retry-api="|/api/tasks/${item.id}/retry-failed|"
-                            th:data-retry-confirm="'确定要重试 ' + ${item.failCount} + ' 个失败条目吗？'"
+                            th:attr="data-retry-confirm=#{task.retry_confirm(${item.failCount})}"
                             th:text="#{task.retry_failed}">Retry Failed</button>
                     <button class="btn btn-sm btn-outline-dark"
                             th:if="${item.status.name() == 'COMPLETED' or item.status.name() == 'CANCELLED' or item.status.name() == 'FAILED'}"
@@ -163,7 +163,7 @@
                         <button class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{action.cancel}"
                                 type="button">Cancel
                         </button>
-                        <button class="btn btn-primary modal-submit" th:text="#{task.start}" type="button">
+                        <button class="btn btn-primary modal-submit" th:text="#{task.create_button}" type="button">
                             Create & Start
                         </button>
                     </div>
@@ -174,6 +174,46 @@
 
     <script th:inline="javascript">
         (function () {
+            var i18n = {
+                operationSuccess: /*[[#{task.operation_success}]]*/ 'Operation succeeded',
+                operationFailed: /*[[#{task.operation_failed}]]*/ 'Operation failed',
+                detailFetchFailed: /*[[#{task.detail_fetch_failed}]]*/ 'Failed to fetch task details',
+                deleteConfirm: /*[[#{task.delete_confirm}]]*/ 'Are you sure you want to delete this task?',
+                deleteTitle: /*[[#{task.delete_title}]]*/ 'Delete Confirmation',
+                deleteOk: /*[[#{task.delete_ok}]]*/ 'Confirm Delete',
+                deleteSuccess: /*[[#{task.delete_success}]]*/ 'Deleted successfully',
+                deleteFailed: /*[[#{task.delete_failed}]]*/ 'Delete failed',
+                retryConfirm: /*[[#{task.retry_confirm}]]*/ 'Are you sure you want to retry {0} failed items?',
+                retryConfirmFull: /*[[#{task.retry_confirm_full}]]*/ 'Are you sure you want to retry {0} failed items?',
+                retryTitle: /*[[#{task.retry_title}]]*/ 'Retry Failed Items',
+                retryOk: /*[[#{task.retry_ok}]]*/ 'Start Retry',
+                retrySuccess: /*[[#{task.retry_success}]]*/ 'Failed items reset and retry started',
+                retryFailedMsg: /*[[#{task.retry_failed_msg}]]*/ 'Retry failed',
+                createSuccess: /*[[#{task.create_success}]]*/ 'Task created and started',
+                createFailed: /*[[#{task.create_failed}]]*/ 'Failed to create task',
+                typeRequired: /*[[#{task.type_required}]]*/ 'Task Type is required',
+                paramsInvalidJson: /*[[#{task.params_invalid_json}]]*/ 'Parameters must be valid JSON',
+                startFailed: /*[[#{task.start_failed}]]*/ 'Start failed',
+                detailStatus: /*[[#{task.detail_status}]]*/ 'Status',
+                detailProgress: /*[[#{task.detail_progress}]]*/ 'Progress',
+                detailRemainingPrefix: /*[[#{task.detail_remaining_prefix}]]*/ 'Estimated remaining',
+                detailStartTime: /*[[#{task.start_time}]]*/ 'Start Time',
+                detailEndTime: /*[[#{task.detail_end_time}]]*/ 'End Time',
+                detailCreateTime: /*[[#{task.detail_create_time}]]*/ 'Create Time',
+                detailErrorMessage: /*[[#{task.detail_error_message}]]*/ 'Error Message',
+                detailTotalSuccessFailSkip: /*[[#{task.detail_total_success_fail_skip}]]*/ 'Total / Success / Failed / Skipped',
+                detailParams: /*[[#{task.detail_params}]]*/ 'Parameters (params)',
+                close: /*[[#{task.close}]]*/ 'Close',
+                failedItems: /*[[#{task.failed_items}]]*/ 'Failed Items',
+                itemKey: /*[[#{task.item_key}]]*/ 'Item Key',
+                retryCount: /*[[#{task.retry_count}]]*/ 'Retry Count',
+                retryFailed: /*[[#{task.retry_failed}]]*/ 'Retry Failed'
+            };
+
+            function formatMsg(template, val) {
+                return template.replace('{0}', val);
+            }
+
             // ========== Action buttons (Start / Pause / Resume / Cancel) ==========
             document.addEventListener('click', async function (e) {
                 var btn = e.target.closest('[data-api]');
@@ -201,13 +241,13 @@
                         }
                         var task = (d && d.data) ? d.data : d;
                         var statusText = task ? (task.statusLabel || task.status) : '';
-                        showToast('操作成功，当前状态: ' + statusText, 'success');
+                        showToast(formatMsg(i18n.operationSuccess, statusText), 'success');
                         setTimeout(function () { location.reload(); }, 800);
                     })
                     .catch(function (err) {
                         btn.disabled = false;
                         btn.innerHTML = origHtml;
-                        showPageError(err.message || '操作失败，请稍后重试', 'error');
+                        showPageError(err.message || i18n.operationFailed, 'error');
                     });
             });
 
@@ -226,7 +266,7 @@
                         showTaskDetailModal(task);
                     })
                     .catch(function (err) {
-                        showPageError(err.message || '获取任务详情失败', 'error');
+                        showPageError(err.message || i18n.detailFetchFailed, 'error');
                     });
             });
 
@@ -236,12 +276,12 @@
                 if (!btn) return;
                 e.preventDefault();
 
-                var confirmMsg = btn.getAttribute('data-task-delete-confirm') || '确定要删除这个任务吗？';
+                var confirmMsg = btn.getAttribute('data-task-delete-confirm') || i18n.deleteConfirm;
                 var ok = await showConfirm({
                     message: confirmMsg,
                     type: 'danger',
-                    title: '删除确认',
-                    okText: '确认删除'
+                    title: i18n.deleteTitle,
+                    okText: i18n.deleteOk
                 });
                 if (!ok) return;
 
@@ -253,18 +293,18 @@
                 fetch(url, {method: 'DELETE'})
                     .then(function (r) {
                         if (r.status === 200 || r.status === 204) {
-                            showToast('删除成功', 'success');
+                            showToast(i18n.deleteSuccess, 'success');
                             setTimeout(function () { location.reload(); }, 600);
                         } else {
                             return r.json().then(function (d) {
-                                throw new Error((d && d.message) || '删除失败');
+                                throw new Error((d && d.message) || i18n.deleteFailed);
                             });
                         }
                     })
                     .catch(function (err) {
                         btn.disabled = false;
                         btn.innerHTML = origHtml;
-                        showPageError(err.message || '删除失败，请稍后重试', 'error');
+                        showPageError(err.message || i18n.deleteFailed, 'error');
                     });
             });
 
@@ -274,12 +314,12 @@
                 if (!btn) return;
                 e.preventDefault();
 
-                var confirmMsg = btn.getAttribute('data-retry-confirm') || '确定要重试失败条目吗？';
+                var confirmMsg = btn.getAttribute('data-retry-confirm') || formatMsg(i18n.retryConfirm, '?');
                 var ok = await showConfirm({
                     message: confirmMsg,
                     type: 'warning',
-                    title: '重试失败条目',
-                    okText: '开始重试'
+                    title: i18n.retryTitle,
+                    okText: i18n.retryOk
                 });
                 if (!ok) return;
 
@@ -291,14 +331,14 @@
                 fetch(url, {method: 'POST'})
                     .then(function (r) { return r.json(); })
                     .then(function (d) {
-                        if (d && d.code && d.code !== '200') throw new Error(d.message || '重试失败');
-                        showToast('已重置失败条目并开始执行', 'success');
+                        if (d && d.code && d.code !== '200') throw new Error(d.message || i18n.retryFailedMsg);
+                        showToast(i18n.retrySuccess, 'success');
                         setTimeout(function () { location.reload(); }, 800);
                     })
                     .catch(function (err) {
                         btn.disabled = false;
                         btn.innerHTML = origHtml;
-                        showPageError(err.message || '重试失败，请稍后重试', 'error');
+                        showPageError(err.message || i18n.retryFailedMsg, 'error');
                     });
             });
 
@@ -313,31 +353,31 @@
                     '      </div>' +
                     '      <div class="modal-body" id="task-detail-body">' +
                     '        <table class="table table-sm table-borderless">' +
-                    '          <tr><th style="width:160px">状态</th><td><span class="badge">' + escapeHtml(task.statusLabel || task.status || '') + '</span></td></tr>' +
-                    '          <tr><th>进度</th><td>' +
+                    '          <tr><th style="width:160px">' + escapeHtml(i18n.detailStatus) + '</th><td><span class="badge">' + escapeHtml(task.statusLabel || task.status || '') + '</span></td></tr>' +
+                    '          <tr><th>' + escapeHtml(i18n.detailProgress) + '</th><td>' +
                                  (task.progress != null ? task.progress : 0) + '%' +
                                  ' <div class="progress mt-1"><div class="progress-bar" style="width:' + (task.progress || 0) + '%"></div></div>' +
                                  (task.estimatedRemainingSeconds != null && task.estimatedRemainingSeconds > 0
-                                     ? '<small class="text-muted mt-1 d-block">预计剩余: ' + escapeHtml(String(task.estimatedRemainingSeconds)) + ' 秒</small>' : '') +
+                                     ? '<small class="text-muted mt-1 d-block">' + escapeHtml(formatMsg(i18n.detailRemainingPrefix, String(task.estimatedRemainingSeconds))) + '</small>' : '') +
                                  '</td></tr>' +
-                    '          <tr><th>总数 / 成功 / 失败 / 跳过</th><td>' +
+                    '          <tr><th>' + escapeHtml(i18n.detailTotalSuccessFailSkip) + '</th><td>' +
                                  (task.totalCount != null ? task.totalCount : 0) + ' / ' +
                                  '<span class="text-success">' + (task.successCount != null ? task.successCount : 0) + '</span> / ' +
                                  '<span class="text-danger">' + (task.failCount != null ? task.failCount : 0) + '</span> / ' +
                                  (task.skippedCount != null ? task.skippedCount : 0) +
                                  '</td></tr>' +
-                    '          <tr><th>开始时间</th><td>' + escapeHtml(task.startTime ? String(task.startTime) : '-') + '</td></tr>' +
-                    '          <tr><th>结束时间</th><td>' + escapeHtml(task.endTime ? String(task.endTime) : '-') + '</td></tr>' +
-                    '          <tr><th>创建时间</th><td>' + escapeHtml(task.createTime ? String(task.createTime) : '-') + '</td></tr>' +
-                    (task.errorMessage ? ('<tr><th>错误信息</th><td class="text-danger"><pre class="mb-0 small">' + escapeHtml(String(task.errorMessage)) + '</pre></td></tr>') : '') +
-                    (task.params ? ('<tr><th>参数 (params)</th><td><pre class="mb-0 small bg-light p-2 rounded">' + escapeHtml(String(task.params)) + '</pre></td></tr>') : '') +
+                    '          <tr><th>' + escapeHtml(i18n.detailStartTime) + '</th><td>' + escapeHtml(task.startTime ? String(task.startTime) : '-') + '</td></tr>' +
+                    '          <tr><th>' + escapeHtml(i18n.detailEndTime) + '</th><td>' + escapeHtml(task.endTime ? String(task.endTime) : '-') + '</td></tr>' +
+                    '          <tr><th>' + escapeHtml(i18n.detailCreateTime) + '</th><td>' + escapeHtml(task.createTime ? String(task.createTime) : '-') + '</td></tr>' +
+                    (task.errorMessage ? ('<tr><th>' + escapeHtml(i18n.detailErrorMessage) + '</th><td class="text-danger"><pre class="mb-0 small">' + escapeHtml(String(task.errorMessage)) + '</pre></td></tr>') : '') +
+                    (task.params ? ('<tr><th>' + escapeHtml(i18n.detailParams) + '</th><td><pre class="mb-0 small bg-light p-2 rounded">' + escapeHtml(String(task.params)) + '</pre></td></tr>') : '') +
                     '        </table>' +
                     '        <div id="task-failed-items-container"></div>' +
                     '      </div>' +
                     '      <div class="modal-footer">' +
                     ((task.failCount != null && task.failCount > 0 && (task.status == 'COMPLETED' || task.status == 'CANCELLED' || task.status == 'FAILED'))
-                        ? '<button type="button" class="btn btn-warning" id="task-retry-failed-btn">重试失败</button>' : '') +
-                    '        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>' +
+                        ? '<button type="button" class="btn btn-warning" id="task-retry-failed-btn">' + escapeHtml(i18n.retryFailed) + '</button>' : '') +
+                    '        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">' + escapeHtml(i18n.close) + '</button>' +
                     '      </div>' +
                     '    </div>' +
                     '  </div>' +
@@ -363,9 +403,9 @@
                                 '</tr>';
                             }).join('');
                             container.innerHTML =
-                                '<h6 class="mt-2">失败条目 (' + items.length + ')</h6>' +
+                                '<h6 class="mt-2">' + escapeHtml(formatMsg(i18n.failedItems, items.length)) + '</h6>' +
                                 '<table class="table table-sm table-bordered">' +
-                                '<thead><tr><th>Item Key</th><th>错误信息</th><th>重试次数</th></tr></thead>' +
+                                '<thead><tr><th>' + escapeHtml(i18n.itemKey) + '</th><th>' + escapeHtml(i18n.detailErrorMessage) + '</th><th>' + escapeHtml(i18n.retryCount) + '</th></tr></thead>' +
                                 '<tbody>' + rows + '</tbody>' +
                                 '</table>';
                         })
@@ -378,10 +418,10 @@
                 if (retryBtn) {
                     retryBtn.addEventListener('click', async function() {
                         var ok = await showConfirm({
-                            message: '确定要重试 ' + (task.failCount || 0) + ' 个失败条目吗？将立即开始重新执行。',
+                            message: formatMsg(i18n.retryConfirmFull, task.failCount || 0),
                             type: 'warning',
-                            title: '重试失败条目',
-                            okText: '开始重试'
+                            title: i18n.retryTitle,
+                            okText: i18n.retryOk
                         });
                         if (!ok) return;
                         retryBtn.disabled = true;
@@ -389,14 +429,14 @@
                         fetch('/api/tasks/' + task.id + '/retry-failed', {method: 'POST'})
                             .then(function(r) { return r.json(); })
                             .then(function(d) {
-                                if (d && d.code && d.code !== '200') throw new Error(d.message || '重试失败');
-                                showToast('已重置失败条目并开始执行', 'success');
+                                if (d && d.code && d.code !== '200') throw new Error(d.message || i18n.retryFailedMsg);
+                                showToast(i18n.retrySuccess, 'success');
                                 setTimeout(function() { location.reload(); }, 800);
                             })
                             .catch(function(err) {
                                 retryBtn.disabled = false;
-                                retryBtn.innerHTML = '重试失败';
-                                showPageError(err.message || '重试失败，请稍后重试', 'error');
+                                retryBtn.innerHTML = i18n.retryFailed;
+                                showPageError(err.message || i18n.retryFailedMsg, 'error');
                             });
                     });
                 }
@@ -424,7 +464,7 @@
                     var taskType = taskTypeInput ? taskTypeInput.value.trim() : '';
                     if (!taskType) {
                         form.querySelectorAll('.invalid-feedback[data-field="taskType"]').forEach(function (el) {
-                            el.textContent = 'Task Type is required';
+                            el.textContent = i18n.typeRequired;
                         });
                         return;
                     }
@@ -435,7 +475,7 @@
                             params = JSON.parse(paramsInput.value.trim());
                         } catch (e) {
                             form.querySelectorAll('.invalid-feedback[data-field="params"]').forEach(function (el) {
-                                el.textContent = 'Parameters must be valid JSON: ' + e.message;
+                                el.textContent = formatMsg(i18n.paramsInvalidJson, e.message);
                             });
                             return;
                         }
@@ -454,22 +494,21 @@
                         .then(function (r) { return r.json(); })
                         .then(function (d) {
                             if (d && d.code && d.code !== '200') {
-                                throw new Error(d.message || 'Create task failed');
+                                throw new Error(d.message || i18n.createFailed);
                             }
                             var task = (d && d.data) ? d.data : d;
-                            // Auto-start if PENDING
                             if (task && task.status && (task.status === 'PENDING' || (task.status.name && task.status.name() === 'PENDING'))) {
                                 return fetch('/api/tasks/' + task.id + '/start', {method: 'POST'})
                                     .then(function (r2) { return r2.json(); })
                                     .then(function (d2) {
-                                        if (d2 && d2.code && d2.code !== '200') throw new Error(d2.message || 'Start failed');
+                                        if (d2 && d2.code && d2.code !== '200') throw new Error(d2.message || i18n.startFailed);
                                         return (d2 && d2.data) ? d2.data : d2;
                                     });
                             }
                             return task;
                         })
                         .then(function (finalTask) {
-                            showToast('任务已创建并启动 (ID: ' + finalTask.id + ')', 'success');
+                            showToast(formatMsg(i18n.createSuccess, finalTask.id), 'success');
                             var modalEl = document.getElementById('task-create-modal');
                             if (modalEl) bootstrap.Modal.getInstance(modalEl)?.hide();
                             setTimeout(function () { location.reload(); }, 800);
@@ -477,7 +516,7 @@
                         .catch(function (err) {
                             createBtn.disabled = false;
                             createBtn.innerHTML = origHtml;
-                            showPageError(err.message || '创建任务失败', 'error');
+                            showPageError(err.message || i18n.createFailed, 'error');
                         });
                 });
             }
