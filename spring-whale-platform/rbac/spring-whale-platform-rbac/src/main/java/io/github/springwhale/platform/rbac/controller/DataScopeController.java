@@ -4,14 +4,11 @@ import io.github.springwhale.database.datascope.DataScopeRemoteApi;
 import io.github.springwhale.database.datascope.DataScopeResolveResponse;
 import io.github.springwhale.database.datascope.DataScopeSkipResponse;
 import io.github.springwhale.database.datascope.DataScopeType;
+import io.github.springwhale.database.datascope.annotation.DataScope;
 import io.github.springwhale.platform.rbac.security.RBACDataScopeHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -41,18 +38,21 @@ public class DataScopeController implements DataScopeRemoteApi {
 
     @Override
     @GetMapping("/api/rbac/datascope/skip/{userId}")
+    @DataScope(scopeType = DataScopeType.CALLER)
     public DataScopeSkipResponse skipDataScope(@PathVariable Integer userId) {
         return new DataScopeSkipResponse(handler.skipDataScope(userId));
     }
 
     @Override
     @GetMapping("/api/rbac/datascope/skip-tenant/{userId}")
+    @DataScope(scopeType = DataScopeType.CALLER)
     public DataScopeSkipResponse skipTenantScope(@PathVariable Integer userId) {
         return new DataScopeSkipResponse(handler.skipTenantScope(userId));
     }
 
     @Override
     @GetMapping("/api/rbac/datascope/resolve/{userId}")
+    @DataScope(scopeType = DataScopeType.CALLER)
     public DataScopeResolveResponse resolveDeptIds(@PathVariable Integer userId,
                                                    @RequestParam DataScopeType scopeType,
                                                    @RequestParam(required = false) String module) {
@@ -66,6 +66,7 @@ public class DataScopeController implements DataScopeRemoteApi {
      * on the next request.
      */
     @DeleteMapping("/api/rbac/datascope/cache/{userId}")
+    @DataScope(scopeType = DataScopeType.CALLER)
     public void evictCache(@PathVariable Integer userId) {
         handler.evictUser(userId);
     }

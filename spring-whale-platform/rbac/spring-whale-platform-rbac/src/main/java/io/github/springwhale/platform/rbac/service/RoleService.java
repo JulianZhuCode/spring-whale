@@ -9,7 +9,8 @@ import io.github.springwhale.platform.rbac.dao.repository.RoleRepository;
 import io.github.springwhale.platform.rbac.dto.mapper.RoleMapper;
 import io.github.springwhale.platform.rbac.dto.request.RoleRequest;
 import io.github.springwhale.platform.rbac.dto.vo.RoleVO;
-import lombok.RequiredArgsConstructor;
+import io.github.springwhale.framework.event.EventPublisher;
+import io.github.springwhale.platform.rbac.event.RoleChangedEvent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,13 +24,23 @@ import java.util.stream.Collectors;
 /**
  * Role service
  */
-@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class RoleService {
 
     private final RoleRepository roleRepository;
     private final GroupRepository groupRepository;
     private final RoleMapper roleMapper;
+    private final EventPublisher eventPublisher;
+
+    public RoleService(RoleRepository roleRepository,
+                       GroupRepository groupRepository,
+                       RoleMapper roleMapper,
+                       EventPublisher eventPublisher) {
+        this.roleRepository = roleRepository;
+        this.groupRepository = groupRepository;
+        this.roleMapper = roleMapper;
+        this.eventPublisher = eventPublisher;
+    }
 
     /**
      * Find all roles with pagination
@@ -78,7 +89,9 @@ public class RoleService {
         entity.setSort(request.getSort());
         entity.setGroupId(request.getGroupId());
         entity.setDataScope(request.getDataScope());
-        return enrichGroupName(roleMapper.toVO(roleRepository.save(entity)));
+        RoleVO result = enrichGroupName(roleMapper.toVO(roleRepository.save(entity)));
+        eventPublisher.publishAfterCommit(new RoleChangedEvent(result.getId()));
+        return result;
     }
 
     /**
@@ -97,7 +110,9 @@ public class RoleService {
         role.setGroupId(request.getGroupId());
         role.setDataScope(request.getDataScope());
 
-        return enrichGroupName(roleMapper.toVO(roleRepository.save(role)));
+        RoleVO result = enrichGroupName(roleMapper.toVO(roleRepository.save(role)));
+        eventPublisher.publishAfterCommit(new RoleChangedEvent(id));
+        return result;
     }
 
     /**
@@ -108,6 +123,7 @@ public class RoleService {
         RoleEntity role = roleRepository.findById(id)
                 .orElseThrow(() -> BusinessException.create("ROLE_NOT_FOUND", "Role not found, ID: " + id));
         roleRepository.delete(role);
+        eventPublisher.publishAfterCommit(new RoleChangedEvent(id));
     }
 
     // ==================== Group name enrichment ====================

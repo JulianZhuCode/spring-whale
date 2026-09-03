@@ -9,7 +9,8 @@ import io.github.springwhale.platform.rbac.dao.repository.UserRepository;
 import io.github.springwhale.platform.rbac.dto.mapper.UserMapper;
 import io.github.springwhale.platform.rbac.dto.request.UserRequest;
 import io.github.springwhale.platform.rbac.dto.vo.UserVO;
-import lombok.RequiredArgsConstructor;
+import io.github.springwhale.framework.event.EventPublisher;
+import io.github.springwhale.platform.rbac.event.UserRoleChangedEvent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,19 +18,30 @@ import org.springframework.util.ObjectUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
  * User service
  */
-@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class UserService {
 
     private final UserRepository userRepository;
     private final GroupRepository groupRepository;
     private final UserMapper userMapper;
+    private final EventPublisher eventPublisher;
+
+    public UserService(UserRepository userRepository,
+                       GroupRepository groupRepository,
+                       UserMapper userMapper,
+                       EventPublisher eventPublisher) {
+        this.userRepository = userRepository;
+        this.groupRepository = groupRepository;
+        this.userMapper = userMapper;
+        this.eventPublisher = eventPublisher;
+    }
 
     /**
      * Find all users with pagination
@@ -95,9 +107,16 @@ public class UserService {
         user.setPhone(request.getPhone());
         user.setAvatar(request.getAvatar());
         user.setStatus(request.getStatus());
+
+        boolean groupIdChanged = !Objects.equals(user.getGroupId(), request.getGroupId());
         user.setGroupId(request.getGroupId());
 
-        return enrichGroupName(userMapper.toVO(userRepository.save(user)));
+        UserVO result = enrichGroupName(userMapper.toVO(userRepository.save(user)));
+
+        if (groupIdChanged) {
+            eventPublisher.publishAfterCommit(new UserRoleChangedEvent(id, null));
+        }
+        return result;
     }
 
     /**

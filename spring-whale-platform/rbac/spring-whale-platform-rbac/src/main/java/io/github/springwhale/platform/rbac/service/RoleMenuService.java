@@ -2,19 +2,27 @@ package io.github.springwhale.platform.rbac.service;
 
 import io.github.springwhale.platform.rbac.dao.entity.RoleMenuEntity;
 import io.github.springwhale.platform.rbac.dao.repository.RoleMenuRepository;
-import lombok.RequiredArgsConstructor;
+import io.github.springwhale.framework.event.EventPublisher;
+import io.github.springwhale.platform.rbac.event.RoleChangedEvent;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Role-menu association service
  */
-@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class RoleMenuService {
 
     private final RoleMenuRepository roleMenuRepository;
+    private final EventPublisher eventPublisher;
+
+    public RoleMenuService(RoleMenuRepository roleMenuRepository,
+                           EventPublisher eventPublisher) {
+        this.roleMenuRepository = roleMenuRepository;
+        this.eventPublisher = eventPublisher;
+    }
 
     /**
      * Get menu IDs assigned to a role
@@ -33,13 +41,18 @@ public class RoleMenuService {
         if (menuIds == null || menuIds.isEmpty()) {
             return;
         }
+        boolean changed = false;
         for (Integer menuId : menuIds) {
             if (roleMenuRepository.findByRoleIdAndMenuId(roleId, menuId).isEmpty()) {
                 RoleMenuEntity entity = new RoleMenuEntity();
                 entity.setRoleId(roleId);
                 entity.setMenuId(menuId);
                 roleMenuRepository.save(entity);
+                changed = true;
             }
+        }
+        if (changed) {
+            eventPublisher.publishAfterCommit(new RoleChangedEvent(roleId));
         }
     }
 
@@ -51,9 +64,16 @@ public class RoleMenuService {
         if (menuIds == null || menuIds.isEmpty()) {
             return;
         }
+        boolean changed = false;
         for (Integer menuId : menuIds) {
-            roleMenuRepository.findByRoleIdAndMenuId(roleId, menuId)
-                    .ifPresent(roleMenuRepository::delete);
+            Optional<RoleMenuEntity> existing = roleMenuRepository.findByRoleIdAndMenuId(roleId, menuId);
+            if (existing.isPresent()) {
+                roleMenuRepository.delete(existing.get());
+                changed = true;
+            }
+        }
+        if (changed) {
+            eventPublisher.publishAfterCommit(new RoleChangedEvent(roleId));
         }
     }
 }

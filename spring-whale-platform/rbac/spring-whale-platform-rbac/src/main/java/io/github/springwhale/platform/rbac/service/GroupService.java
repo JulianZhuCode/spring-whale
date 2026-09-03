@@ -8,7 +8,8 @@ import io.github.springwhale.platform.rbac.dto.mapper.GroupMapper;
 import io.github.springwhale.platform.rbac.dto.request.GroupRequest;
 import io.github.springwhale.platform.rbac.dto.vo.GroupTreeVO;
 import io.github.springwhale.platform.rbac.dto.vo.GroupVO;
-import lombok.RequiredArgsConstructor;
+import io.github.springwhale.framework.event.EventPublisher;
+import io.github.springwhale.platform.rbac.event.GroupChangedEvent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,12 +21,20 @@ import java.util.stream.Collectors;
 /**
  * Group (department) service
  */
-@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class GroupService {
 
     private final GroupRepository groupRepository;
     private final GroupMapper groupMapper;
+    private final EventPublisher eventPublisher;
+
+    public GroupService(GroupRepository groupRepository,
+                        GroupMapper groupMapper,
+                        EventPublisher eventPublisher) {
+        this.groupRepository = groupRepository;
+        this.groupMapper = groupMapper;
+        this.eventPublisher = eventPublisher;
+    }
 
     /**
      * Find all departments with pagination
@@ -73,7 +82,9 @@ public class GroupService {
 
         entity.setPath(buildPath(request.getParentId()));
 
-        return groupMapper.toVO(groupRepository.save(entity));
+        GroupVO result = groupMapper.toVO(groupRepository.save(entity));
+        eventPublisher.publishAfterCommit(new GroupChangedEvent(result.getId()));
+        return result;
     }
 
     /**
@@ -102,7 +113,9 @@ public class GroupService {
             updateDescendantPaths(group, oldPath);
         }
 
-        return groupMapper.toVO(groupRepository.save(group));
+        GroupVO result = groupMapper.toVO(groupRepository.save(group));
+        eventPublisher.publishAfterCommit(new GroupChangedEvent(id));
+        return result;
     }
 
     /**
@@ -113,6 +126,7 @@ public class GroupService {
         GroupEntity group = groupRepository.findById(id)
                 .orElseThrow(() -> BusinessException.create("GROUP_NOT_FOUND", "Department not found, ID: " + id));
         groupRepository.delete(group);
+        eventPublisher.publishAfterCommit(new GroupChangedEvent(id));
     }
 
     /**

@@ -7,6 +7,8 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.MDC;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import tools.jackson.databind.ObjectMapper;
@@ -75,6 +77,38 @@ public abstract class EventPublisher {
     public void publish(EventMessage message) {
         Assert.notNull(message, "message must not be null");
         send(message, null);
+    }
+
+    /**
+     * Publish the event after the current transaction commits.
+     * If no transaction is active, publishes immediately.
+     *
+     * <p>This ensures that consumers (e.g., cache invalidation listeners)
+     * always see committed data, preventing stale cache entries caused
+     * by race conditions between transaction commit and async event processing.</p>
+     *
+     * <pre>{@code
+     * @Transactional
+     * public void updateRole(RoleRequest request) {
+     *     // ... business logic ...
+     *     eventPublisher.publishAfterCommit(new RoleChangedEvent(roleId));
+     * }
+     * }</pre>
+     *
+     * @param event the event object to publish
+     */
+    public void publishAfterCommit(@Valid Object event) {
+        Assert.notNull(event, "event must not be null");
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    publish(event);
+                }
+            });
+        } else {
+            publish(event);
+        }
     }
 
     /**

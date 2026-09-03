@@ -32,6 +32,10 @@
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>io.github.julianzhucode</groupId>
+            <artifactId>spring-whale-event-core</artifactId>
+        </dependency>
     </dependencies>
 
 </project>
