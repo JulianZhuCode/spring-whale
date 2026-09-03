@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "spring.whale.database.datascope.expose-remote-api=true",
         "spring.whale.database.datascope.enabled=false"
 })
-@DisplayName("DataScopeController 集成测试")
+@DisplayName("DataScopeController Integration Tests")
 class DataScopeControllerTest {
 
     @Autowired
@@ -40,7 +40,7 @@ class DataScopeControllerTest {
     private RBACDataScopeHandler handler;
 
     @Test
-    @DisplayName("skipDataScope - 超级管理员")
+    @DisplayName("skipDataScope - super admin")
     void skipDataScope() throws Exception {
         when(handler.skipDataScope(1)).thenReturn(true);
 
@@ -50,7 +50,7 @@ class DataScopeControllerTest {
     }
 
     @Test
-    @DisplayName("skipDataScope - 普通用户")
+    @DisplayName("skipDataScope - normal user")
     void skipDataScopeNormalUser() throws Exception {
         when(handler.skipDataScope(2)).thenReturn(false);
 
@@ -60,7 +60,7 @@ class DataScopeControllerTest {
     }
 
     @Test
-    @DisplayName("skipTenantScope - 返回true")
+    @DisplayName("skipTenantScope - returns true")
     void skipTenantScope() throws Exception {
         when(handler.skipTenantScope(1)).thenReturn(true);
 
@@ -70,7 +70,7 @@ class DataScopeControllerTest {
     }
 
     @Test
-    @DisplayName("resolveDeptIds - DEPT类型")
+    @DisplayName("resolveDeptIds - DEPT type")
     void resolveDeptIds() throws Exception {
         when(handler.resolveDeptIds(eq(1), eq(DataScopeType.DEPT), isNull()))
                 .thenReturn(List.of(10));
@@ -82,7 +82,7 @@ class DataScopeControllerTest {
     }
 
     @Test
-    @DisplayName("resolveDeptIds - DEPT_AND_CHILD类型")
+    @DisplayName("resolveDeptIds - DEPT_AND_CHILD type")
     void resolveDeptIdsDeptAndChild() throws Exception {
         when(handler.resolveDeptIds(eq(1), eq(DataScopeType.DEPT_AND_CHILD), isNull()))
                 .thenReturn(List.of(10, 11, 12));
@@ -94,7 +94,7 @@ class DataScopeControllerTest {
     }
 
     @Test
-    @DisplayName("resolveDeptIds - 带module参数")
+    @DisplayName("resolveDeptIds - with module parameter")
     void resolveDeptIdsWithModule() throws Exception {
         when(handler.resolveDeptIds(eq(1), eq(DataScopeType.CUSTOM), eq("rbac:user")))
                 .thenReturn(List.of(100));
@@ -107,7 +107,7 @@ class DataScopeControllerTest {
     }
 
     @Test
-    @DisplayName("resolveDeptIds - 空结果")
+    @DisplayName("resolveDeptIds - empty result")
     void resolveDeptIdsEmpty() throws Exception {
         when(handler.resolveDeptIds(eq(1), eq(DataScopeType.SELF), isNull()))
                 .thenReturn(List.of());
@@ -120,7 +120,7 @@ class DataScopeControllerTest {
     }
 
     @Test
-    @DisplayName("清除用户缓存")
+    @DisplayName("evict user cache")
     void evictCache() throws Exception {
         mockMvc.perform(delete("/api/rbac/datascope/cache/{userId}", 1))
                 .andExpect(status().isOk());

@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("UserDetailsServiceImpl 单元测试")
+@DisplayName("UserDetailsServiceImpl Unit Tests")
 class UserDetailsServiceImplTest {
 
     @Mock
@@ -61,7 +61,7 @@ class UserDetailsServiceImplTest {
     }
 
     @Test
-    @DisplayName("正常加载用户 - 含角色和权限")
+    @DisplayName("load user with roles and permissions")
     void loadUserByUsername() {
         when(userRepository.findByUsername("admin")).thenReturn(Optional.of(user));
 
@@ -99,7 +99,7 @@ class UserDetailsServiceImplTest {
     }
 
     @Test
-    @DisplayName("用户不存在抛出异常")
+    @DisplayName("user not found throws exception")
     void loadUserByUsernameNotFound() {
         when(userRepository.findByUsername("nobody")).thenReturn(Optional.empty());
 
@@ -108,7 +108,7 @@ class UserDetailsServiceImplTest {
     }
 
     @Test
-    @DisplayName("用户被禁用抛出异常")
+    @DisplayName("disabled user throws exception")
     void loadUserByUsernameDisabled() {
         user.setStatus(0);
         when(userRepository.findByUsername("admin")).thenReturn(Optional.of(user));
@@ -118,7 +118,7 @@ class UserDetailsServiceImplTest {
     }
 
     @Test
-    @DisplayName("超级管理员获取通配符权限")
+    @DisplayName("super admin gets wildcard authority")
     void loadSuperAdmin() {
         when(userRepository.findByUsername("admin")).thenReturn(Optional.of(user));
 
@@ -143,7 +143,7 @@ class UserDetailsServiceImplTest {
     }
 
     @Test
-    @DisplayName("无角色用户返回空权限")
+    @DisplayName("user without roles returns empty authorities")
     void loadUserWithoutRoles() {
         when(userRepository.findByUsername("admin")).thenReturn(Optional.of(user));
         when(userRoleRepository.findByUserId(1)).thenReturn(List.of());
@@ -154,7 +154,7 @@ class UserDetailsServiceImplTest {
     }
 
     @Test
-    @DisplayName("角色被禁用时不分配权限")
+    @DisplayName("disabled role does not grant authorities")
     void loadUserWithDisabledRole() {
         when(userRepository.findByUsername("admin")).thenReturn(Optional.of(user));
 

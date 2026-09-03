@@ -23,7 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Import(TestSecurityConfiguration.class)
-@DisplayName("AuthController 集成测试")
+@DisplayName("AuthController Integration Tests")
 class AuthControllerTest {
 
     @Autowired
@@ -50,7 +50,7 @@ class AuthControllerTest {
     }
 
     @Test
-    @DisplayName("登录成功 - 返回JWT token")
+    @DisplayName("login success - returns JWT token")
     void loginSuccess() throws Exception {
         LoginRequest request = new LoginRequest();
         request.setUsername("admin");
@@ -67,7 +67,7 @@ class AuthControllerTest {
     }
 
     @Test
-    @DisplayName("登录失败 - 密码错误")
+    @DisplayName("login failure - wrong password")
     void loginFailureWrongPassword() throws Exception {
         LoginRequest request = new LoginRequest();
         request.setUsername("admin");
@@ -82,7 +82,7 @@ class AuthControllerTest {
     }
 
     @Test
-    @DisplayName("登录失败 - 用户不存在")
+    @DisplayName("login failure - user not found")
     void loginFailureUserNotFound() throws Exception {
         LoginRequest request = new LoginRequest();
         request.setUsername("ghost");

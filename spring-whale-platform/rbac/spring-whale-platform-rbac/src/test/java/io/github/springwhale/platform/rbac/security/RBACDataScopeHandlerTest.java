@@ -33,7 +33,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-@DisplayName("RBACDataScopeHandler 单元测试")
+@DisplayName("RBACDataScopeHandler Unit Tests")
 class RBACDataScopeHandlerTest {
 
     @Mock
@@ -72,13 +72,13 @@ class RBACDataScopeHandlerTest {
     }
 
     @Test
-    @DisplayName("skipTenantScope 默认返回true")
+    @DisplayName("skipTenantScope returns true by default")
     void skipTenantScope() {
         assertTrue(handler.skipTenantScope());
     }
 
     @Test
-    @DisplayName("skipDataScope - 超级管理员应跳过")
+    @DisplayName("skipDataScope - super admin skips")
     void skipDataScopeSuperAdmin() {
         UserRoleScopeView view = new UserRoleScopeView();
         view.setRoleCode(RbacConstants.SUPER_ADMIN_ROLE_CODE);
@@ -92,7 +92,7 @@ class RBACDataScopeHandlerTest {
     }
 
     @Test
-    @DisplayName("skipDataScope - 普通用户不跳过")
+    @DisplayName("skipDataScope - normal user does not skip")
     void skipDataScopeNormalUser() {
         when(cache.get(eq(DataScopeCacheKey.skipDataScope(1)), eq(Boolean.class), any(), any()))
                 .thenAnswer(inv -> ((Supplier<?>) inv.getArgument(2)).get());
@@ -103,14 +103,14 @@ class RBACDataScopeHandlerTest {
     }
 
     @Test
-    @DisplayName("skipDataScope - userId为null返回false")
+    @DisplayName("skipDataScope - null userId returns false")
     void skipDataScopeNullUserId() {
         boolean result = handler.skipDataScope(null);
         assertFalse(result);
     }
 
     @Test
-    @DisplayName("resolveDeptIds - DEPT类型返回用户部门ID")
+    @DisplayName("resolveDeptIds - DEPT type returns user group ID")
     void resolveDeptIdsDept() {
         UserEntity user = new UserEntity();
         user.setId(1);
@@ -126,7 +126,7 @@ class RBACDataScopeHandlerTest {
     }
 
     @Test
-    @DisplayName("resolveDeptIds - DEPT_AND_CHILD类型返回用户部门及子部门")
+    @DisplayName("resolveDeptIds - DEPT_AND_CHILD returns group and descendants")
     void resolveDeptIdsDeptAndChild() {
         UserEntity user = new UserEntity();
         user.setId(1);
@@ -154,14 +154,14 @@ class RBACDataScopeHandlerTest {
     }
 
     @Test
-    @DisplayName("resolveDeptIds - userId为null返回空列表")
+    @DisplayName("resolveDeptIds - null userId returns empty list")
     void resolveDeptIdsNullUserId() {
         List<Object> result = handler.resolveDeptIds(null, DataScopeType.DEPT, null);
         assertTrue(result.isEmpty());
     }
 
     @Test
-    @DisplayName("resolveDeptIds - 用户不存在返回空列表")
+    @DisplayName("resolveDeptIds - user not found returns empty")
     void resolveDeptIdsUserNotFound() {
         when(cache.getList(eq(DataScopeCacheKey.resolveDeptIds(1, DataScopeType.DEPT, null)),
                 any(), any()))
@@ -173,7 +173,7 @@ class RBACDataScopeHandlerTest {
     }
 
     @Test
-    @DisplayName("resolveDeptIds - SELF/CALLER类型返回空列表")
+    @DisplayName("resolveDeptIds - SELF/CALLER returns empty")
     void resolveDeptIdsSelf() {
         when(cache.getList(eq(DataScopeCacheKey.resolveDeptIds(1, DataScopeType.SELF, null)),
                 any(), any()))

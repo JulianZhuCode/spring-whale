@@ -33,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Import(TestSecurityConfiguration.class)
-@DisplayName("RBAC 关联关系 Controller 集成测试")
+@DisplayName("RBAC Assignment Controller Integration Tests")
 class AdminAssignmentControllerTest {
 
     @Autowired
@@ -97,7 +97,7 @@ class AdminAssignmentControllerTest {
 
         @Test
         @WithMockUser(username = "admin", authorities = {"rbac:user"})
-        @DisplayName("获取用户角色ID列表")
+        @DisplayName("get user role IDs")
         void getRoles() throws Exception {
             UserRoleEntity userRole = new UserRoleEntity();
             userRole.setUserId(testUser.getId());
@@ -111,7 +111,7 @@ class AdminAssignmentControllerTest {
 
         @Test
         @WithMockUser(username = "admin", authorities = {"rbac:user:update"})
-        @DisplayName("批量添加用户角色")
+        @DisplayName("batch add user roles")
         void addRoles() throws Exception {
             mockMvc.perform(post("/api/rbac/users/{userId}/roles", testUser.getId())
                             .contentType(MediaType.APPLICATION_JSON)
@@ -122,7 +122,7 @@ class AdminAssignmentControllerTest {
 
         @Test
         @WithMockUser(username = "admin", authorities = {"rbac:user:update"})
-        @DisplayName("批量移除用户角色")
+        @DisplayName("batch remove user roles")
         void removeRoles() throws Exception {
             UserRoleEntity userRole = new UserRoleEntity();
             userRole.setUserId(testUser.getId());
@@ -143,7 +143,7 @@ class AdminAssignmentControllerTest {
 
         @Test
         @WithMockUser(username = "admin", authorities = {"rbac:role"})
-        @DisplayName("获取角色菜单ID列表")
+        @DisplayName("get role menu IDs")
         void getMenus() throws Exception {
             RoleMenuEntity roleMenu = new RoleMenuEntity();
             roleMenu.setRoleId(testRole.getId());
@@ -157,7 +157,7 @@ class AdminAssignmentControllerTest {
 
         @Test
         @WithMockUser(username = "admin", authorities = {"rbac:role:update"})
-        @DisplayName("批量添加角色菜单")
+        @DisplayName("batch add role menus")
         void addMenus() throws Exception {
             mockMvc.perform(post("/api/rbac/roles/{roleId}/menus", testRole.getId())
                             .contentType(MediaType.APPLICATION_JSON)
@@ -168,7 +168,7 @@ class AdminAssignmentControllerTest {
 
         @Test
         @WithMockUser(username = "admin", authorities = {"rbac:role:update"})
-        @DisplayName("批量移除角色菜单")
+        @DisplayName("batch remove role menus")
         void removeMenus() throws Exception {
             RoleMenuEntity roleMenu = new RoleMenuEntity();
             roleMenu.setRoleId(testRole.getId());

@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Import(TestSecurityConfiguration.class)
-@DisplayName("GroupController 集成测试")
+@DisplayName("GroupController Integration Tests")
 class GroupControllerTest {
 
     @Autowired
@@ -60,7 +60,7 @@ class GroupControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:group"})
-    @DisplayName("获取部门树")
+    @DisplayName("get group tree")
     void tree() throws Exception {
         mockMvc.perform(get("/api/rbac/groups/tree"))
                 .andExpect(status().isOk())
@@ -70,7 +70,7 @@ class GroupControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:group"})
-    @DisplayName("分页查询部门列表")
+    @DisplayName("paginated list of groups")
     void findAll() throws Exception {
         mockMvc.perform(get("/api/rbac/groups")
                         .param("page", "0")
@@ -82,7 +82,7 @@ class GroupControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:group"})
-    @DisplayName("根据关键字搜索部门")
+    @DisplayName("search group by keyword")
     void findAllWithKeyword() throws Exception {
         mockMvc.perform(get("/api/rbac/groups")
                         .param("page", "0")
@@ -95,7 +95,7 @@ class GroupControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:group"})
-    @DisplayName("根据ID查询部门")
+    @DisplayName("get group by ID")
     void findById() throws Exception {
         mockMvc.perform(get("/api/rbac/groups/{id}", rootGroup.getId()))
                 .andExpect(status().isOk())
@@ -105,7 +105,7 @@ class GroupControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:group"})
-    @DisplayName("查询不存在的部门 - 返回业务错误")
+    @DisplayName("non-existent group returns business error")
     void findByIdNotFound() throws Exception {
         mockMvc.perform(get("/api/rbac/groups/{id}", 9999))
                 .andExpect(status().isOk())
@@ -114,7 +114,7 @@ class GroupControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:group:create"})
-    @DisplayName("创建根部门")
+    @DisplayName("create root group")
     void createRoot() throws Exception {
         GroupRequest request = new GroupRequest();
         request.setCode("NEW_ROOT");
@@ -131,7 +131,7 @@ class GroupControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:group:create"})
-    @DisplayName("创建子部门")
+    @DisplayName("create child group")
     void createChild() throws Exception {
         GroupRequest request = new GroupRequest();
         request.setCode("NEW_CHILD");
@@ -149,7 +149,7 @@ class GroupControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:group:update"})
-    @DisplayName("更新部门")
+    @DisplayName("update group")
     void update() throws Exception {
         GroupRequest request = new GroupRequest();
         request.setCode(rootGroup.getCode());
@@ -165,7 +165,7 @@ class GroupControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:group:delete"})
-    @DisplayName("删除部门")
+    @DisplayName("delete group")
     void deleteGroup() throws Exception {
         mockMvc.perform(delete("/api/rbac/groups/{id}", rootGroup.getId()))
                 .andExpect(status().isOk());

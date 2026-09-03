@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Import(TestSecurityConfiguration.class)
-@DisplayName("RoleDeptController 集成测试")
+@DisplayName("RoleDeptController Integration Tests")
 class RoleDeptControllerTest {
 
     @Autowired
@@ -57,7 +57,7 @@ class RoleDeptControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:role"})
-    @DisplayName("查询角色关联的部门列表")
+    @DisplayName("get role dept list")
     void getDepts() throws Exception {
         RoleDeptEntity dept = new RoleDeptEntity();
         dept.setRoleId(role.getId());
@@ -71,7 +71,7 @@ class RoleDeptControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:role"})
-    @DisplayName("查询角色关联的部门列表 - 空列表")
+    @DisplayName("get role dept list - empty")
     void getDeptsEmpty() throws Exception {
         mockMvc.perform(get("/api/rbac/roles/{roleId}/depts", role.getId()))
                 .andExpect(status().isOk())
@@ -81,7 +81,7 @@ class RoleDeptControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:role:update"})
-    @DisplayName("为角色添加部门")
+    @DisplayName("add depts to role")
     void addDepts() throws Exception {
         List<Integer> deptIds = List.of(100, 200);
 
@@ -94,7 +94,7 @@ class RoleDeptControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:role:update"})
-    @DisplayName("为角色添加部门 - 空列表不报错")
+    @DisplayName("add empty dept list to role")
     void addDeptsEmpty() throws Exception {
         List<Integer> deptIds = List.of();
 
@@ -106,7 +106,7 @@ class RoleDeptControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:role:update"})
-    @DisplayName("移除角色的部门")
+    @DisplayName("remove depts from role")
     void removeDepts() throws Exception {
         RoleDeptEntity dept = new RoleDeptEntity();
         dept.setRoleId(role.getId());
@@ -124,7 +124,7 @@ class RoleDeptControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:role:update"})
-    @DisplayName("移除角色的部门 - 空列表不报错")
+    @DisplayName("remove empty dept list from role")
     void removeDeptsEmpty() throws Exception {
         List<Integer> deptIds = List.of();
 

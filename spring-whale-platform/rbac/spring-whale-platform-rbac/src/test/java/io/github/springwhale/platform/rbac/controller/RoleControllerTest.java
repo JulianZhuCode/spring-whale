@@ -23,7 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Import(TestSecurityConfiguration.class)
-@DisplayName("RoleController 集成测试")
+@DisplayName("RoleController Integration Tests")
 class RoleControllerTest {
 
     @Autowired
@@ -54,7 +54,7 @@ class RoleControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:role"})
-    @DisplayName("分页查询角色列表")
+    @DisplayName("paginated list of roles")
     void findAll() throws Exception {
         mockMvc.perform(get("/api/rbac/roles")
                         .param("page", "0")
@@ -66,7 +66,7 @@ class RoleControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:role"})
-    @DisplayName("根据关键字搜索角色")
+    @DisplayName("search role by keyword")
     void findAllWithKeyword() throws Exception {
         mockMvc.perform(get("/api/rbac/roles")
                         .param("page", "0")
@@ -79,7 +79,7 @@ class RoleControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:role"})
-    @DisplayName("根据ID查询角色")
+    @DisplayName("get role by ID")
     void findById() throws Exception {
         RoleEntity role = roleRepository.findAll().get(0);
 
@@ -90,7 +90,7 @@ class RoleControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:role"})
-    @DisplayName("查询不存在的角色 - 返回业务错误")
+    @DisplayName("non-existent role returns business error")
     void findByIdNotFound() throws Exception {
         mockMvc.perform(get("/api/rbac/roles/{id}", 9999))
                 .andExpect(status().isOk())
@@ -99,7 +99,7 @@ class RoleControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:role:create"})
-    @DisplayName("创建角色")
+    @DisplayName("create role")
     void create() throws Exception {
         RoleRequest request = new RoleRequest();
         request.setCode("MANAGER");
@@ -116,7 +116,7 @@ class RoleControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:role:update"})
-    @DisplayName("更新角色")
+    @DisplayName("update role")
     void update() throws Exception {
         RoleEntity role = roleRepository.findAll().get(0);
 
@@ -134,7 +134,7 @@ class RoleControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:role:delete"})
-    @DisplayName("删除角色")
+    @DisplayName("delete role")
     void deleteRole() throws Exception {
         RoleEntity role = roleRepository.findAll().get(0);
 

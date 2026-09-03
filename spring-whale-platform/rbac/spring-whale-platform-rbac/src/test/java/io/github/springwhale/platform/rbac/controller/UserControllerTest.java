@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Import(TestSecurityConfiguration.class)
-@DisplayName("UserController 集成测试")
+@DisplayName("UserController Integration Tests")
 class UserControllerTest {
 
     @Autowired
@@ -78,7 +78,7 @@ class UserControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:user"})
-    @DisplayName("分页查询用户列表")
+    @DisplayName("paginated list of users")
     void findAll() throws Exception {
         mockMvc.perform(get("/api/rbac/users")
                         .param("page", "0")
@@ -90,7 +90,7 @@ class UserControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:user"})
-    @DisplayName("根据关键字搜索用户")
+    @DisplayName("search users by keyword")
     void findAllWithKeyword() throws Exception {
         mockMvc.perform(get("/api/rbac/users")
                         .param("page", "0")
@@ -103,7 +103,7 @@ class UserControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:user"})
-    @DisplayName("根据ID查询用户")
+    @DisplayName("get user by ID")
     void findById() throws Exception {
         UserEntity user = userRepository.findByUsername("user1").orElseThrow();
 
@@ -115,7 +115,7 @@ class UserControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:user"})
-    @DisplayName("查询不存在的用户 - 返回业务错误")
+    @DisplayName("non-existent user returns business error")
     void findByIdNotFound() throws Exception {
         mockMvc.perform(get("/api/rbac/users/{id}", 9999))
                 .andExpect(status().isOk())
@@ -124,7 +124,7 @@ class UserControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:user:create"})
-    @DisplayName("创建用户")
+    @DisplayName("create user")
     void create() throws Exception {
         UserRequest request = new UserRequest();
         request.setUsername("newuser");
@@ -144,7 +144,7 @@ class UserControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:user:create"})
-    @DisplayName("创建用户 - 用户名为空应返回500")
+    @DisplayName("create user - empty username returns 500")
     void createWithEmptyUsername() throws Exception {
         UserRequest request = new UserRequest();
         request.setUsername("");
@@ -159,7 +159,7 @@ class UserControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:user:update"})
-    @DisplayName("更新用户")
+    @DisplayName("update user")
     void update() throws Exception {
         UserEntity user = userRepository.findByUsername("user1").orElseThrow();
 
@@ -180,7 +180,7 @@ class UserControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:user:delete"})
-    @DisplayName("删除用户")
+    @DisplayName("delete user")
     void deleteUser() throws Exception {
         UserEntity user = userRepository.findByUsername("user1").orElseThrow();
 

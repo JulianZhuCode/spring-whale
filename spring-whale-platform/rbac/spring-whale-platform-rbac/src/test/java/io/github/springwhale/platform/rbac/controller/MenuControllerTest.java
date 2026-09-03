@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Import(TestSecurityConfiguration.class)
-@DisplayName("MenuController 集成测试")
+@DisplayName("MenuController Integration Tests")
 class MenuControllerTest {
 
     @Autowired
@@ -114,7 +114,7 @@ class MenuControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:menu"})
-    @DisplayName("分页查询菜单列表")
+    @DisplayName("paginated list of menus")
     void findAll() throws Exception {
         mockMvc.perform(get("/api/rbac/menus")
                         .param("page", "0")
@@ -125,7 +125,7 @@ class MenuControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:menu"})
-    @DisplayName("根据关键字搜索菜单")
+    @DisplayName("search menus by keyword")
     void findAllWithKeyword() throws Exception {
         mockMvc.perform(get("/api/rbac/menus")
                         .param("page", "0")
@@ -138,7 +138,7 @@ class MenuControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:menu"})
-    @DisplayName("根据ID查询菜单")
+    @DisplayName("get menu by ID")
     void findById() throws Exception {
         mockMvc.perform(get("/api/rbac/menus/{id}", systemMenu.getId()))
                 .andExpect(status().isOk())
@@ -148,7 +148,7 @@ class MenuControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:menu"})
-    @DisplayName("查询不存在的菜单 - 返回业务错误")
+    @DisplayName("non-existent menu returns business error")
     void findByIdNotFound() throws Exception {
         mockMvc.perform(get("/api/rbac/menus/{id}", 9999))
                 .andExpect(status().isOk())
@@ -157,7 +157,7 @@ class MenuControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:menu:create"})
-    @DisplayName("创建菜单")
+    @DisplayName("create menu")
     void create() throws Exception {
         MenuRequest request = new MenuRequest();
         request.setCode("settings");
@@ -178,7 +178,7 @@ class MenuControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:menu:update"})
-    @DisplayName("更新菜单")
+    @DisplayName("update menu")
     void update() throws Exception {
         MenuRequest request = new MenuRequest();
         request.setCode(userMenu.getCode());
@@ -196,7 +196,7 @@ class MenuControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:menu:delete"})
-    @DisplayName("删除菜单")
+    @DisplayName("delete menu")
     void deleteMenu() throws Exception {
         mockMvc.perform(delete("/api/rbac/menus/{id}", userMenu.getId()))
                 .andExpect(status().isOk());
@@ -204,7 +204,7 @@ class MenuControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"rbac:menu"})
-    @DisplayName("获取菜单树 - 超级管理员返回全部菜单")
+    @DisplayName("get menu tree - super admin returns all")
     void tree() throws Exception {
         mockMvc.perform(get("/api/rbac/menus/tree"))
                 .andExpect(status().isOk())
