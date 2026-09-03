@@ -31,9 +31,9 @@ public class SpringWhaleCoreConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public EdgeTtsEngine edgeTtsEngine(
-            @Value("${edge-tts.command:edge-tts}") String command,
-            @Value("${edge-tts.timeout-seconds:30}") int timeoutSeconds,
-            @Value("${edge-tts.concurrency:0}") int concurrency) {
+            @Value("${spring.whale.edge-tts.command:edge-tts}") String command,
+            @Value("${spring.whale.edge-tts.timeout-seconds:30}") int timeoutSeconds,
+            @Value("${spring.whale.edge-tts.concurrency:0}") int concurrency) {
         return new EdgeTtsEngine(command, timeoutSeconds, concurrency);
     }
 
