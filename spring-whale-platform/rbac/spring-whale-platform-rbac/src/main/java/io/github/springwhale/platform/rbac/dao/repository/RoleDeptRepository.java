@@ -10,11 +10,7 @@ public interface RoleDeptRepository extends JpaRepository<RoleDeptEntity, Intege
 
     List<RoleDeptEntity> findByRoleId(Integer roleId);
 
-    List<RoleDeptEntity> findByRoleIdIn(List<Integer> roleIds);
-
     List<RoleDeptEntity> findByGroupId(Integer groupId);
 
     Optional<RoleDeptEntity> findByRoleIdAndGroupId(Integer roleId, Integer groupId);
-
-    void deleteByRoleId(Integer roleId);
 }

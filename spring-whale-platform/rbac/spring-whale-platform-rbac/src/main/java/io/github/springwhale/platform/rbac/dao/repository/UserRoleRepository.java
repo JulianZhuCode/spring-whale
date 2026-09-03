@@ -3,9 +3,7 @@ package io.github.springwhale.platform.rbac.dao.repository;
 import io.github.springwhale.platform.rbac.dao.entity.UserRoleEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-
 import java.util.List;
-import java.util.Optional;
 
 /**
  * User-role association repository
@@ -21,19 +19,4 @@ public interface UserRoleRepository extends JpaRepository<UserRoleEntity, Intege
      * Find all user associations by role ID
      */
     List<UserRoleEntity> findByRoleId(Integer roleId);
-
-    /**
-     * Find by user ID and role ID
-     */
-    Optional<UserRoleEntity> findByUserIdAndRoleId(Integer userId, Integer roleId);
-
-    /**
-     * Delete all role associations for user
-     */
-    void deleteByUserId(Integer userId);
-
-    /**
-     * Delete all user associations for role
-     */
-    void deleteByRoleId(Integer roleId);
 }
