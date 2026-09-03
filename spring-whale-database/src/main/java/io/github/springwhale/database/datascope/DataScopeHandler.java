@@ -44,13 +44,13 @@ public interface DataScopeHandler {
         return false;
     }
 
-    default Object resolveUserId() {
+    default Integer resolveUserId() {
         return AuthUtil.getUserId();
     }
 
     List<Object> resolveDeptIds(DataScopeType scopeType, String module);
 
-    default Object resolveTenantId() {
+    default Integer resolveTenantId() {
         return AuthUtil.getTenantId();
     }
 }

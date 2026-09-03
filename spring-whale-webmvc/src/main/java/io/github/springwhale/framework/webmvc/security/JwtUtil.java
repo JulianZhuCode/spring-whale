@@ -63,9 +63,9 @@ public class JwtUtil {
         return claims.get("userId", Integer.class);
     }
 
-    public Object getTenantIdFromToken(String token) {
+    public Integer getTenantIdFromToken(String token) {
         Claims claims = getClaimsFromToken(token);
-        return claims.get("tenantId");
+        return claims.get("tenantId", Integer.class);
     }
 
     public boolean validateToken(String token) {

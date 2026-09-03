@@ -76,7 +76,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String username = jwtUtil.getUsernameFromToken(jwt);
         Integer userId = jwtUtil.getUserIdFromToken(jwt);
-        Object tenantId = jwtUtil.getTenantIdFromToken(jwt);
+        Integer tenantId = jwtUtil.getTenantIdFromToken(jwt);
 
         UserDetails userDetails;
         try {
@@ -99,7 +99,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
-    private void setApplicationContext(Integer userId, String username, Object tenantId) {
+    private void setApplicationContext(Integer userId, String username, Integer tenantId) {
         AuthenticationContextHolder.setContext(new AuthenticationContext(userId, username, tenantId));
     }
 }
