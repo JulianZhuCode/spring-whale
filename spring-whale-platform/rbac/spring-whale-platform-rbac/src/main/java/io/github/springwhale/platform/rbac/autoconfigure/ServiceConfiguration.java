@@ -80,6 +80,13 @@ public class ServiceConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    public UserRoleService userRoleService(UserRoleRepository userRoleRepository,
+                                           EventPublisher eventPublisher) {
+        return new UserRoleService(userRoleRepository, eventPublisher);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
     public DataScopeCacheInvalidationListener dataScopeCacheInvalidationListener(
             RBACDataScopeHandler handler,
             UserRoleRepository userRoleRepository,

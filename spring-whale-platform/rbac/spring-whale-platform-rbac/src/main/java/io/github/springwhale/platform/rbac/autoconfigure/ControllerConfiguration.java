@@ -55,6 +55,12 @@ public class ControllerConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    public UserRoleController userRoleController(UserRoleService userRoleService) {
+        return new UserRoleController(userRoleService);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
     public GroupController groupController(GroupService groupService) {
         return new GroupController(groupService);
     }
