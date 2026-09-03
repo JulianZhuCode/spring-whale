@@ -1,5 +1,9 @@
 package io.github.springwhale.database.datascope;
 
+import io.github.springwhale.database.datascope.annotation.DeptIdField;
+import io.github.springwhale.database.datascope.annotation.DeptIdScope;
+import io.github.springwhale.database.datascope.annotation.TenantIdScope;
+import io.github.springwhale.database.datascope.annotation.UserIdScope;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -13,54 +17,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 class DataScopeHelperTest {
 
     private final DataScopeHelper helper = new DataScopeHelper();
-
-    @Entity
-    @DeptIdScope
-    static class DeptEntity {
-        @Id
-        private Integer id;
-    }
-
-    @Entity
-    @DeptIdScope({"deptCode", "ownerId"})
-    static class MultiDeptEntity {
-        @Id
-        private Integer id;
-
-        @Column(name = "dept_code")
-        private String deptCode;
-
-        @Column(name = "owner_id")
-        private Integer ownerId;
-    }
-
-    @Entity
-    @UserIdScope
-    static class UserScopeEntity {
-        @Id
-        private Integer id;
-    }
-
-    @Entity
-    @TenantIdScope
-    static class TenantScopeEntity {
-        @Id
-        private Integer id;
-    }
-
-    @Entity
-    @DeptIdScope
-    static class ParentIdEntity extends DeptEntity {
-        @DeptIdField
-        private Integer parentDeptId;
-    }
-
-    @Entity
-    @DeptIdScope({"nonExistent"})
-    static class BadRefEntity {
-        @Id
-        private Integer id;
-    }
 
     @Test
     @DisplayName("@DeptIdScope with default value resolves 'id'")
@@ -116,5 +72,53 @@ class DataScopeHelperTest {
     void testNonExistentField() {
         List<String> fields = helper.resolveDeptIdFields(BadRefEntity.class);
         assertThat(fields).isEmpty();
+    }
+
+    @Entity
+    @DeptIdScope
+    static class DeptEntity {
+        @Id
+        private Integer id;
+    }
+
+    @Entity
+    @DeptIdScope({"deptCode", "ownerId"})
+    static class MultiDeptEntity {
+        @Id
+        private Integer id;
+
+        @Column(name = "dept_code")
+        private String deptCode;
+
+        @Column(name = "owner_id")
+        private Integer ownerId;
+    }
+
+    @Entity
+    @UserIdScope
+    static class UserScopeEntity {
+        @Id
+        private Integer id;
+    }
+
+    @Entity
+    @TenantIdScope
+    static class TenantScopeEntity {
+        @Id
+        private Integer id;
+    }
+
+    @Entity
+    @DeptIdScope
+    static class ParentIdEntity extends DeptEntity {
+        @DeptIdField
+        private Integer parentDeptId;
+    }
+
+    @Entity
+    @DeptIdScope({"nonExistent"})
+    static class BadRefEntity {
+        @Id
+        private Integer id;
     }
 }

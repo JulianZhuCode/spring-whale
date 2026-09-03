@@ -1,5 +1,6 @@
 package io.github.springwhale.database.datascope;
 
+import io.github.springwhale.database.datascope.annotation.DataScope;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

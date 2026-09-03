@@ -1,5 +1,7 @@
 package io.github.springwhale.database.datascope;
 
+import io.github.springwhale.database.datascope.annotation.DeptIdField;
+import io.github.springwhale.database.datascope.annotation.UserIdField;
 import jakarta.persistence.*;
 
 @Entity

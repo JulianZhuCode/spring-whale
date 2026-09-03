@@ -1,4 +1,6 @@
-package io.github.springwhale.database.datascope;
+package io.github.springwhale.database.datascope.annotation;
+
+import io.github.springwhale.database.datascope.DataScopeHelper;
 
 import java.lang.annotation.*;
 
@@ -16,7 +18,7 @@ import java.lang.annotation.*;
  *
  * <h3>Usage</h3>
  * <pre>{@code
- * @TenantIdScope   // defaults to {"id"}
+ * @TenantIdScope // defaults to {"id"}
  * public class TenantEntity extends BaseEntity { ... }
  *
  * @TenantIdScope({"tenantId", "ownerTenantId"})  // custom field names

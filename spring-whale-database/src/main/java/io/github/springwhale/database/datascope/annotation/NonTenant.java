@@ -1,4 +1,4 @@
-package io.github.springwhale.database.datascope;
+package io.github.springwhale.database.datascope.annotation;
 
 import java.lang.annotation.*;
 

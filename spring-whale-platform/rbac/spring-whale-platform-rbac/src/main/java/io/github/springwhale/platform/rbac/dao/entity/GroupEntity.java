@@ -1,8 +1,11 @@
 package io.github.springwhale.platform.rbac.dao.entity;
 
 import io.github.springwhale.database.BaseEntity;
-import io.github.springwhale.database.datascope.DeptIdScope;
-import jakarta.persistence.*;
+import io.github.springwhale.database.datascope.annotation.DeptIdScope;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

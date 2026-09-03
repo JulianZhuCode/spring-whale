@@ -1,5 +1,6 @@
 package io.github.springwhale.database.datascope;
 
+import io.github.springwhale.database.datascope.annotation.DataScope;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -42,7 +43,7 @@ public class DataScopeAspect {
     private final DataScopeHandler dataScopeHandler;
     private final DataScopeProperties properties;
 
-    @Around("@annotation(io.github.springwhale.database.datascope.DataScope)")
+    @Around("@annotation(io.github.springwhale.database.datascope.annotation.DataScope)")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
         if (!properties.isEnabled()) {
             return joinPoint.proceed();

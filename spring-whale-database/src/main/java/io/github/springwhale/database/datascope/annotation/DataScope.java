@@ -1,5 +1,8 @@
-package io.github.springwhale.database.datascope;
+package io.github.springwhale.database.datascope.annotation;
 
+
+import io.github.springwhale.database.datascope.DataScopeInterceptor;
+import io.github.springwhale.database.datascope.DataScopeType;
 
 import java.lang.annotation.*;
 

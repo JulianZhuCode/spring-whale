@@ -1,4 +1,6 @@
-package io.github.springwhale.database.datascope;
+package io.github.springwhale.database.datascope.annotation;
+
+import io.github.springwhale.database.datascope.DataScopeHelper;
 
 import java.lang.annotation.*;
 
@@ -16,7 +18,7 @@ import java.lang.annotation.*;
  *
  * <h3>Usage</h3>
  * <pre>{@code
- * @DeptIdScope   // defaults to {"id"}
+ * @DeptIdScope // defaults to {"id"}
  * public class GroupEntity extends BaseEntity { ... }
  *
  * @DeptIdScope({"groupId", "deptId"})  // custom field names

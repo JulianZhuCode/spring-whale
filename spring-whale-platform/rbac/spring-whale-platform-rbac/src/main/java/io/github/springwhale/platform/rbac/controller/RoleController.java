@@ -1,7 +1,7 @@
 package io.github.springwhale.platform.rbac.controller;
 
 import io.github.springwhale.database.SortUtils;
-import io.github.springwhale.database.datascope.DataScope;
+import io.github.springwhale.database.datascope.annotation.DataScope;
 import io.github.springwhale.framework.core.exception.BusinessException;
 import io.github.springwhale.platform.rbac.dto.request.RoleRequest;
 import io.github.springwhale.platform.rbac.dto.vo.RoleVO;

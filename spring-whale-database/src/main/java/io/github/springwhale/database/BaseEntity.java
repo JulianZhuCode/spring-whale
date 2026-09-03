@@ -1,6 +1,6 @@
 package io.github.springwhale.database;
 
-import io.github.springwhale.database.datascope.UserIdField;
+import io.github.springwhale.database.datascope.annotation.UserIdField;
 import io.github.springwhale.framework.core.utils.AuthUtil;
 import jakarta.persistence.*;
 import lombok.Data;
