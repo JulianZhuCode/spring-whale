@@ -6,6 +6,7 @@ import io.github.springwhale.framework.event.EventPublisher;
 import io.github.springwhale.platform.rbac.event.RoleChangedEvent;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,17 +33,17 @@ public class RoleDeptService {
         if (deptIds == null || deptIds.isEmpty()) {
             return;
         }
-        boolean changed = false;
+        List<RoleDeptEntity> toSave = new ArrayList<>();
         for (Integer deptId : deptIds) {
             if (roleDeptRepository.findByRoleIdAndGroupId(roleId, deptId).isEmpty()) {
                 RoleDeptEntity entity = new RoleDeptEntity();
                 entity.setRoleId(roleId);
                 entity.setGroupId(deptId);
-                roleDeptRepository.save(entity);
-                changed = true;
+                toSave.add(entity);
             }
         }
-        if (changed) {
+        if (!toSave.isEmpty()) {
+            roleDeptRepository.saveAll(toSave);
             eventPublisher.publishAfterCommit(new RoleChangedEvent(roleId));
         }
     }
@@ -52,15 +53,13 @@ public class RoleDeptService {
         if (deptIds == null || deptIds.isEmpty()) {
             return;
         }
-        boolean changed = false;
+        List<RoleDeptEntity> toDelete = new ArrayList<>();
         for (Integer deptId : deptIds) {
             Optional<RoleDeptEntity> existing = roleDeptRepository.findByRoleIdAndGroupId(roleId, deptId);
-            if (existing.isPresent()) {
-                roleDeptRepository.delete(existing.get());
-                changed = true;
-            }
+            existing.ifPresent(toDelete::add);
         }
-        if (changed) {
+        if (!toDelete.isEmpty()) {
+            roleDeptRepository.deleteAll(toDelete);
             eventPublisher.publishAfterCommit(new RoleChangedEvent(roleId));
         }
     }

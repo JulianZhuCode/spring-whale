@@ -128,6 +128,14 @@ public class RBACDataScopeHandler implements DataScopeHandler {
             moduleRoleIds = new HashSet<>(roleMenuRepository.findRoleIdsByMenuCode(module));
         }
 
+        // Pre-group CUSTOM dept ids by roleId for O(1) lookup
+        Map<Integer, List<Integer>> customDeptMap = new HashMap<>();
+        for (UserRoleScopeView row : rows) {
+            if (row.getDeptGroupId() != null && row.getDeptGroupId() != 0) {
+                customDeptMap.computeIfAbsent(row.getRoleId(), k -> new ArrayList<>()).add(row.getDeptGroupId());
+            }
+        }
+
         Set<Object> deptIds = new LinkedHashSet<>();
         List<Integer> descendantIds = null;
 
@@ -159,10 +167,9 @@ public class RBACDataScopeHandler implements DataScopeHandler {
                     deptIds.addAll(descendantIds);
                 }
                 case CUSTOM -> {
-                    for (UserRoleScopeView r : rows) {
-                        if (r.getRoleId().equals(roleId) && r.getDeptGroupId() != 0) {
-                            deptIds.add(r.getDeptGroupId());
-                        }
+                    List<Integer> customDeptIds = customDeptMap.get(roleId);
+                    if (customDeptIds != null) {
+                        deptIds.addAll(customDeptIds);
                     }
                 }
                 case SELF -> {

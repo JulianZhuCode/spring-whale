@@ -98,10 +98,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             return authorities;
         }
 
-        // 6. Query all menus associated with these roles
-        List<RoleMenuEntity> roleMenus = roleIds.stream()
-                .flatMap(roleId -> roleMenuRepository.findByRoleId(roleId).stream())
-                .toList();
+        // 6. Query all menus associated with these roles (batch query)
+        List<RoleMenuEntity> roleMenus = roleMenuRepository.findByRoleIdIn(roleIds);
 
         if (!roleMenus.isEmpty()) {
             List<Integer> menuIds = roleMenus.stream()

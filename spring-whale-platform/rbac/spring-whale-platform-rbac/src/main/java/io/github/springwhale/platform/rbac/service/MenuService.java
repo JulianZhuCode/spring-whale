@@ -103,12 +103,22 @@ public class MenuService {
     }
 
     /**
-     * Delete menu
+     * Delete menu. Child menus are moved to the parent menu before deletion.
      */
     @Transactional
     public void delete(Integer id) {
         MenuEntity menu = menuRepository.findById(id)
                 .orElseThrow(() -> BusinessException.create("MENU_NOT_FOUND", "Menu not found, ID: " + id));
+
+        // Move child menus to the parent of the deleted menu
+        List<MenuEntity> children = menuRepository.findByParentId(id);
+        if (!children.isEmpty()) {
+            for (MenuEntity child : children) {
+                child.setParentId(menu.getParentId());
+            }
+            menuRepository.saveAll(children);
+        }
+
         menuRepository.delete(menu);
     }
 

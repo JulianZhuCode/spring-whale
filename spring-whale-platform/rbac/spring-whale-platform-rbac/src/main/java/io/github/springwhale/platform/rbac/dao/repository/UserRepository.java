@@ -4,6 +4,7 @@ import io.github.springwhale.platform.rbac.dao.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -15,4 +16,9 @@ public interface UserRepository extends JpaRepository<UserEntity, Integer>, JpaS
      * Find by exact username
      */
     Optional<UserEntity> findByUsername(String username);
+
+    /**
+     * Find all users by group ID
+     */
+    List<UserEntity> findByGroupId(Integer groupId);
 }

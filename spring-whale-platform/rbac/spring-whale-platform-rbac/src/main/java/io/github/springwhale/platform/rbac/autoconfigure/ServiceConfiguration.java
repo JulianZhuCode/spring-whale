@@ -2,6 +2,7 @@ package io.github.springwhale.platform.rbac.autoconfigure;
 
 import io.github.springwhale.framework.event.EventPublisher;
 import io.github.springwhale.framework.webmvc.security.JwtUtil;
+import io.github.springwhale.framework.webmvc.security.SecurityProperties;
 import io.github.springwhale.platform.rbac.dao.repository.*;
 import io.github.springwhale.platform.rbac.dto.mapper.GroupMapper;
 import io.github.springwhale.platform.rbac.dto.mapper.MenuMapper;
@@ -14,6 +15,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
 public class ServiceConfiguration {
@@ -22,8 +24,9 @@ public class ServiceConfiguration {
     @ConditionalOnMissingBean
     public AuthService authService(AuthenticationManager authenticationManager,
                                    UserRepository userRepository,
-                                   JwtUtil jwtUtil) {
-        return new AuthService(authenticationManager, userRepository, jwtUtil);
+                                   JwtUtil jwtUtil,
+                                   SecurityProperties securityProperties) {
+        return new AuthService(authenticationManager, userRepository, jwtUtil, securityProperties);
     }
 
     @Bean
@@ -31,8 +34,9 @@ public class ServiceConfiguration {
     public UserService userService(UserRepository userRepository,
                                    GroupRepository groupRepository,
                                    UserMapper userMapper,
-                                   EventPublisher eventPublisher) {
-        return new UserService(userRepository, groupRepository, userMapper, eventPublisher);
+                                   EventPublisher eventPublisher,
+                                   PasswordEncoder passwordEncoder) {
+        return new UserService(userRepository, groupRepository, userMapper, eventPublisher, passwordEncoder);
     }
 
     @Bean
@@ -54,9 +58,10 @@ public class ServiceConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public GroupService groupService(GroupRepository groupRepository,
+                                     UserRepository userRepository,
                                      GroupMapper groupMapper,
                                      EventPublisher eventPublisher) {
-        return new GroupService(groupRepository, groupMapper, eventPublisher);
+        return new GroupService(groupRepository, userRepository, groupMapper, eventPublisher);
     }
 
     @Bean

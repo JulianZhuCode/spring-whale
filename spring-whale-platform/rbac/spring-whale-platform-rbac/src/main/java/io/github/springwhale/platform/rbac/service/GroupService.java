@@ -3,7 +3,9 @@ package io.github.springwhale.platform.rbac.service;
 import io.github.springwhale.database.JpaQueryWrapper;
 import io.github.springwhale.framework.core.exception.BusinessException;
 import io.github.springwhale.platform.rbac.dao.entity.GroupEntity;
+import io.github.springwhale.platform.rbac.dao.entity.UserEntity;
 import io.github.springwhale.platform.rbac.dao.repository.GroupRepository;
+import io.github.springwhale.platform.rbac.dao.repository.UserRepository;
 import io.github.springwhale.platform.rbac.dto.mapper.GroupMapper;
 import io.github.springwhale.platform.rbac.dto.request.GroupRequest;
 import io.github.springwhale.platform.rbac.dto.vo.GroupTreeVO;
@@ -25,13 +27,16 @@ import java.util.stream.Collectors;
 public class GroupService {
 
     private final GroupRepository groupRepository;
+    private final UserRepository userRepository;
     private final GroupMapper groupMapper;
     private final EventPublisher eventPublisher;
 
     public GroupService(GroupRepository groupRepository,
+                        UserRepository userRepository,
                         GroupMapper groupMapper,
                         EventPublisher eventPublisher) {
         this.groupRepository = groupRepository;
+        this.userRepository = userRepository;
         this.groupMapper = groupMapper;
         this.eventPublisher = eventPublisher;
     }
@@ -109,7 +114,6 @@ public class GroupService {
         if (!Objects.equals(oldParentId, request.getParentId())) {
             String oldPath = group.getPath();
             group.setPath(buildPath(request.getParentId()));
-            group = groupRepository.save(group);
             updateDescendantPaths(group, oldPath);
         }
 
@@ -119,12 +123,39 @@ public class GroupService {
     }
 
     /**
-     * Delete department
+     * Delete department. Child departments and users are moved to the
+     * parent department before deletion.
      */
     @Transactional
     public void delete(Integer id) {
         GroupEntity group = groupRepository.findById(id)
                 .orElseThrow(() -> BusinessException.create("GROUP_NOT_FOUND", "Department not found, ID: " + id));
+
+        Integer parentId = group.getParentId();
+
+        // 1. Move child departments to the parent of the deleted department
+        List<GroupEntity> children = groupRepository.findByPathStartingWith(group.getPath() + id + "/");
+        if (!children.isEmpty()) {
+            String newParentPath = parentId != null ? buildPath(parentId) : "/";
+            String deletedPrefix = group.getPath() + id + "/";
+            for (GroupEntity child : children) {
+                child.setParentId(parentId);
+                String remainder = child.getPath().substring(deletedPrefix.length());
+                child.setPath(newParentPath + remainder);
+            }
+            groupRepository.saveAll(children);
+        }
+
+        // 2. Move users in this department to the parent department
+        List<UserEntity> users = userRepository.findByGroupId(id);
+        if (!users.isEmpty()) {
+            for (UserEntity user : users) {
+                user.setGroupId(parentId);
+            }
+            userRepository.saveAll(users);
+        }
+
+        // 3. Delete the department
         groupRepository.delete(group);
         eventPublisher.publishAfterCommit(new GroupChangedEvent(id));
     }

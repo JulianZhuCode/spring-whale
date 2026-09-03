@@ -1,11 +1,11 @@
 package io.github.springwhale.platform.rbac.service;
 
 import io.github.springwhale.framework.webmvc.security.JwtUtil;
+import io.github.springwhale.framework.webmvc.security.SecurityProperties;
 import io.github.springwhale.platform.rbac.dao.entity.UserEntity;
 import io.github.springwhale.platform.rbac.dao.repository.UserRepository;
 import io.github.springwhale.platform.rbac.dto.request.LoginRequest;
 import io.github.springwhale.platform.rbac.dto.response.LoginResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -15,13 +15,23 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 /**
  * Authentication service
  */
-@RequiredArgsConstructor
 @Slf4j
 public class AuthService {
 
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
+    private final SecurityProperties securityProperties;
+
+    public AuthService(AuthenticationManager authenticationManager,
+                       UserRepository userRepository,
+                       JwtUtil jwtUtil,
+                       SecurityProperties securityProperties) {
+        this.authenticationManager = authenticationManager;
+        this.userRepository = userRepository;
+        this.jwtUtil = jwtUtil;
+        this.securityProperties = securityProperties;
+    }
 
     /**
      * User login
@@ -50,7 +60,7 @@ public class AuthService {
                     .userId(user.getId())
                     .username(user.getUsername())
                     .realName(user.getRealName())
-                    .expiresIn(86400000L) // 24 hours
+                    .expiresIn(securityProperties.getJwtExpiration())
                     .build();
 
         } catch (BadCredentialsException e) {

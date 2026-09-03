@@ -13,8 +13,10 @@ import io.github.springwhale.framework.event.EventPublisher;
 import io.github.springwhale.platform.rbac.event.UserRoleChangedEvent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -32,15 +34,18 @@ public class UserService {
     private final GroupRepository groupRepository;
     private final UserMapper userMapper;
     private final EventPublisher eventPublisher;
+    private final PasswordEncoder passwordEncoder;
 
     public UserService(UserRepository userRepository,
                        GroupRepository groupRepository,
                        UserMapper userMapper,
-                       EventPublisher eventPublisher) {
+                       EventPublisher eventPublisher,
+                       PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.groupRepository = groupRepository;
         this.userMapper = userMapper;
         this.eventPublisher = eventPublisher;
+        this.passwordEncoder = passwordEncoder;
     }
 
     /**
@@ -84,6 +89,9 @@ public class UserService {
     public UserVO create(UserRequest request) {
         UserEntity entity = new UserEntity();
         entity.setUsername(request.getUsername());
+        if (StringUtils.hasText(request.getPassword())) {
+            entity.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
         entity.setRealName(request.getRealName());
         entity.setEmail(request.getEmail());
         entity.setPhone(request.getPhone());
@@ -102,6 +110,9 @@ public class UserService {
                 .orElseThrow(() -> BusinessException.create("USER_NOT_FOUND", "User not found, ID: " + id));
 
         user.setUsername(request.getUsername());
+        if (StringUtils.hasText(request.getPassword())) {
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
         user.setRealName(request.getRealName());
         user.setEmail(request.getEmail());
         user.setPhone(request.getPhone());

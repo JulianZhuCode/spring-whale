@@ -27,9 +27,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Menu controller
@@ -132,12 +132,9 @@ public class MenuController {
             return menuService.buildTree(null);
         }
 
-        Set<Integer> menuIds = new HashSet<>();
-        for (Integer roleId : roleIds) {
-            roleMenuRepository.findByRoleId(roleId).stream()
-                    .map(RoleMenuEntity::getMenuId)
-                    .forEach(menuIds::add);
-        }
+        Set<Integer> menuIds = roleMenuRepository.findByRoleIdIn(roleIds).stream()
+                .map(RoleMenuEntity::getMenuId)
+                .collect(Collectors.toSet());
         return menuService.buildTree(menuIds);
     }
 }

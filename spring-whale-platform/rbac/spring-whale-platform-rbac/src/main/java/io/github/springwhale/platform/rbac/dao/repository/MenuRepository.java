@@ -4,6 +4,7 @@ import io.github.springwhale.platform.rbac.dao.entity.MenuEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -15,4 +16,9 @@ public interface MenuRepository extends JpaRepository<MenuEntity, Integer>, JpaS
      * Find menu by exact code
      */
     Optional<MenuEntity> findByCode(String code);
+
+    /**
+     * Find all child menus by parent ID
+     */
+    List<MenuEntity> findByParentId(Integer parentId);
 }
