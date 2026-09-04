@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.julianzhucode</groupId>
     <artifactId>spring-whale</artifactId>
-    <version>0.0.2</version>
+    <version>1.0.0</version>
     <name>spring-whale</name>
     <description>spring-whale</description>
     <modules>
@@ -37,7 +37,7 @@
     </scm>
 
     <properties>
-        <my.version>0.0.2</my.version>
+        <my.version>1.0.0</my.version>
         <gpg.skip>true</gpg.skip>
         <java.version>25</java.version>
         <jakarta.validation-api.version>4.0.0-M1</jakarta.validation-api.version>
