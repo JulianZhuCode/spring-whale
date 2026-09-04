@@ -17,6 +17,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import tools.jackson.databind.JsonNode;
@@ -34,6 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Import({TestSecurityConfiguration.class, TaskTestConfiguration.class})
+@WithMockUser(authorities = {"task:batch", "task:batch:delete"})
 @DisplayName("TaskController Integration Tests")
 class TaskControllerTest {
 
@@ -319,13 +321,6 @@ class TaskControllerTest {
                         .param("size", "20"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.totalElements").value(2));
-    }
-
-    @Test
-    @DisplayName("admin batch page renders")
-    void adminPageRenders() throws Exception {
-        mockMvc.perform(get("/admin/task"))
-                .andExpect(status().isOk());
     }
 
     // ==================== Helpers ====================

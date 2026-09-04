@@ -1,4 +1,4 @@
-package io.github.springwhale.platform.task.controller;
+package io.github.springwhale.platform.task.ui.controller;
 
 import io.github.springwhale.database.SortUtils;
 import io.github.springwhale.framework.thymeleaf.controller.AdminPage;
@@ -7,6 +7,7 @@ import io.github.springwhale.platform.task.service.TaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +22,7 @@ public class TaskPageController {
 
     private final TaskService taskService;
 
+    @PreAuthorize("hasAnyAuthority('task:batch', '*')")
     @GetMapping({"", "/", "/batch"})
     public String batch(@RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "20") int size,

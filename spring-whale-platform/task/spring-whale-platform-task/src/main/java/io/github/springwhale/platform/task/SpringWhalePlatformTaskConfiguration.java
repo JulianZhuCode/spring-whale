@@ -2,7 +2,6 @@ package io.github.springwhale.platform.task;
 
 import io.github.springwhale.platform.task.config.TaskRecoveryInitializer;
 import io.github.springwhale.platform.task.controller.TaskController;
-import io.github.springwhale.platform.task.controller.TaskPageController;
 import io.github.springwhale.platform.task.dao.repository.TaskBatchItemRepository;
 import io.github.springwhale.platform.task.dao.repository.TaskBatchRepository;
 import io.github.springwhale.platform.task.handler.TaskHandler;
@@ -57,12 +56,6 @@ public class SpringWhalePlatformTaskConfiguration {
     @ConditionalOnMissingBean
     public TaskController taskController(TaskService taskService) {
         return new TaskController(taskService);
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public TaskPageController taskPageController(TaskService taskService) {
-        return new TaskPageController(taskService);
     }
 
     // ==================== Initializer ====================

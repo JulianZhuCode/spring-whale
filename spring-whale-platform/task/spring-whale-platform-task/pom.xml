@@ -23,11 +23,6 @@
     <dependencies>
         <dependency>
             <groupId>io.github.julianzhucode</groupId>
-            <artifactId>spring-whale-platform-task-ui</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.github.julianzhucode</groupId>
             <artifactId>spring-whale-database</artifactId>
         </dependency>
         <dependency>
