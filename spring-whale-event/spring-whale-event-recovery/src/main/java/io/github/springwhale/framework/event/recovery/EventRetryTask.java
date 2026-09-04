@@ -62,10 +62,12 @@ public class EventRetryTask {
         eventMessage.setData(entity.getRawMessage());
         eventMessage.setBusinessName(entity.getBusinessName());
         eventMessage.setTopic(entity.getTopic());
-        try {
-            eventMessage.setAuthenticationContext(jsonMapper.readValue(entity.getAuthenticationContext(), AuthenticationContext.class));
-        } catch (Exception e) {
-            log.warn("parse authentication context failed", e);
+        if (entity.getAuthenticationContext() != null) {
+            try {
+                eventMessage.setAuthenticationContext(jsonMapper.readValue(entity.getAuthenticationContext(), AuthenticationContext.class));
+            } catch (Exception e) {
+                log.warn("parse authentication context failed", e);
+            }
         }
         eventMessage.setMessageType(MessageType.RETRY);
         eventMessage.setRetryCount(entity.getRetryCount() + 1);

@@ -37,7 +37,7 @@ public class RabbitEventMessageConsumer extends EventMessageConsumer {
      * RabbitMQ will re-deliver it — this is by design for at-least-once semantics.</p>
      */
     @RabbitListener(queues = "#{@eventProperties.consumerTopics.split(',')}",
-            ackMode = "MANUAL_IMMEDIATE",
+            ackMode = "MANUAL",
             concurrency = "#{@eventProperties.concurrency}")
     public void listener(String payload, Channel channel,
                          @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
