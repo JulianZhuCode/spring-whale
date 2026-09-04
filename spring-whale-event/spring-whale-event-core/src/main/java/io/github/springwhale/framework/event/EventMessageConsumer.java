@@ -236,6 +236,7 @@ public abstract class EventMessageConsumer {
                 }
                 if (MessageType.RETRY == message.getMessageType()) {
                     message.setRetrySuccess(true);
+                    message.setMessageType(MessageType.FAIL);
                     sendToFailedTopic(message);
                 }
             }
