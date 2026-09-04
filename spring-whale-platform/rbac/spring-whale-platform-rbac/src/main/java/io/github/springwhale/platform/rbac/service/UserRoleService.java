@@ -1,9 +1,9 @@
 package io.github.springwhale.platform.rbac.service;
 
+import io.github.springwhale.framework.event.EventPublisher;
 import io.github.springwhale.platform.rbac.dao.entity.UserRoleEntity;
 import io.github.springwhale.platform.rbac.dao.repository.UserRoleRepository;
-import io.github.springwhale.framework.event.EventPublisher;
-import io.github.springwhale.platform.rbac.event.UserRoleChangedEvent;
+import io.github.springwhale.platform.rbac.event.UserChangedEvent;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -52,7 +52,7 @@ public class UserRoleService {
             }
         }
         if (changed) {
-            eventPublisher.publishAfterCommit(new UserRoleChangedEvent(userId, null));
+            eventPublisher.publishAfterCommit(new UserChangedEvent(userId));
         }
     }
 
@@ -73,7 +73,7 @@ public class UserRoleService {
             }
         }
         if (changed) {
-            eventPublisher.publishAfterCommit(new UserRoleChangedEvent(userId, null));
+            eventPublisher.publishAfterCommit(new UserChangedEvent(userId));
         }
     }
 }

@@ -5,6 +5,7 @@ import io.github.springwhale.framework.webmvc.security.JwtUtil;
 import io.github.springwhale.framework.webmvc.security.SecurityProperties;
 import io.github.springwhale.platform.rbac.dao.repository.*;
 import io.github.springwhale.platform.rbac.listener.DataScopeCacheInvalidationListener;
+import io.github.springwhale.platform.rbac.listener.UserDetailsCacheInvalidationListener;
 import io.github.springwhale.platform.rbac.security.RBACDataScopeHandler;
 import io.github.springwhale.platform.rbac.service.*;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -12,6 +13,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
@@ -91,9 +93,9 @@ public class ServiceConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public DataScopeCacheInvalidationListener.UserRoleChangedCacheListener userRoleChangedCacheListener(
+    public DataScopeCacheInvalidationListener.UserChangedCacheListener userChangedCacheListener(
             DataScopeCacheInvalidationListener listener) {
-        return listener.new UserRoleChangedCacheListener();
+        return listener.new UserChangedCacheListener();
     }
 
     @Bean
@@ -108,5 +110,36 @@ public class ServiceConfiguration {
     public DataScopeCacheInvalidationListener.GroupChangedCacheListener groupChangedCacheListener(
             DataScopeCacheInvalidationListener listener) {
         return listener.new GroupChangedCacheListener();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public UserDetailsCacheInvalidationListener userDetailsCacheInvalidationListener(
+            UserDetailsService userDetailsService,
+            UserRoleRepository userRoleRepository,
+            UserRepository userRepository,
+            GroupRepository groupRepository) {
+        return new UserDetailsCacheInvalidationListener(userDetailsService, userRoleRepository, userRepository, groupRepository);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public UserDetailsCacheInvalidationListener.RoleChangedCacheListener userDetailsRoleChangedCacheListener(
+            UserDetailsCacheInvalidationListener listener) {
+        return listener.new RoleChangedCacheListener();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public UserDetailsCacheInvalidationListener.GroupChangedCacheListener userDetailsGroupChangedCacheListener(
+            UserDetailsCacheInvalidationListener listener) {
+        return listener.new GroupChangedCacheListener();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public UserDetailsCacheInvalidationListener.UserChangedCacheListener userDetailsUserChangedCacheListener(
+            UserDetailsCacheInvalidationListener listener) {
+        return listener.new UserChangedCacheListener();
     }
 }

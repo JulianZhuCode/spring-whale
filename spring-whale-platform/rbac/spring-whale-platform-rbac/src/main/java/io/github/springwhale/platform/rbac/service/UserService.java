@@ -10,7 +10,7 @@ import io.github.springwhale.platform.rbac.dao.repository.UserRepository;
 import io.github.springwhale.platform.rbac.dto.mapper.UserMapper;
 import io.github.springwhale.platform.rbac.dto.request.UserRequest;
 import io.github.springwhale.platform.rbac.dto.vo.UserVO;
-import io.github.springwhale.platform.rbac.event.UserRoleChangedEvent;
+import io.github.springwhale.platform.rbac.event.UserChangedEvent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -117,12 +117,17 @@ public class UserService {
         user.setStatus(request.getStatus());
 
         boolean groupIdChanged = !Objects.equals(user.getGroupId(), request.getGroupId());
+        boolean statusChanged = !Objects.equals(user.getStatus(), request.getStatus());
         user.setGroupId(request.getGroupId());
 
         UserVO result = enrichGroupName(UserMapper.toVO(userRepository.save(user)));
 
         if (groupIdChanged) {
-            eventPublisher.publishAfterCommit(new UserRoleChangedEvent(id, null));
+            eventPublisher.publishAfterCommit(new UserChangedEvent(id));
+        }
+
+        if (statusChanged) {
+            eventPublisher.publishAfterCommit(new UserChangedEvent(id));
         }
         return result;
     }
