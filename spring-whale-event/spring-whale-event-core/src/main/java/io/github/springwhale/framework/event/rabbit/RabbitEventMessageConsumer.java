@@ -1,12 +1,7 @@
 package io.github.springwhale.framework.event.rabbit;
 
-import io.github.springwhale.framework.event.AbstractEventListener;
-import io.github.springwhale.framework.event.EventContext;
-import io.github.springwhale.framework.event.EventMessage;
-import io.github.springwhale.framework.event.EventMessageConsumer;
-import io.github.springwhale.framework.event.EventMetricsCollector;
-import io.github.springwhale.framework.event.EventProperties;
 import com.rabbitmq.client.Channel;
+import io.github.springwhale.framework.event.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -42,6 +37,7 @@ public class RabbitEventMessageConsumer extends EventMessageConsumer {
      * RabbitMQ will re-deliver it — this is by design for at-least-once semantics.</p>
      */
     @RabbitListener(queues = "#{@eventProperties.consumerTopics.split(',')}",
+            ackMode = "MANUAL_IMMEDIATE",
             concurrency = "#{@eventProperties.concurrency}")
     public void listener(String payload, Channel channel,
                          @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {

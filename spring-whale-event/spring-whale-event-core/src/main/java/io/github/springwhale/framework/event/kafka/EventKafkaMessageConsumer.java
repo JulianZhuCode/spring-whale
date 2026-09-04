@@ -1,11 +1,6 @@
 package io.github.springwhale.framework.event.kafka;
 
-import io.github.springwhale.framework.event.AbstractEventListener;
-import io.github.springwhale.framework.event.EventContext;
-import io.github.springwhale.framework.event.EventMessage;
-import io.github.springwhale.framework.event.EventMessageConsumer;
-import io.github.springwhale.framework.event.EventMetricsCollector;
-import io.github.springwhale.framework.event.EventProperties;
+import io.github.springwhale.framework.event.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -38,6 +33,7 @@ public class EventKafkaMessageConsumer extends EventMessageConsumer {
     @KafkaListener(topics = "#{@eventProperties.consumerTopics.split(',')}",
             concurrency = "#{@eventProperties.concurrency}",
             groupId = "${spring.application.name}",
+            ackMode = "MANUAL_IMMEDIATE",
             properties = {"#{'auto.offset.reset:' + @kafkaEventProperties.autoOffsetReset}"})
     public void listener(ConsumerRecord<String, String> record, Acknowledgment ack) {
         try {

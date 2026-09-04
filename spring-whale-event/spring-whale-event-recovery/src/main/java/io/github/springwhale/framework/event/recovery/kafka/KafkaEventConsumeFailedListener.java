@@ -34,6 +34,7 @@ public class KafkaEventConsumeFailedListener extends EventConsumeFailedListener 
      */
     @KafkaListener(topics = "#{@eventProperties.failedTopic}",
             concurrency = "#{@eventProperties.failedConcurrency}",
+            ackMode = "MANUAL_IMMEDIATE",
             groupId = "#{@eventProperties.failedGroupId}")
     public void listenerFailed(ConsumerRecord<String, String> record, Acknowledgment ack) {
         try {

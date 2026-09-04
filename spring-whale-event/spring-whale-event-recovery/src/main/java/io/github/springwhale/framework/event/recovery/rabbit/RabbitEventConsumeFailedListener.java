@@ -26,6 +26,7 @@ public class RabbitEventConsumeFailedListener extends EventConsumeFailedListener
     }
 
     @RabbitListener(queues = "#{@eventProperties.failedTopic}",
+            ackMode = "MANUAL_IMMEDIATE",
             concurrency = "#{@eventProperties.failedConcurrency}")
     public void listenerFailed(String payload, Channel channel,
                                @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
