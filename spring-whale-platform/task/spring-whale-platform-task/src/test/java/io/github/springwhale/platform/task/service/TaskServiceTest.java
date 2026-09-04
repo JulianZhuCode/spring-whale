@@ -219,6 +219,27 @@ class TaskServiceTest {
         assertTrue(taskService.findById(id).isEmpty());
     }
 
+    // ==================== Offset pagination regression (H7) ====================
+
+    @Test
+    @DisplayName(">500 items: all items are processed, none skipped by offset pagination")
+    void largeBatchAllItemsProcessed() {
+        int totalItems = 600;
+        TaskCreateRequest request = new TaskCreateRequest();
+        request.setTaskType(TestTaskHandler.TASK_TYPE);
+        request.setParams(Map.of("count", totalItems));
+        request.setConcurrency(4);
+        Long id = taskService.create(request).getId();
+
+        taskService.start(id);
+
+        TaskVO completed = awaitStatus(id, TaskStatus.COMPLETED);
+        assertEquals(totalItems, completed.getSuccessCount());
+        assertEquals(0, completed.getFailCount());
+        assertEquals(totalItems, completed.getTotalCount());
+        assertEquals(totalItems, testTaskHandler.processedCount());
+    }
+
     // ==================== Helpers ====================
 
     private Long createTask(int count) {

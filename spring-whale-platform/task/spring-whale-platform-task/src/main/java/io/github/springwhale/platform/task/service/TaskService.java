@@ -46,8 +46,7 @@ public class TaskService {
     private final List<TaskHandler> handlers;
     private final PlatformTransactionManager transactionManager;
     private final TaskExecutionEngine executionEngine;
-    private final ObjectMapper objectMapper = new ObjectMapper()
-            .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+    private final ObjectMapper objectMapper = new ObjectMapper().setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL)
             .findAndRegisterModules();
     private Map<String, TaskHandler> handlerMap;
 
@@ -157,6 +156,8 @@ public class TaskService {
         log.info("Task [{}] start: handler={}, params={}", taskId, handler.getTaskType(), params);
         handler.beforeStart(params);
 
+        executionEngine.incrementEpoch(taskId);
+
         task.setStatus(TaskStatus.RUNNING);
         task.setStartTime(task.getStartTime() != null ? task.getStartTime() : LocalDateTime.now());
         taskRepository.save(task);
@@ -183,7 +184,7 @@ public class TaskService {
         task.setStatus(TaskStatus.PAUSED);
         taskRepository.save(task);
 
-        executionEngine.cancelFuture(taskId);
+        executionEngine.cancelAndAwait(taskId, 10_000);
 
         log.info("Paused task [{}]", taskId);
         return toVO(task);
@@ -210,6 +211,9 @@ public class TaskService {
                 taskId, handler.getTaskType(), params,
                 task.getSuccessCount(), task.getFailCount(), task.getTotalCount());
 
+        executionEngine.awaitFutureDone(taskId, 5_000);
+        executionEngine.incrementEpoch(taskId);
+
         task.setStatus(TaskStatus.RUNNING);
         taskRepository.save(task);
         log.info("Task [{}] status set to RUNNING, submitting for execution after commit", taskId);
@@ -232,7 +236,7 @@ public class TaskService {
         }
 
         if (task.getStatus() == TaskStatus.RUNNING) {
-            executionEngine.cancelFuture(taskId);
+            executionEngine.cancelAndAwait(taskId, 10_000);
         }
 
         TaskHandler handler = getHandler(task.getTaskType());

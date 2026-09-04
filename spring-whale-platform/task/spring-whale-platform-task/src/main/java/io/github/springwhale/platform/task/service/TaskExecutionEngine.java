@@ -22,8 +22,10 @@ import org.springframework.transaction.support.TransactionTemplate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -48,6 +50,8 @@ public class TaskExecutionEngine {
     private final PlatformTransactionManager transactionManager;
 
     private final Map<String, Future<?>> runningFutures = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Long, AtomicLong> executionEpochs = new ConcurrentHashMap<>();
+    private final ReentrantLock flushLock = new ReentrantLock();
     private ExecutorService taskExecutor;
 
     @PostConstruct
@@ -68,6 +72,58 @@ public class TaskExecutionEngine {
         if (future != null) {
             future.cancel(true);
         }
+    }
+
+    public void cancelAndAwait(Long taskId, long timeoutMs) {
+        Future<?> future = runningFutures.get(String.valueOf(taskId));
+        if (future != null) {
+            future.cancel(true);
+            try {
+                future.get(timeoutMs, TimeUnit.MILLISECONDS);
+            } catch (TimeoutException e) {
+                log.warn("Task [{}] future did not complete within {}ms after cancel", taskId, timeoutMs);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                log.warn("Interrupted while waiting for task [{}] future", taskId);
+            } catch (ExecutionException e) {
+                log.debug("Task [{}] future completed with exception after cancel: {}", taskId, e.getMessage());
+            } catch (CancellationException e) {
+                log.debug("Task [{}] future was cancelled", taskId);
+            }
+        }
+    }
+
+    public void awaitFutureDone(Long taskId, long timeoutMs) {
+        Future<?> future = runningFutures.get(String.valueOf(taskId));
+        if (future != null) {
+            try {
+                future.get(timeoutMs, TimeUnit.MILLISECONDS);
+            } catch (TimeoutException e) {
+                log.warn("Task [{}] future did not complete within {}ms", taskId, timeoutMs);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                log.warn("Interrupted while waiting for task [{}] future", taskId);
+            } catch (ExecutionException | CancellationException e) {
+                log.debug("Task [{}] future completed: {}", taskId, e.getMessage());
+            }
+        }
+    }
+
+    public long incrementEpoch(Long taskId) {
+        AtomicLong epoch = executionEpochs.computeIfAbsent(taskId, k -> new AtomicLong(0));
+        long newEpoch = epoch.incrementAndGet();
+        log.info("Task [{}] execution epoch incremented to {}", taskId, newEpoch);
+        return newEpoch;
+    }
+
+    public long getEpoch(Long taskId) {
+        AtomicLong epoch = executionEpochs.get(taskId);
+        return epoch != null ? epoch.get() : 0;
+    }
+
+    private boolean isCurrentExecutor(Long taskId, long myEpoch) {
+        AtomicLong current = executionEpochs.get(taskId);
+        return current != null && current.get() == myEpoch;
     }
 
     public void cleanupTerminalItems(Long taskId) {
@@ -105,26 +161,29 @@ public class TaskExecutionEngine {
     }
 
     private void submitForExecution(TaskBatchEntity task, TaskHandler handler, Map<String, Object> params) {
-        log.info("submitForExecution() for taskId={}, handler={}, thread={}",
-                task.getId(), handler.getTaskType(), Thread.currentThread().getName());
+        Long taskId = task.getId();
+        long myEpoch = getEpoch(taskId);
+        log.info("submitForExecution() for taskId={}, handler={}, epoch={}, thread={}",
+                taskId, handler.getTaskType(), myEpoch, Thread.currentThread().getName());
+        AtomicReference<Future<?>> futureRef = new AtomicReference<>();
         Future<?> future = taskExecutor.submit(() -> {
             String threadName = Thread.currentThread().getName();
-            log.info("Task [{}] execution started on thread={}", task.getId(), threadName);
+            log.info("Task [{}] execution started on thread={}, epoch={}", taskId, threadName, myEpoch);
             try {
-                executeTask(task, handler, params);
-                log.info("Task [{}] execution completed on thread={}", task.getId(), threadName);
+                executeTask(task, handler, params, myEpoch);
+                log.info("Task [{}] execution completed on thread={}", taskId, threadName);
             } catch (Exception e) {
                 log.error("Task [{}] execution failed with unexpected error", task.getId(), e);
                 new TransactionTemplate(transactionManager).execute(status -> {
                     taskRepository.findById(task.getId()).ifPresent(t -> {
-                        if (t.getStatus() == TaskStatus.RUNNING) {
+                        if (t.getStatus() == TaskStatus.RUNNING && isCurrentExecutor(taskId, myEpoch)) {
                             t.setStatus(TaskStatus.FAILED);
                             t.setErrorMessage(e.getMessage());
                             t.setEndTime(LocalDateTime.now());
                             taskRepository.save(t);
                             log.warn("Task [{}] status set to FAILED due to exception: {}", task.getId(), e.getMessage());
                         } else {
-                            log.info("Task [{}] status is {} (not RUNNING), skipping FAILED transition",
+                            log.info("Task [{}] status is {} (not RUNNING) or epoch changed, skipping FAILED transition",
                                     task.getId(), t.getStatus());
                         }
                     });
@@ -132,25 +191,26 @@ public class TaskExecutionEngine {
                     return null;
                 });
             } finally {
-                runningFutures.remove(String.valueOf(task.getId()));
-                log.info("Task [{}] future removed from runningFutures", task.getId());
+                runningFutures.remove(String.valueOf(taskId), futureRef.get());
+                log.info("Task [{}] future removed from runningFutures (epoch={})", taskId, myEpoch);
             }
         });
-        runningFutures.put(String.valueOf(task.getId()), future);
-        log.info("Task [{}] submitted to thread pool, future={}", task.getId(), future);
+        futureRef.set(future);
+        runningFutures.put(String.valueOf(taskId), future);
+        log.info("Task [{}] submitted to thread pool, future={}, epoch={}", taskId, future, myEpoch);
     }
 
-    private void executeTask(TaskBatchEntity task, TaskHandler handler, Map<String, Object> params) {
+    private void executeTask(TaskBatchEntity task, TaskHandler handler, Map<String, Object> params, long myEpoch) {
         Long taskId = task.getId();
         int total = task.getTotalCount();
         int concurrency = task.getConcurrency() != null && task.getConcurrency() > 0
                 ? task.getConcurrency() : DEFAULT_CONCURRENCY;
 
-        log.info("executeTask() started for taskId={}, total={}, concurrency={}, thread={}",
-                taskId, total, concurrency, Thread.currentThread().getName());
+        log.info("executeTask() started for taskId={}, total={}, concurrency={}, epoch={}, thread={}",
+                taskId, total, concurrency, myEpoch, Thread.currentThread().getName());
 
-        if (!taskRepository.existsByIdAndStatus(taskId, TaskStatus.RUNNING)) {
-            log.info("Task [{}] is not RUNNING, skipping execution", taskId);
+        if (!isCurrentExecutor(taskId, myEpoch) || !taskRepository.existsByIdAndStatus(taskId, TaskStatus.RUNNING)) {
+            log.info("Task [{}] is not RUNNING or epoch changed, skipping execution", taskId);
             return;
         }
 
@@ -176,13 +236,13 @@ public class TaskExecutionEngine {
                 break;
             }
 
-            if (!taskRepository.existsByIdAndStatus(taskId, TaskStatus.RUNNING)) {
+            if (!isCurrentExecutor(taskId, myEpoch) || !taskRepository.existsByIdAndStatus(taskId, TaskStatus.RUNNING)) {
                 cancelled.set(true);
-                log.info("Task [{}] no longer running at offset {}, stopping", taskId, offset);
+                log.info("Task [{}] no longer running or epoch changed at offset {}, stopping", taskId, offset);
                 break;
             }
 
-            Pageable pageable = PageRequest.of(offset / BATCH_LOAD_SIZE, BATCH_LOAD_SIZE,
+            Pageable pageable = PageRequest.of(0, BATCH_LOAD_SIZE,
                     Sort.by(Sort.Direction.ASC, "id"));
             List<TaskBatchItemEntity> batch = itemRepository
                     .findByTaskIdAndStatus(taskId, TaskItemStatus.PENDING, pageable);
@@ -204,7 +264,7 @@ public class TaskExecutionEngine {
 
             TaskHandler.BatchProgressCallback callback = createCallback(taskId, itemMap, batchSize,
                     successCount, failCount, skippedCount, completedCounter, cancelled,
-                    dirtyItems, savedItemIds, flushCounter, progressUpdateInterval);
+                    dirtyItems, savedItemIds, flushCounter, progressUpdateInterval, myEpoch);
 
             try {
                 if (concurrency > 1 && batchSize > concurrency) {
@@ -315,7 +375,8 @@ public class TaskExecutionEngine {
             List<TaskBatchItemEntity> dirtyItems,
             Set<Long> savedItemIds,
             AtomicInteger flushCounter,
-            int progressUpdateInterval) {
+            int progressUpdateInterval,
+            long myEpoch) {
 
         return new TaskHandler.BatchProgressCallback() {
             @Override
@@ -352,9 +413,9 @@ public class TaskExecutionEngine {
                 int completed = completedCounter.incrementAndGet();
 
                 if (completed % STATUS_CHECK_INTERVAL == 0) {
-                    if (!taskRepository.existsByIdAndStatus(taskId, TaskStatus.RUNNING)) {
+                    if (!isCurrentExecutor(taskId, myEpoch) || !taskRepository.existsByIdAndStatus(taskId, TaskStatus.RUNNING)) {
                         cancelled.set(true);
-                        log.info("Task [{}] no longer running after {} items, stopping", taskId, completed);
+                        log.info("Task [{}] no longer running or epoch changed after {} items, stopping", taskId, completed);
                         return;
                     }
                 }
@@ -401,15 +462,20 @@ public class TaskExecutionEngine {
         log.info("flushProgress: taskId={}, saving {} items, success={}, fail={}",
                 taskId, toSave.size(), successCount.get(), failCount.get());
 
-        new TransactionTemplate(transactionManager).execute(status -> {
-            itemRepository.saveAll(toSave);
-            taskRepository.findById(taskId).ifPresent(t -> {
-                t.setSuccessCount(successCount.get());
-                t.setFailCount(failCount.get());
-                t.setSkippedCount(skippedCount.get());
-                taskRepository.save(t);
+        flushLock.lock();
+        try {
+            new TransactionTemplate(transactionManager).execute(status -> {
+                itemRepository.saveAll(toSave);
+                taskRepository.findById(taskId).ifPresent(t -> {
+                    t.setSuccessCount(successCount.get());
+                    t.setFailCount(failCount.get());
+                    t.setSkippedCount(skippedCount.get());
+                    taskRepository.save(t);
+                });
+                return null;
             });
-            return null;
-        });
+        } finally {
+            flushLock.unlock();
+        }
     }
 }
