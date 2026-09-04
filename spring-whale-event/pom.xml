@@ -16,6 +16,7 @@
 
     <packaging>pom</packaging>
     <artifactId>spring-whale-event</artifactId>
+    <name>spring-whale-event</name>
 
     <properties>
         <maven.compiler.source>25</maven.compiler.source>

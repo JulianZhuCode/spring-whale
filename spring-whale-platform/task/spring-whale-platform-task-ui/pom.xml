@@ -11,6 +11,7 @@
     </parent>
 
     <artifactId>spring-whale-platform-task-ui</artifactId>
+    <name>spring-whale-platform-task-ui</name>
 
     <properties>
         <maven.compiler.source>25</maven.compiler.source>

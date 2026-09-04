@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>spring-whale-platform</artifactId>
+    <name>spring-whale-platform</name>
 
     <modules>
         <module>rbac/spring-whale-platform-rbac-ui</module>

@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>spring-whale-thymeleaf</artifactId>
+    <name>spring-whale-thymeleaf</name>
 
     <properties>
         <maven.compiler.source>25</maven.compiler.source>

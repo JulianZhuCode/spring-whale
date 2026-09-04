@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>spring-whale-database</artifactId>
+    <name>spring-whale-database</name>
 
     <properties>
         <maven.compiler.source>25</maven.compiler.source>

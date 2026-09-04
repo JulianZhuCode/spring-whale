@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>spring-whale-event-recovery</artifactId>
+    <name>spring-whale-event-recovery</name>
 
     <properties>
         <maven.compiler.source>25</maven.compiler.source>

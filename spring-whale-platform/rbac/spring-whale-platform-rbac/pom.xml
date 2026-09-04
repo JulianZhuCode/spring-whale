@@ -11,6 +11,7 @@
     </parent>
 
     <artifactId>spring-whale-platform-rbac</artifactId>
+    <name>spring-whale-platform-rbac</name>
 
     <properties>
         <maven.compiler.source>25</maven.compiler.source>
