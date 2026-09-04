@@ -27,7 +27,8 @@ public class TenantSqlInspector extends SqlInspectorSupport {
 
     @Override
     public String inspect(String sql) {
-        if (!properties.isTenantEnabled() || DataScopeContext.isSkipTenant() || dataScopeHandler.skipTenantScope()) {
+        if (!properties.isTenantEnabled() || DataScopeContext.isSkipTenant()
+                || DataScopeContext.isSkipSqlInspector() || dataScopeHandler.skipTenantScope()) {
             return sql;
         }
 

@@ -20,7 +20,9 @@ Spring Whale 提供声明式数据权限过滤和多租户隔离，在 SQL 层�
 - ✅ **声明式 @DataScope** — 一个注解声明接口的数据可见范围
 - ✅ **六种权限级别** — SELF / DEPT / DEPT_AND_CHILD / CUSTOM / CALLER / AUTO
 - ✅ **SQL 层面过滤** — WHERE 条件在 SQL 层面自动注入，业务代码无感知
+- ✅ **全查询覆盖** — 覆盖派生查询、`@Query`、`JpaSpecificationExecutor` 和 `Repository` 全层级
 - ✅ **多租户隔离** — `@TenantIdField` 自动注入租户 WHERE 条件
+- ✅ **@SkipSqlInspector** — 一个注解即可跳过自定义 SQL 的自动拦截
 - ✅ **跨服务传播** — 数据权限上下文通过 HTTP Header 在微服务间自动传递
 - ✅ **HMAC-SHA256 完整性保护** — HMAC-SHA256 签名 + 时间戳 + 随机数，防止 Header 伪造和重放攻击
 - ✅ **可插拔处理器** — 基于 SPI 的 `DataScopeHandler` 接口，支持自定义权限解析逻辑
@@ -286,6 +288,50 @@ public class GlobalConfigController {
     public List<Config> listGlobalConfig() { ...}
 }
 ```
+
+### 完全跳过 SQL 拦截
+
+当你编写了已包含过滤逻辑的复杂自定义 SQL（如 join、原生查询、复杂 `@Query`）时，
+在 **Repository 方法**上使用 `@SkipSqlInspector` 阻止框架注入额外的租户或数据权限 WHERE 条件：
+
+```java
+@Repository
+public interface ReportRepository extends JpaRepository<Report, Long> {
+
+    // 复杂 join 查询已内置过滤逻辑 — 跳过自动拦截
+    @SkipSqlInspector
+    @Query("SELECT r FROM Report r JOIN r.details d WHERE r.deptId = :deptId AND d.status = 'ACTIVE'")
+    List<Report> findActiveReportsByDept(Long deptId);
+
+    // 原生查询已处理多租户过滤
+    @SkipSqlInspector
+    @Query(value = "SELECT * FROM report WHERE tenant_id = :tenantId", nativeQuery = true)
+    List<Report> findReportsByTenantNative(Long tenantId);
+}
+```
+
+如果整个 Repository 都是自定义的（无标准 CRUD），将 `@SkipSqlInspector` 放在接口上：
+
+```java
+@SkipSqlInspector
+@Repository
+public interface CustomReportRepository extends JpaRepository<CustomReport, Long> {
+    // 该 Repository 中所有方法均跳过 SQL 拦截
+    @Query("SELECT ...")
+    List<CustomReport> customQuery1();
+
+    @Query("SELECT ...")
+    List<CustomReport> customQuery2();
+}
+```
+
+> **机制：** `SkipSqlInspectorAspect`（`@Order(0)`）拦截注解的 Repository 方法，设置 ThreadLocal 标记。
+> `TenantSqlInspector` 和 `DataScopeInterceptor` 检查到此标记后直接返回原始 SQL。
+> 标记在 `finally` 块中清除，后续调用恢复正常拦截。
+
+> **`@NonTenant` 与 `@SkipSqlInspector` 的区别：**
+> - `@NonTenant`：Controller 层，仅跳过租户过滤。用于全局端点。
+> - `@SkipSqlInspector`：Repository 层，跳过租户和数据权限过滤。用于复杂自定义 SQL。
 
 > **租户过滤机制：** 框架在 SQL 层面自动注入 `tenant_id = ?` 条件，支持同一实体多租户字段（如 `tenant_id`
 > 和 `target_tenant_id`），条件之间以 OR 连接。

@@ -1,6 +1,7 @@
 package io.github.springwhale.database.datascope;
 
 import io.github.springwhale.database.datascope.annotation.DataScope;
+import io.github.springwhale.database.datascope.annotation.SkipSqlInspector;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -94,5 +95,27 @@ public class TestUserService {
     public List<TestUser> listAllSpec() {
         Specification<TestUser> spec = (root, query, cb) -> cb.conjunction();
         return repository.findAll(spec);
+    }
+
+    @DataScope(scopeType = DataScopeType.DEPT, module = "test")
+    @SkipSqlInspector
+    public List<TestUser> listByDeptSkipSqlInspector() {
+        return repository.findAll();
+    }
+
+    @DataScope(scopeType = DataScopeType.SELF, module = "test")
+    @SkipSqlInspector
+    public List<TestUser> listSelfSkipSqlInspector() {
+        return repository.findAll();
+    }
+
+    @SkipSqlInspector
+    public List<TestUser> listAllSkipSqlInspector() {
+        return repository.findAll();
+    }
+
+    @DataScope(scopeType = DataScopeType.DEPT, module = "test")
+    public List<TestUser> listByDeptRepoSkip() {
+        return repository.findByDeptIdOrCreateBy(1L, 1L);
     }
 }

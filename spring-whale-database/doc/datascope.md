@@ -21,7 +21,9 @@ business code.
 - ✅ **Declarative @DataScope** — Declare data visibility on controller methods with a single annotation
 - ✅ **Six Scope Levels** — SELF / DEPT / DEPT_AND_CHILD / CUSTOM / CALLER / AUTO
 - ✅ **SQL-Level Filtering** — WHERE clauses are injected at the SQL level, transparent to business code
+- ✅ **Full Query Coverage** — Covers derived queries, `@Query`, `JpaSpecificationExecutor`, and `Repository` hierarchy
 - ✅ **Multi-Tenant Isolation** — `@TenantIdField` auto-injects tenant WHERE clauses
+- ✅ **@SkipSqlInspector** — Opt-out of SQL inspection for custom SQL with a single annotation
 - ✅ **Cross-Service Propagation** — Data scope context automatically propagates between microservices via HTTP headers
 - ✅ **HMAC-SHA256 Integrity** — HMAC-SHA256 signing with timestamp + nonce prevents header forgery and replay attacks
 - ✅ **Pluggable Handler** — SPI-based `DataScopeHandler` interface for custom scope resolution logic
@@ -291,6 +293,52 @@ public class GlobalConfigController {
     public List<Config> listGlobalConfig() { ...}
 }
 ```
+
+### Skipping SQL Inspection Entirely
+
+When you write custom SQL that already handles filtering (e.g., joins, native queries, complex `@Query`),
+use `@SkipSqlInspector` on the **Repository method** to prevent the framework from injecting additional
+tenant or data scope WHERE conditions:
+
+```java
+@Repository
+public interface ReportRepository extends JpaRepository<Report, Long> {
+
+    // Complex join query with built-in filtering — skip automatic inspection
+    @SkipSqlInspector
+    @Query("SELECT r FROM Report r JOIN r.details d WHERE r.deptId = :deptId AND d.status = 'ACTIVE'")
+    List<Report> findActiveReportsByDept(Long deptId);
+
+    // Native query that already handles multi-tenant filtering
+    @SkipSqlInspector
+    @Query(value = "SELECT * FROM report WHERE tenant_id = :tenantId", nativeQuery = true)
+    List<Report> findReportsByTenantNative(Long tenantId);
+}
+```
+
+If an entire repository is custom (no standard CRUD), place `@SkipSqlInspector` on the interface itself:
+
+```java
+@SkipSqlInspector
+@Repository
+public interface CustomReportRepository extends JpaRepository<CustomReport, Long> {
+    // All methods in this repository skip SQL inspection
+    @Query("SELECT ...")
+    List<CustomReport> customQuery1();
+
+    @Query("SELECT ...")
+    List<CustomReport> customQuery2();
+}
+```
+
+> **Mechanism:** `SkipSqlInspectorAspect` (`@Order(0)`) intercepts the annotated Repository method
+> and sets a ThreadLocal flag. Both `TenantSqlInspector` and `DataScopeInterceptor` check this flag
+> and return SQL unchanged. The flag is cleared in the `finally` block, so subsequent calls resume
+> normal inspection.
+
+> **`@NonTenant` vs `@SkipSqlInspector`:**
+> - `@NonTenant`: Controller-level, skips only tenant filtering. Use for global endpoints.
+> - `@SkipSqlInspector`: Repository-level, skips both tenant AND data scope filtering. Use for complex custom SQL.
 
 > **Tenant Filtering Mechanism:** The framework auto-injects `tenant_id = ?` at the SQL level, supporting multiple
 > tenant fields on a single entity (e.g., `tenant_id` and `target_tenant_id`), joined by OR.

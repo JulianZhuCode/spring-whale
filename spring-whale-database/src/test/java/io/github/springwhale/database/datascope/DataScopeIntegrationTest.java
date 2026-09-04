@@ -435,4 +435,48 @@ class DataScopeIntegrationTest {
         assertThat(result).extracting(TestUser::getName)
                 .containsExactlyInAnyOrder("Alice", "Bob", "Charlie", "David", "Eve");
     }
+
+    @Test
+    @DisplayName("@SkipSqlInspector with DEPT scope: should see all data (SQL inspection skipped)")
+    void testSkipSqlInspectorDeptScope() {
+        loginAs(1L);
+
+        List<TestUser> result = testUserService.listByDeptSkipSqlInspector();
+
+        assertThat(result).extracting(TestUser::getName)
+                .containsExactlyInAnyOrder("Alice", "Bob", "Charlie", "David", "Eve");
+    }
+
+    @Test
+    @DisplayName("@SkipSqlInspector with SELF scope: should see all data (SQL inspection skipped)")
+    void testSkipSqlInspectorSelfScope() {
+        loginAs(1L);
+
+        List<TestUser> result = testUserService.listSelfSkipSqlInspector();
+
+        assertThat(result).extracting(TestUser::getName)
+                .containsExactlyInAnyOrder("Alice", "Bob", "Charlie", "David", "Eve");
+    }
+
+    @Test
+    @DisplayName("@SkipSqlInspector without @DataScope: should still see all data")
+    void testSkipSqlInspectorNoDataScope() {
+        loginAs(1L);
+
+        List<TestUser> result = testUserService.listAllSkipSqlInspector();
+
+        assertThat(result).extracting(TestUser::getName)
+                .containsExactlyInAnyOrder("Alice", "Bob", "Charlie", "David", "Eve");
+    }
+
+    @Test
+    @DisplayName("@SkipSqlInspector on Repository method: should skip inspection for complex query")
+    void testSkipSqlInspectorOnRepositoryMethod() {
+        loginAs(1L);
+
+        List<TestUser> result = testUserService.listByDeptRepoSkip();
+
+        assertThat(result).extracting(TestUser::getName)
+                .containsExactlyInAnyOrder("Alice", "Bob", "David");
+    }
 }

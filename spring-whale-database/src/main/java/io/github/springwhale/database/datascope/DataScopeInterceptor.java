@@ -22,6 +22,10 @@ public class DataScopeInterceptor extends SqlInspectorSupport {
 
     @Override
     public String inspect(String sql) {
+        if (DataScopeContext.isSkipSqlInspector()) {
+            return sql;
+        }
+
         DataScopeResult scope = DataScopeContext.getScope();
         Class<?> entityClass = DataScopeContext.getEntityClass();
         List<String> deptFields = DataScopeContext.getDeptFields();

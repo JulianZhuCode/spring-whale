@@ -72,6 +72,12 @@ public class SpringWhaleDatabaseConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    public SkipSqlInspectorAspect skipSqlInspectorAspect() {
+        return new SkipSqlInspectorAspect();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
     @ConditionalOnClass(JpaRepository.class)
     @ConditionalOnProperty(prefix = "spring.whale.database.datascope", name = "tenant-enabled", havingValue = "true", matchIfMissing = true)
     public TenantRepositoryAspect tenantRepositoryAspect(DataScopeProperties properties,

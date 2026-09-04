@@ -20,7 +20,9 @@ Spring Whale は宣言的データスコープフィルタリングとマルチ�
 - ✅ **宣言的 @DataScope** — アノテーション一つでエンドポイントのデータ可視範囲を宣言
 - ✅ **6つのスコープレベル** — SELF / DEPT / DEPT_AND_CHILD / CUSTOM / CALLER / AUTO
 - ✅ **SQL レベルフィルタリング** — WHERE 句が SQL レベルで自動注入され、ビジネスコードに透過的
+- ✅ **全クエリカバレッジ** — 派生クエリ、`@Query`、`JpaSpecificationExecutor`、`Repository` 階層すべてをカバー
 - ✅ **マルチテナント分離** — `@TenantIdField` でテナント WHERE 句を自動注入
+- ✅ **@SkipSqlInspector** — アノテーション一つでカスタム SQL の自動インスペクションをスキップ
 - ✅ **クロスサービス伝播** — データスコープコンテキストが HTTP ヘッダー経由でマイクロサービス間を自動伝播
 - ✅ **HMAC-SHA256 完全性保護** — HMAC-SHA256 署名 + タイムスタンプ + ノンスでヘッダー偽造とリプレイ攻撃を防止
 - ✅ **プラグ可能なハンドラー** — SPI ベースの `DataScopeHandler` インターフェースでカスタムスコープ解決ロジック
@@ -289,6 +291,52 @@ public class GlobalConfigController {
     public List<Config> listGlobalConfig() { ...}
 }
 ```
+
+### SQL インスペクションの完全スキップ
+
+フィルタリングが既に組み込まれた複雑なカスタム SQL（join、ネイティブクエリ、複雑な `@Query`）を
+記述する場合、**Repository メソッド**に `@SkipSqlInspector` を付与してフレームワークが追加の
+テナントまたはデータスコープ WHERE 条件を注入するのを防ぎます：
+
+```java
+@Repository
+public interface ReportRepository extends JpaRepository<Report, Long> {
+
+    // 複雑な join クエリに既にフィルタリングが含まれている — 自動インスペクションをスキップ
+    @SkipSqlInspector
+    @Query("SELECT r FROM Report r JOIN r.details d WHERE r.deptId = :deptId AND d.status = 'ACTIVE'")
+    List<Report> findActiveReportsByDept(Long deptId);
+
+    // ネイティブクエリでマルチテナントフィルタリングを処理済み
+    @SkipSqlInspector
+    @Query(value = "SELECT * FROM report WHERE tenant_id = :tenantId", nativeQuery = true)
+    List<Report> findReportsByTenantNative(Long tenantId);
+}
+```
+
+リポジトリ全体がカスタムの場合（標準 CRUD なし）、インターフェース自体に `@SkipSqlInspector` を付与します：
+
+```java
+@SkipSqlInspector
+@Repository
+public interface CustomReportRepository extends JpaRepository<CustomReport, Long> {
+    // このリポジトリの全メソッドが SQL インスペクションをスキップ
+    @Query("SELECT ...")
+    List<CustomReport> customQuery1();
+
+    @Query("SELECT ...")
+    List<CustomReport> customQuery2();
+}
+```
+
+> **メカニズム：** `SkipSqlInspectorAspect`（`@Order(0)`）がアノテーション付き Repository メソッドを
+> インターセプトし、ThreadLocal フラグを設定します。`TenantSqlInspector` と `DataScopeInterceptor`
+> はこのフラグをチェックし、SQL を変更せずに返します。フラグは `finally` ブロックでクリアされ、
+> 後続の呼び出しは通常のインスペクションを再開します。
+
+> **`@NonTenant` と `@SkipSqlInspector` の違い：**
+> - `@NonTenant`：コントローラーレベル、テナントフィルタリングのみスキップ。グローバルエンドポイント向け。
+> - `@SkipSqlInspector`：リポジトリレベル、テナントとデータスコープの両方をスキップ。複雑なカスタム SQL 向け。
 
 > **テナントフィルタリングメカニズム：** フレームワークは SQL レベルで自動的に `tenant_id = ?`
 > を注入し、単一エンティティ上の複数のテナントフィールド（例: `tenant_id` と `target_tenant_id`）を OR で結合します。

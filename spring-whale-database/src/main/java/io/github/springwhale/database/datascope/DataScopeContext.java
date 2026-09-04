@@ -45,6 +45,8 @@ public class DataScopeContext {
 
     private static final ThreadLocal<Boolean> SKIP_TENANT_HOLDER = ThreadLocal.withInitial(() -> false);
 
+    private static final ThreadLocal<Boolean> SKIP_SQL_INSPECTOR_HOLDER = ThreadLocal.withInitial(() -> false);
+
     private static final ThreadLocal<List<String>> TENANT_FIELDS_HOLDER = new ThreadLocal<>();
 
     public static void pushScope(DataScopeResult result) {
@@ -99,6 +101,7 @@ public class DataScopeContext {
         USER_FIELDS_HOLDER.remove();
         TENANT_ID_HOLDER.remove();
         SKIP_TENANT_HOLDER.remove();
+        SKIP_SQL_INSPECTOR_HOLDER.remove();
         TENANT_FIELDS_HOLDER.remove();
     }
 
@@ -123,6 +126,14 @@ public class DataScopeContext {
 
     public static void setSkipTenant(boolean skip) {
         SKIP_TENANT_HOLDER.set(skip);
+    }
+
+    public static boolean isSkipSqlInspector() {
+        return Boolean.TRUE.equals(SKIP_SQL_INSPECTOR_HOLDER.get());
+    }
+
+    public static void setSkipSqlInspector(boolean skip) {
+        SKIP_SQL_INSPECTOR_HOLDER.set(skip);
     }
 
     public static List<String> getTenantFields() {
