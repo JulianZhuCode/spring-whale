@@ -42,7 +42,8 @@ public class DataScopeRepositoryAspect {
         this.dataScopeHandler = dataScopeHandler;
     }
 
-    @Around("execution(* org.springframework.data.jpa.repository.JpaRepository.*(..))")
+    @Around("execution(* org.springframework.data.repository.Repository+.*(..)) || " +
+            "execution(* org.springframework.data.jpa.repository.JpaSpecificationExecutor+.*(..))")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
         DataScopeResult scope = DataScopeContext.getScope();
         if (scope == null || !properties.isEnabled()) {

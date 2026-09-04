@@ -2,6 +2,7 @@ package io.github.springwhale.database.datascope;
 
 import io.github.springwhale.database.datascope.annotation.DataScope;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,5 +57,42 @@ public class TestUserService {
 
     public TestUser save(TestUser user) {
         return repository.save(user);
+    }
+
+    @DataScope(scopeType = DataScopeType.DEPT, module = "test")
+    public List<TestUser> listByDeptDerived() {
+        return repository.findByDeptId(1L);
+    }
+
+    @DataScope(scopeType = DataScopeType.SELF, module = "test")
+    public List<TestUser> listSelfDerived() {
+        return repository.findByDeptId(1L);
+    }
+
+    @DataScope(scopeType = DataScopeType.DEPT, module = "test")
+    public List<TestUser> listByDeptQuery() {
+        return repository.findByDeptIdQuery(1L);
+    }
+
+    @DataScope(scopeType = DataScopeType.SELF, module = "test")
+    public List<TestUser> listSelfQuery() {
+        return repository.findByCreateByQuery(1L);
+    }
+
+    @DataScope(scopeType = DataScopeType.DEPT, module = "test")
+    public List<TestUser> listByDeptSpec() {
+        Specification<TestUser> spec = (root, query, cb) -> cb.equal(root.get("deptId"), 1L);
+        return repository.findAll(spec);
+    }
+
+    @DataScope(scopeType = DataScopeType.SELF, module = "test")
+    public List<TestUser> listSelfSpec() {
+        Specification<TestUser> spec = (root, query, cb) -> cb.equal(root.get("createBy"), 1L);
+        return repository.findAll(spec);
+    }
+
+    public List<TestUser> listAllSpec() {
+        Specification<TestUser> spec = (root, query, cb) -> cb.conjunction();
+        return repository.findAll(spec);
     }
 }

@@ -3,6 +3,7 @@ package io.github.springwhale.database.datascope;
 import io.github.springwhale.database.autoconfigure.SpringWhaleDatabaseConfiguration;
 import io.github.springwhale.framework.core.context.AuthenticationContext;
 import io.github.springwhale.framework.core.context.AuthenticationContextHolder;
+import jakarta.persistence.criteria.Predicate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -352,6 +354,83 @@ class DataScopeIntegrationTest {
         loginAs(1L);
 
         List<TestUser> result = testUserService.listAll();
+
+        assertThat(result).extracting(TestUser::getName)
+                .containsExactlyInAnyOrder("Alice", "Bob", "Charlie", "David", "Eve");
+    }
+
+    @Test
+    @DisplayName("Derived query: DEPT scope should filter by deptId")
+    void testDerivedQueryDeptScope() {
+        loginAs(1L);
+
+        List<TestUser> result = testUserService.listByDeptDerived();
+
+        assertThat(result).extracting(TestUser::getName)
+                .containsExactlyInAnyOrder("Alice", "Bob");
+    }
+
+    @Test
+    @DisplayName("Derived query: SELF scope should filter by createBy")
+    void testDerivedQuerySelfScope() {
+        loginAs(1L);
+
+        List<TestUser> result = testUserService.listSelfDerived();
+
+        assertThat(result).extracting(TestUser::getName)
+                .containsExactlyInAnyOrder("Alice");
+    }
+
+    @Test
+    @DisplayName("@Query: DEPT scope should filter by deptId")
+    void testQueryAnnotationDeptScope() {
+        loginAs(1L);
+
+        List<TestUser> result = testUserService.listByDeptQuery();
+
+        assertThat(result).extracting(TestUser::getName)
+                .containsExactlyInAnyOrder("Alice", "Bob");
+    }
+
+    @Test
+    @DisplayName("@Query: SELF scope should filter by createBy")
+    void testQueryAnnotationSelfScope() {
+        loginAs(1L);
+
+        List<TestUser> result = testUserService.listSelfQuery();
+
+        assertThat(result).extracting(TestUser::getName)
+                .containsExactlyInAnyOrder("Alice", "David");
+    }
+
+    @Test
+    @DisplayName("Specification: DEPT scope should filter by deptId")
+    void testSpecificationDeptScope() {
+        loginAs(1L);
+
+        List<TestUser> result = testUserService.listByDeptSpec();
+
+        assertThat(result).extracting(TestUser::getName)
+                .containsExactlyInAnyOrder("Alice", "Bob");
+    }
+
+    @Test
+    @DisplayName("Specification: SELF scope should filter by createBy")
+    void testSpecificationSelfScope() {
+        loginAs(1L);
+
+        List<TestUser> result = testUserService.listSelfSpec();
+
+        assertThat(result).extracting(TestUser::getName)
+                .containsExactlyInAnyOrder("Alice", "David");
+    }
+
+    @Test
+    @DisplayName("Specification: no @DataScope should see all data")
+    void testSpecificationNoDataScope() {
+        loginAs(1L);
+
+        List<TestUser> result = testUserService.listAllSpec();
 
         assertThat(result).extracting(TestUser::getName)
                 .containsExactlyInAnyOrder("Alice", "Bob", "Charlie", "David", "Eve");
