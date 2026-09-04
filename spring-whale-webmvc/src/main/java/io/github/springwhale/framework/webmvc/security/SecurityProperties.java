@@ -23,7 +23,7 @@ public class SecurityProperties {
 
     private String tokenCookieName = "sw_token";
 
-    private String jwtSecret = "SpringWhaleSecretKey2024ForJWTTokenGeneration";
+    private String jwtSecret;
 
     private long jwtExpiration = 86400000;
 
