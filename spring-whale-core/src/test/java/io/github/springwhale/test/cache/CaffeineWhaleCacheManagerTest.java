@@ -104,11 +104,11 @@ class CaffeineWhaleCacheManagerTest {
         @Test
         @DisplayName("Should use custom TTL for per-key expiration")
         void testCustomTtl() {
-            cache.get("shortTtl", String.class, () -> "short-lived", Duration.ofMillis(1));
+            cache.get("shortTtl", String.class, () -> "short-lived", Duration.ofMillis(50));
             assertEquals("short-lived", cache.get("shortTtl", String.class));
 
             try {
-                Thread.sleep(50);
+                Thread.sleep(200);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }

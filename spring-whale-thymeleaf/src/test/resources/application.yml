@@ -1,0 +1,5 @@
+spring:
+  whale:
+    web-mvc:
+      security:
+        jwt-secret: test-secret-key-for-unit-testing-purposes-only-at-least-32-bytes
