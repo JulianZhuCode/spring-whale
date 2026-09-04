@@ -54,7 +54,7 @@ public class TenantSqlInspector extends SqlInspectorSupport {
             return sql;
         }
 
-        String modifiedSql = applyCondition(sql, condition);
+        String modifiedSql = applyCondition(sql, condition, tableName);
         log.debug("Tenant filter applied: entity={}, table={}, tenantId={}, condition={}",
                 entityClass.getSimpleName(), tableName, tenantId, condition);
         log.trace("Original SQL: {}", sql);

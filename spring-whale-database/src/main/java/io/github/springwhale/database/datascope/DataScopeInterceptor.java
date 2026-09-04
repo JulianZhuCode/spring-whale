@@ -45,7 +45,7 @@ public class DataScopeInterceptor extends SqlInspectorSupport {
         }
 
         if (scope.isDenied()) {
-            String modifiedSql = applyCondition(sql, "1=0");
+            String modifiedSql = applyCondition(sql, "1=0", tableName);
             log.debug("Data scope denied: entity={}, table={}, returning empty result",
                     entityClass.getSimpleName(), tableName);
             return modifiedSql;
@@ -60,7 +60,7 @@ public class DataScopeInterceptor extends SqlInspectorSupport {
             return sql;
         }
 
-        String modifiedSql = applyCondition(sql, condition);
+        String modifiedSql = applyCondition(sql, condition, tableName);
         log.debug("Data scope applied: entity={}, table={}, condition={}",
                 entityClass.getSimpleName(), tableName, condition);
         log.trace("Original SQL: {}", sql);

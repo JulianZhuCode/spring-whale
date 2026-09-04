@@ -52,6 +52,7 @@
         <flyway.version>12.10.0</flyway.version>
         <bootstrap.version>5.3.3</bootstrap.version>
         <bootstrap-icons.version>1.11.3</bootstrap-icons.version>
+        <jsqlparser.version>5.3</jsqlparser.version>
     </properties>
 
     <dependencyManagement>
@@ -183,6 +184,11 @@
                 <groupId>org.webjars.npm</groupId>
                 <artifactId>bootstrap-icons</artifactId>
                 <version>${bootstrap-icons.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.jsqlparser</groupId>
+                <artifactId>jsqlparser</artifactId>
+                <version>${jsqlparser.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
