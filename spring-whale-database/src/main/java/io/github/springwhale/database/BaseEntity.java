@@ -4,8 +4,7 @@ import io.github.springwhale.database.datascope.annotation.UserIdField;
 import io.github.springwhale.framework.core.utils.AuthUtil;
 import jakarta.persistence.*;
 import lombok.Data;
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.annotations.SoftDelete;
 
 import java.time.LocalDateTime;
 
@@ -23,8 +22,7 @@ import java.time.LocalDateTime;
  */
 @Data
 @MappedSuperclass
-@SQLDelete(sql = "UPDATE #{entityName} SET del_flag = 1, update_time = CURRENT_TIMESTAMP WHERE id = ?")
-@SQLRestriction("del_flag = 0")
+@SoftDelete(columnName = "del_flag", converter = DelFlagConverter.class)
 public abstract class BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,11 +39,6 @@ public abstract class BaseEntity {
 
     @Version
     private Integer version;
-
-    /**
-     * 0 = normal, 1 = deleted
-     */
-    private Integer delFlag = 0;
 
     @PrePersist
     public void prePersist() {
