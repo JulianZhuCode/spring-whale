@@ -19,6 +19,8 @@ import java.time.Duration;
  *   module-header: X-DataScope-Module
  *   tenant-enabled: true
  *   tenant-id-header: X-Tenant-Id
+ *   hmac-secret-key: "${DATASCOPE_HMAC_SECRET}"
+ *   timestamp-window: 5m
  *   cache:
  *     skip-ttl: 5m
  *     dept-ttl: 2m
@@ -41,6 +43,25 @@ public class DataScopeProperties {
     private boolean tenantEnabled = true;
 
     private String tenantIdHeader = "X-Tenant-Id";
+
+    /**
+     * HMAC-SHA256 shared secret key for signing cross-service data scope
+     * and tenant headers. When configured, all outgoing Feign headers are
+     * signed and all incoming headers are verified.
+     *
+     * <p><b>No default value.</b> Must be set in production to prevent
+     * header forgery and horizontal privilege escalation.</p>
+     *
+     * <p>Header names: {@code X-DataScope-Timestamp}, {@code X-DataScope-Nonce},
+     * {@code X-DataScope-Signature}.</p>
+     */
+    private String hmacSecretKey;
+
+    /**
+     * Maximum allowed clock skew for timestamp validation.
+     * Default: 5 minutes.
+     */
+    private Duration timestampWindow = Duration.ofMinutes(5);
 
     /**
      * Base URL of the remote RBAC service for data scope resolution.

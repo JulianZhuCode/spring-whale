@@ -22,6 +22,7 @@ Spring Whale は宣言的データスコープフィルタリングとマルチ�
 - ✅ **SQL レベルフィルタリング** — WHERE 句が SQL レベルで自動注入され、ビジネスコードに透過的
 - ✅ **マルチテナント分離** — `@TenantIdField` でテナント WHERE 句を自動注入
 - ✅ **クロスサービス伝播** — データスコープコンテキストが HTTP ヘッダー経由でマイクロサービス間を自動伝播
+- ✅ **HMAC-SHA256 完全性保護** — HMAC-SHA256 署名 + タイムスタンプ + ノンスでヘッダー偽造とリプレイ攻撃を防止
 - ✅ **プラグ可能なハンドラー** — SPI ベースの `DataScopeHandler` インターフェースでカスタムスコープ解決ロジック
 - ✅ **マイクロサービスサポート** — `SmartDataScopeHandler` キャッシュ優先 + Feign リモート呼び出し + フォールバック
 - ✅ **条件付きアセンブリ** — 利用可能なモジュールと設定に基づいて適切なハンドラーを自動選択
@@ -96,6 +97,11 @@ spring:
         tenant-enabled: true
         # テナント ID ヘッダー（デフォルト: X-Tenant-Id）
         tenant-id-header: X-Tenant-Id
+        # HMAC-SHA256 共有秘密鍵（クロスサービスヘッダー完全性保護用）
+        # デフォルト値なし — 本番環境ではヘッダー偽造防止のために必須
+        hmac-secret-key: "${DATASCOPE_HMAC_SECRET}"
+        # タイムスタンプ検証の最大許容クロックスキュー（デフォルト: 5m）
+        timestamp-window: 5m
         # リモート RBAC サービス URL（マイクロサービスモード）
         remote-rbac-url: http://rbac-service
         # プライマリキーのキャッシュ TTL（デフォルト: 5m）
@@ -114,6 +120,8 @@ spring:
 | `module-header`        | String   | X-DataScope-Module  | モジュールヘッダー名                 |
 | `tenant-enabled`       | boolean  | true                | テナント分離を有効化                 |
 | `tenant-id-header`     | String   | X-Tenant-Id         | テナント ID ヘッダー名              |
+| `hmac-secret-key`      | String   | (なし)              | HMAC-SHA256 共有秘密鍵（クロスサービスヘッダー完全性保護用） |
+| `timestamp-window`     | Duration | 5m                  | タイムスタンプ検証の最大許容クロックスキュー |
 | `remote-rbac-url`      | String   | (なし)              | リモート RBAC サービス URL          |
 | `cache-ttl`            | Duration | 5m                  | プライマリキャッシュ TTL            |
 | `fallback-cache-ttl`   | Duration | 30m                 | フォールバックキャッシュ TTL         |
@@ -299,6 +307,34 @@ public class GlobalConfigController {
 3. **SQL フィルタリング：** 復元されたコンテキストは SQL インターセプターによって使用され、WHERE 句を注入します。
    これにより下流サービスは呼び出し元のスコープに従ってデータをフィルタリングし、再解決は不要です。
 
+### HMAC-SHA256 完全性保護
+
+`hmac-secret-key` が設定されている場合、すべてのクロスサービスデータスコープヘッダーが署名され、偽造とリプレイ攻撃を防止します：
+
+**署名（送信側）：**
+```
+payload = scopeType:module:tenantId:timestamp:nonce:path
+signature = HMAC-SHA256(secretKey, payload) → hex
+```
+
+| セキュリティヘッダー         | 目的                                    |
+|--------------------------|----------------------------------------|
+| `X-DataScope-Timestamp`  | エポックミリ秒、リプレイ防止               |
+| `X-DataScope-Nonce`      | ランダム UUID、ウィンドウごとに1回限り使用    |
+| `X-DataScope-Signature`  | 全値の HMAC-SHA256 16進数署名             |
+
+**検証（受信側）：**
+1. タイムスタンプが ±`timestamp-window`（デフォルト 5 分）以内かチェック
+2. ノンスが未使用かチェック（メモリ内重複排除 + TTL）
+3. HMAC を再計算し `MessageDigest.isEqual()` で定数時間比較
+4. 失敗時は HTTP 403 を返す
+
+**セキュリティ特性：**
+- **偽造防止：** 共有秘密鍵なしでは攻撃者は有効な署名を生成できません
+- **リプレイ防止：** 各ノンスは1回のみ使用可能、期限切れタイムスタンプは拒否
+- **パスバインディング：** 署名にリクエストパスを含み、クロスエンドポイントリプレイを防止
+- **定数時間比較：** 署名検証のタイミングサイドチャネル攻撃を防止
+
 ### 有効化/無効化
 
 ```yaml
@@ -306,11 +342,14 @@ spring:
   whale:
     database:
       datascope:
-        transmit-enabled: true   # クロスサービス伝播を有効化（デフォルト: true）
+        transmit-enabled: true                    # クロスサービス伝播を有効化（デフォルト: true）
+        hmac-secret-key: "${DATASCOPE_HMAC_SECRET}" # 本番環境では必須
+        timestamp-window: 5m                       # クロックスキュー許容値（デフォルト: 5m）
 ```
 
-`transmit-enabled` が `false` の場合、Feign インターセプターはデータスコープヘッダーを付与せず、
-下流サービスは独自にデータスコープを解決する必要があります。
+> **重要：** `hmac-secret-key` にはデフォルト値がありません。未設定の場合、WARN ログが出力されヘッダーは平文で
+> 送信されます——開発環境では許容されますが、**本番環境では使用しないでください**。
+> クロスサービスデータスコープ伝播に参加するすべてのサービスは同じ秘密鍵を共有する必要があります。
 
 ## マイクロサービスアーキテクチャ
 

@@ -3,6 +3,7 @@ package io.github.springwhale.database.autoconfigure;
 import io.github.springwhale.database.datascope.DataScopeFeignClient;
 import io.github.springwhale.database.datascope.DataScopeFeignInterceptor;
 import io.github.springwhale.database.datascope.DataScopeProperties;
+import io.github.springwhale.database.datascope.DataScopeSigner;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -33,8 +34,17 @@ public class DataScopeFeignAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public DataScopeFeignInterceptor dataScopeFeignInterceptor(DataScopeProperties properties) {
-        return new DataScopeFeignInterceptor(properties);
+    public DataScopeSigner dataScopeSigner(DataScopeProperties properties) {
+        return new DataScopeSigner(
+                properties.getHmacSecretKey(),
+                properties.getTimestampWindow().toMillis());
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public DataScopeFeignInterceptor dataScopeFeignInterceptor(DataScopeProperties properties,
+                                                                DataScopeSigner signer) {
+        return new DataScopeFeignInterceptor(properties, signer);
     }
 
     @Configuration(proxyBeanMethods = false)

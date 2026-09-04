@@ -135,9 +135,18 @@ public class SpringWhaleDatabaseConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    public DataScopeSigner dataScopeSigner(DataScopeProperties properties) {
+        return new DataScopeSigner(
+                properties.getHmacSecretKey(),
+                properties.getTimestampWindow().toMillis());
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
     @ConditionalOnClass(DispatcherServlet.class)
-    public DataScopeServerInterceptor dataScopeServerInterceptor(DataScopeProperties properties) {
-        return new DataScopeServerInterceptor(properties);
+    public DataScopeServerInterceptor dataScopeServerInterceptor(DataScopeProperties properties,
+                                                                  DataScopeSigner signer) {
+        return new DataScopeServerInterceptor(properties, signer);
     }
 
     @Bean

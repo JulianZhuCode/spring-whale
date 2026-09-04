@@ -23,6 +23,7 @@ business code.
 - ✅ **SQL-Level Filtering** — WHERE clauses are injected at the SQL level, transparent to business code
 - ✅ **Multi-Tenant Isolation** — `@TenantIdField` auto-injects tenant WHERE clauses
 - ✅ **Cross-Service Propagation** — Data scope context automatically propagates between microservices via HTTP headers
+- ✅ **HMAC-SHA256 Integrity** — HMAC-SHA256 signing with timestamp + nonce prevents header forgery and replay attacks
 - ✅ **Pluggable Handler** — SPI-based `DataScopeHandler` interface for custom scope resolution logic
 - ✅ **Microservice Support** — `SmartDataScopeHandler` with cache-first + Feign remote call + fallback mechanism
 - ✅ **Conditional Assembly** — Auto-selects the appropriate handler based on available modules and configuration
@@ -97,6 +98,11 @@ spring:
         tenant-enabled: true
         # Tenant ID header (default: X-Tenant-Id)
         tenant-id-header: X-Tenant-Id
+        # HMAC-SHA256 secret key for cross-service header integrity
+        # No default — must be set in production to prevent header forgery
+        hmac-secret-key: "${DATASCOPE_HMAC_SECRET}"
+        # Maximum allowed clock skew for timestamp validation (default: 5m)
+        timestamp-window: 5m
         # Remote RBAC service URL (microservice mode)
         remote-rbac-url: http://rbac-service
         # Cache TTL for primary key (default: 5m)
@@ -115,6 +121,8 @@ spring:
 | `module-header`       | String   | X-DataScope-Module  | Header name for module                                    |
 | `tenant-enabled`      | boolean  | true                | Enable tenant isolation                                   |
 | `tenant-id-header`    | String   | X-Tenant-Id         | Header name for tenant ID                                 |
+| `hmac-secret-key`     | String   | (none)              | HMAC-SHA256 shared secret for cross-service header integrity |
+| `timestamp-window`    | Duration | 5m                  | Maximum allowed clock skew for timestamp validation         |
 | `remote-rbac-url`     | String   | (none)              | Remote RBAC service URL for microservice mode             |
 | `cache-ttl`           | Duration | 5m                  | Cache TTL for primary key                                 |
 | `fallback-cache-ttl`  | Duration | 30m                 | Cache TTL for fallback key                                |
@@ -301,6 +309,34 @@ public class GlobalConfigController {
 3. **SQL Filtering:** The restored context is used by the SQL interceptor to inject WHERE clauses, so the downstream
    service filters data according to the caller's scope — no re-resolution needed.
 
+### HMAC-SHA256 Integrity Protection
+
+When `hmac-secret-key` is configured, all cross-service data scope headers are signed to prevent forgery and replay attacks:
+
+**Signing (sender):**
+```
+payload = scopeType:module:tenantId:timestamp:nonce:path
+signature = HMAC-SHA256(secretKey, payload) → hex
+```
+
+| Security Header          | Purpose                                    |
+|--------------------------|--------------------------------------------|
+| `X-DataScope-Timestamp`  | Epoch milliseconds, prevents replay        |
+| `X-DataScope-Nonce`      | Random UUID, one-time use per window       |
+| `X-DataScope-Signature`  | HMAC-SHA256 hex signature of all values    |
+
+**Verification (receiver):**
+1. Check timestamp within ±`timestamp-window` (default 5 min)
+2. Check nonce not reused (in-memory deduplication with TTL)
+3. Recompute HMAC and compare with `MessageDigest.isEqual()` (constant-time)
+4. Reject with HTTP 403 on any failure
+
+**Security properties:**
+- **Anti-forgery:** Without the shared secret, attackers cannot produce valid signatures
+- **Anti-replay:** Each nonce can only be used once; expired timestamps are rejected
+- **Path binding:** Signature includes the request path, preventing cross-endpoint replay
+- **Constant-time comparison:** Prevents timing side-channel attacks on signature verification
+
 ### Enabling/Disabling
 
 ```yaml
@@ -308,11 +344,14 @@ spring:
   whale:
     database:
       datascope:
-        transmit-enabled: true   # Enable cross-service transmission (default: true)
+        transmit-enabled: true                    # Enable cross-service transmission (default: true)
+        hmac-secret-key: "${DATASCOPE_HMAC_SECRET}" # Required for production security
+        timestamp-window: 5m                       # Clock skew tolerance (default: 5m)
 ```
 
-When `transmit-enabled` is `false`, the Feign interceptor will not carry data scope headers, and the downstream service
-will need to resolve data scope independently.
+> **Important:** `hmac-secret-key` has no default value. Without it, a WARN log is emitted and headers are
+> transmitted in plaintext — acceptable for development but **not for production**. All services that participate
+> in cross-service data scope propagation must share the same secret key.
 
 ## Microservice Architecture
 

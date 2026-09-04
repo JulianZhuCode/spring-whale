@@ -2,7 +2,6 @@ package io.github.springwhale.database.datascope;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -13,56 +12,103 @@ import org.springframework.web.servlet.HandlerInterceptor;
  * <p>Entry point for cross-service scope/tenant propagation in microservice
  * architectures. The Feign counterpart is {@link DataScopeFeignInterceptor}.</p>
  *
+ * <p>When {@code hmac-secret-key} is configured, HMAC-SHA256 signature
+ * verification is enforced with timestamp and nonce validation to prevent
+ * header forgery and replay attacks.</p>
+ *
  * <p>{@link #afterCompletion} unconditionally calls {@link DataScopeContext#clear()}
  * to prevent ThreadLocal leaks, regardless of whether the handler threw an exception.</p>
  */
 @Slf4j
-@RequiredArgsConstructor
 public class DataScopeServerInterceptor implements HandlerInterceptor {
 
     private final DataScopeProperties properties;
+    private final DataScopeSigner signer;
+
+    public DataScopeServerInterceptor(DataScopeProperties properties, DataScopeSigner signer) {
+        this.properties = properties;
+        this.signer = signer;
+    }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+        String scopeType = null;
+        String module = null;
+        String tenantId = null;
+
         if (properties.isTransmitEnabled()) {
-            receiveDataScope(request);
+            scopeType = request.getHeader(properties.getScopeTypeHeader());
+            module = request.getHeader(properties.getModuleHeader());
         }
         if (properties.isTenantEnabled()) {
-            receiveTenantId(request);
+            tenantId = request.getHeader(properties.getTenantIdHeader());
+        }
+
+        boolean hasDataScopeHeaders = (scopeType != null && !scopeType.isEmpty())
+                || (tenantId != null && !tenantId.isEmpty());
+
+        if (!hasDataScopeHeaders) {
+            return true;
+        }
+
+        if (signer.isEnabled()) {
+            String signature = request.getHeader("X-DataScope-Signature");
+            String timestampStr = request.getHeader("X-DataScope-Timestamp");
+            String nonce = request.getHeader("X-DataScope-Nonce");
+
+            if (timestampStr == null || timestampStr.isBlank()) {
+                log.warn("DataScope HMAC verification failed: missing X-DataScope-Timestamp header");
+                response.setStatus(403);
+                return false;
+            }
+
+            long timestamp;
+            try {
+                timestamp = Long.parseLong(timestampStr);
+            } catch (NumberFormatException e) {
+                log.warn("DataScope HMAC verification failed: invalid timestamp {}", timestampStr);
+                response.setStatus(403);
+                return false;
+            }
+
+            String path = request.getRequestURI();
+            if (!signer.verify(signature, scopeType, module, tenantId, timestamp, nonce, path)) {
+                log.warn("DataScope HMAC verification failed for path={} from remote={}",
+                        path, request.getRemoteAddr());
+                response.setStatus(403);
+                return false;
+            }
+        } else {
+            log.debug("DataScope HMAC signing disabled, accepting plaintext headers");
+        }
+
+        if (scopeType != null && !scopeType.isEmpty()) {
+            receiveDataScope(scopeType, module);
+        }
+        if (tenantId != null && !tenantId.isEmpty()) {
+            receiveTenantId(tenantId);
         }
         return true;
     }
 
-    private void receiveDataScope(HttpServletRequest request) {
-        String scopeTypeStr = request.getHeader(properties.getScopeTypeHeader());
-        if (scopeTypeStr == null || scopeTypeStr.isEmpty()) {
-            return;
-        }
-
+    private void receiveDataScope(String scopeTypeStr, String module) {
         try {
             DataScopeType scopeType = DataScopeType.valueOf(scopeTypeStr);
-            String module = request.getHeader(properties.getModuleHeader());
-
             DataScopeResult result = new DataScopeResult();
             result.setScopeType(scopeType);
             result.setModule(module);
-
             DataScopeContext.pushScope(result);
-            log.debug("Data scope transmitted from header: type={}, module={}", scopeType, module);
+            log.debug("Data scope received from header: type={}, module={}", scopeType, module);
         } catch (IllegalArgumentException e) {
             log.warn("Invalid DataScopeType from header: {}", scopeTypeStr);
         }
     }
 
-    private void receiveTenantId(HttpServletRequest request) {
-        String tenantIdStr = request.getHeader(properties.getTenantIdHeader());
-        if (tenantIdStr == null || tenantIdStr.isEmpty()) {
-            return;
-        }
+    private void receiveTenantId(String tenantIdStr) {
         try {
             Object tenantId = parseTenantId(tenantIdStr);
             DataScopeContext.setTenantId(tenantId);
-            log.debug("Tenant id transmitted from header: {}", tenantId);
+            log.debug("Tenant id received from header: {}", tenantId);
         } catch (NumberFormatException e) {
             log.warn("Invalid tenant id from header: {}", tenantIdStr);
         }

@@ -7,11 +7,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
+import java.time.Duration;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class DataScopeServerInterceptorTest {
 
     private DataScopeProperties properties;
+    private DataScopeSigner signer;
     private DataScopeServerInterceptor interceptor;
     private MockHttpServletRequest request;
     private MockHttpServletResponse response;
@@ -19,7 +22,9 @@ class DataScopeServerInterceptorTest {
     @BeforeEach
     void setUp() {
         properties = new DataScopeProperties();
-        interceptor = new DataScopeServerInterceptor(properties);
+        properties.setTimestampWindow(Duration.ofMinutes(5));
+        signer = new DataScopeSigner(null, properties.getTimestampWindow().toMillis());
+        interceptor = new DataScopeServerInterceptor(properties, signer);
         request = new MockHttpServletRequest();
         response = new MockHttpServletResponse();
     }

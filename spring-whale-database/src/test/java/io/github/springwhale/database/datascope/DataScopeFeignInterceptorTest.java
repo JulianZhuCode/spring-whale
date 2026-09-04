@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.util.Collection;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -13,13 +14,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 class DataScopeFeignInterceptorTest {
 
     private DataScopeProperties properties;
+    private DataScopeSigner signer;
     private DataScopeFeignInterceptor interceptor;
     private RequestTemplate template;
 
     @BeforeEach
     void setUp() {
         properties = new DataScopeProperties();
-        interceptor = new DataScopeFeignInterceptor(properties);
+        properties.setTimestampWindow(Duration.ofMinutes(5));
+        signer = new DataScopeSigner(null, properties.getTimestampWindow().toMillis());
+        interceptor = new DataScopeFeignInterceptor(properties, signer);
         template = new RequestTemplate();
     }
 

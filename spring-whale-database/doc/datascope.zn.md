@@ -22,6 +22,7 @@ Spring Whale 提供声明式数据权限过滤和多租户隔离，在 SQL 层�
 - ✅ **SQL 层面过滤** — WHERE 条件在 SQL 层面自动注入，业务代码无感知
 - ✅ **多租户隔离** — `@TenantIdField` 自动注入租户 WHERE 条件
 - ✅ **跨服务传播** — 数据权限上下文通过 HTTP Header 在微服务间自动传递
+- ✅ **HMAC-SHA256 完整性保护** — HMAC-SHA256 签名 + 时间戳 + 随机数，防止 Header 伪造和重放攻击
 - ✅ **可插拔处理器** — 基于 SPI 的 `DataScopeHandler` 接口，支持自定义权限解析逻辑
 - ✅ **微服务支持** — `SmartDataScopeHandler` 缓存优先 + Feign 远程调用 + 降级容错机制
 - ✅ **条件装配** — 根据可用模块和配置自动选择合适的处理器
@@ -95,6 +96,11 @@ spring:
         tenant-enabled: true
         # 租户 ID Header（默认 X-Tenant-Id）
         tenant-id-header: X-Tenant-Id
+        # HMAC-SHA256 共享密钥，用于跨服务 Header 完整性保护
+        # 无默认值，生产环境必须配置以防止 Header 伪造
+        hmac-secret-key: "${DATASCOPE_HMAC_SECRET}"
+        # 时间戳校验的最大时钟偏差（默认 5m）
+        timestamp-window: 5m
         # 远程 RBAC 服务地址（微服务模式）
         remote-rbac-url: http://rbac-service
         # 主键缓存 TTL（默认 5m）
@@ -113,6 +119,8 @@ spring:
 | `module-header`       | String   | X-DataScope-Module  | 模块 Header 名称            |
 | `tenant-enabled`      | boolean  | true                | 是否启用租户隔离              |
 | `tenant-id-header`    | String   | X-Tenant-Id         | 租户 ID Header 名称         |
+| `hmac-secret-key`     | String   | (无)                | HMAC-SHA256 共享密钥，用于跨服务 Header 完整性保护 |
+| `timestamp-window`    | Duration | 5m                  | 时间戳校验的最大时钟偏差        |
 | `remote-rbac-url`     | String   | (无)                | 远程 RBAC 服务地址（微服务模式）|
 | `cache-ttl`           | Duration | 5m                  | 主键缓存 TTL                |
 | `fallback-cache-ttl`  | Duration | 30m                 | 降级缓存 TTL                |
@@ -294,6 +302,34 @@ public class GlobalConfigController {
 
 3. **SQL 过滤：** 恢复的上下文被 SQL 拦截器用于注入 WHERE 条件，下游服务按调用方数据权限过滤——无需重复解析。
 
+### HMAC-SHA256 完整性保护
+
+当配置了 `hmac-secret-key` 后，所有跨服务数据权限 Header 都会被签名，防止伪造和重放攻击：
+
+**签名（发送端）：**
+```
+payload = scopeType:module:tenantId:timestamp:nonce:path
+signature = HMAC-SHA256(secretKey, payload) → hex
+```
+
+| 安全 Header               | 用途                              |
+|--------------------------|----------------------------------|
+| `X-DataScope-Timestamp`  | 毫秒级时间戳，防重放                  |
+| `X-DataScope-Nonce`      | 随机 UUID，每个时间窗口内一次性使用       |
+| `X-DataScope-Signature`  | 所有值的 HMAC-SHA256 十六进制签名      |
+
+**校验（接收端）：**
+1. 检查时间戳是否在 ±`timestamp-window`（默认 5 分钟）范围内
+2. 检查 nonce 是否已被使用（内存去重，带 TTL）
+3. 重新计算 HMAC 并用 `MessageDigest.isEqual()` 常量时间比较
+4. 任何校验失败返回 HTTP 403
+
+**安全特性：**
+- **防伪造：** 没有共享密钥的攻击者无法生成有效签名
+- **防重放：** 每个 nonce 只能使用一次；过期时间戳被拒绝
+- **路径绑定：** 签名包含请求路径，防止跨接口重放
+- **常量时间比较：** 防止签名验证的时序侧信道攻击
+
 ### 启用/禁用
 
 ```yaml
@@ -301,10 +337,13 @@ spring:
   whale:
     database:
       datascope:
-        transmit-enabled: true   # 启用跨服务传输（默认 true）
+        transmit-enabled: true                    # 启用跨服务传输（默认 true）
+        hmac-secret-key: "${DATASCOPE_HMAC_SECRET}" # 生产环境必须配置
+        timestamp-window: 5m                       # 时钟偏差容忍度（默认 5m）
 ```
 
-当 `transmit-enabled` 为 `false` 时，Feign 拦截器不会携带数据权限 Header，下游服务需独立解析数据权限。
+> **重要：** `hmac-secret-key` 无默认值。未配置时，会输出 WARN 日志，Header 以明文传输——适用于开发环境，**生产环境不可用**。
+> 所有参与跨服务数据权限传播的服务必须共享同一个密钥。
 
 ## 微服务架构
 
