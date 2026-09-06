@@ -8,15 +8,10 @@ updates:
     commit-message:
       prefix: "deps"
     groups:
-      spring-dependencies:
-        patterns:
-          - "org.springframework*"
-      flyway:
-        patterns:
-          - "org.flywaydb*"
-    ignore:
-      - dependency-name: "org.flywaydb:flyway-database-postgresql"
-        versions: ["13.x"]
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
 
   - package-ecosystem: "github-actions"
     directory: "/"
