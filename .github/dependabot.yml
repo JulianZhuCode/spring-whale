@@ -4,6 +4,23 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 10
     commit-message:
-      prefix: "deps(security)"
+      prefix: "deps"
+    groups:
+      spring-dependencies:
+        patterns:
+          - "org.springframework*"
+      flyway:
+        patterns:
+          - "org.flywaydb*"
+    ignore:
+      - dependency-name: "org.flywaydb:flyway-database-postgresql"
+        versions: ["13.x"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "ci"
