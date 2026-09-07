@@ -82,7 +82,6 @@ public abstract class AbstractEventListener<T> {
      * @param event        the event object (never null)
      * @param eventContext the event context with metadata
      */
-    @SuppressWarnings("java/unused-parameter")
     public abstract void doEvent(T event, EventContext eventContext);
 
     /**
@@ -108,7 +107,7 @@ public abstract class AbstractEventListener<T> {
      * @return true if the event should be processed, false to skip
      */
     @SuppressWarnings("unused")
-    public boolean accept(@SuppressWarnings("java/unused-parameter") Object event) {
+    public boolean accept(Object event) {
         return true;
     }
 

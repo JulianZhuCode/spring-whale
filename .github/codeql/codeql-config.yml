@@ -6,3 +6,10 @@ query-filters:
   # from source and are not actionable.
   - exclude:
       id: java/missing-override-annotation
+
+  # Useless parameter: fires on framework API contract parameters that are
+  # consumed by downstream overrides outside this repository. Parameters cannot
+  # be removed (breaking API) and CodeQL does not honor @SuppressWarnings for
+  # this query family, so the rule is excluded at config level.
+  - exclude:
+      id: java/unused-parameter
