@@ -42,6 +42,7 @@ jobs:
           languages: java-kotlin
           build-mode: manual
           queries: security-and-quality
+          config-file: .github/codeql/codeql-config.yml
 
       - name: Build with Maven
         run: mvn clean compile -DskipTests -Dgpg.skip=true

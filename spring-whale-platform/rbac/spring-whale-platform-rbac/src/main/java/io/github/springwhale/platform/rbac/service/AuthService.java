@@ -1,5 +1,6 @@
 package io.github.springwhale.platform.rbac.service;
 
+import io.github.springwhale.framework.core.utils.LogSanitizer;
 import io.github.springwhale.framework.webmvc.security.JwtUtil;
 import io.github.springwhale.framework.webmvc.security.SecurityProperties;
 import io.github.springwhale.platform.rbac.dao.entity.UserEntity;
@@ -64,7 +65,7 @@ public class AuthService {
                     .build();
 
         } catch (BadCredentialsException e) {
-            log.warn("Login failed for user: {}", request.getUsername());
+            log.warn("Login failed for user: {}", LogSanitizer.sanitize(request.getUsername()));
             throw new BadCredentialsException("Invalid username or password");
         }
     }

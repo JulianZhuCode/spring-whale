@@ -3,6 +3,7 @@ package io.github.springwhale.database.datascope;
 import io.github.springwhale.framework.core.cache.WhaleCache;
 import io.github.springwhale.framework.core.cache.WhaleCacheManager;
 import io.github.springwhale.framework.core.utils.AuthUtil;
+import io.github.springwhale.framework.core.utils.LogSanitizer;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
@@ -146,12 +147,12 @@ public class SmartDataScopeHandler implements DataScopeHandler {
             return result;
         } catch (Exception e) {
             log.error("Failed to fetch resolveDeptIds from RBAC service for userId={}, scopeType={}, module={}",
-                    userId, scopeType, module, e);
+                    userId, LogSanitizer.sanitize(scopeType), LogSanitizer.sanitize(module), e);
             List<Object> fallback = cache.getList(
                     DataScopeCacheKey.fallbackResolveDeptIds(userId, scopeType, module));
             if (fallback != null) {
                 log.warn("Using fallback cache for resolveDeptIds userId={}, scopeType={}, module={}",
-                        userId, scopeType, module);
+                        userId, LogSanitizer.sanitize(scopeType), LogSanitizer.sanitize(module));
                 return fallback;
             }
             return Collections.emptyList();

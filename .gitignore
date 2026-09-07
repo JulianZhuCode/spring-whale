@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Code scanning local exports ###
+code-scanning-alerts.json

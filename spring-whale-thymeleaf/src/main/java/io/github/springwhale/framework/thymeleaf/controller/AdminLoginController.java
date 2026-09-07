@@ -1,5 +1,6 @@
 package io.github.springwhale.framework.thymeleaf.controller;
 
+import io.github.springwhale.framework.core.utils.LogSanitizer;
 import io.github.springwhale.framework.thymeleaf.autoconfigure.AdminProperties;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -41,7 +42,7 @@ public class AdminLoginController {
             model.addAttribute("error", "Invalid username or password");
         }
         if (reason != null) {
-            log.warn("Redirected to login page with reason: {}", reason);
+            log.warn("Redirected to login page with reason: {}", LogSanitizer.sanitize(reason));
             model.addAttribute("reason", reason);
         }
         return "admin/login";
@@ -52,7 +53,7 @@ public class AdminLoginController {
                                @RequestParam(name = "redirect", required = false) String redirect,
                                HttpServletResponse response) {
         log.info("Processing login: token length={}, redirect={}",
-                token != null ? token.length() : 0, redirect);
+                token != null ? token.length() : 0, LogSanitizer.sanitize(redirect));
 
         Cookie cookie = new Cookie(TOKEN_COOKIE, token);
         cookie.setHttpOnly(true);
@@ -65,7 +66,7 @@ public class AdminLoginController {
         if (redirect != null && !redirect.isBlank()
                 && redirect.startsWith("/") && !redirect.startsWith("//")
                 && !redirect.equals("/admin/login")) {
-            log.info("Redirecting to: {}", redirect);
+            log.info("Redirecting to: {}", LogSanitizer.sanitize(redirect));
             return "redirect:" + redirect;
         }
         log.info("Redirecting to: /admin");

@@ -1,5 +1,6 @@
 package io.github.springwhale.database.datascope;
 
+import io.github.springwhale.framework.core.utils.LogSanitizer;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -66,7 +67,8 @@ public class DataScopeServerInterceptor implements HandlerInterceptor {
             try {
                 timestamp = Long.parseLong(timestampStr);
             } catch (NumberFormatException e) {
-                log.warn("DataScope HMAC verification failed: invalid timestamp {}", timestampStr);
+                log.warn("DataScope HMAC verification failed: invalid timestamp {}",
+                        LogSanitizer.sanitize(timestampStr));
                 response.setStatus(403);
                 return false;
             }
@@ -98,9 +100,10 @@ public class DataScopeServerInterceptor implements HandlerInterceptor {
             result.setScopeType(scopeType);
             result.setModule(module);
             DataScopeContext.pushScope(result);
-            log.debug("Data scope received from header: type={}, module={}", scopeType, module);
+            log.debug("Data scope received from header: type={}, module={}",
+                    LogSanitizer.sanitize(scopeType), LogSanitizer.sanitize(module));
         } catch (IllegalArgumentException e) {
-            log.warn("Invalid DataScopeType from header: {}", scopeTypeStr);
+            log.warn("Invalid DataScopeType from header: {}", LogSanitizer.sanitize(scopeTypeStr));
         }
     }
 
@@ -108,9 +111,9 @@ public class DataScopeServerInterceptor implements HandlerInterceptor {
         try {
             Object tenantId = parseTenantId(tenantIdStr);
             DataScopeContext.setTenantId(tenantId);
-            log.debug("Tenant id received from header: {}", tenantId);
+            log.debug("Tenant id received from header: {}", LogSanitizer.sanitize(tenantId));
         } catch (NumberFormatException e) {
-            log.warn("Invalid tenant id from header: {}", tenantIdStr);
+            log.warn("Invalid tenant id from header: {}", LogSanitizer.sanitize(tenantIdStr));
         }
     }
 

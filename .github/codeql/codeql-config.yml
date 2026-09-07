@@ -1,0 +1,8 @@
+name: "CodeQL config"
+
+query-filters:
+  # Exclude the Missing Override annotation rule: it fires on Lombok-generated
+  # toString/equals/hashCode and interface getters, which cannot be annotated
+  # from source and are not actionable.
+  - exclude:
+      id: java/missing-override-annotation

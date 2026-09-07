@@ -2,6 +2,7 @@ package io.github.springwhale.framework.webmvc.security;
 
 import io.github.springwhale.framework.core.context.AuthenticationContext;
 import io.github.springwhale.framework.core.context.AuthenticationContextHolder;
+import io.github.springwhale.framework.core.utils.LogSanitizer;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -56,7 +57,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String jwt = jwtUtil.extractJwtFromRequest(request);
             if (jwt == null) {
-                log.debug("JWT not found in request: {}", requestURI);
+                log.debug("JWT not found in request: {}", LogSanitizer.sanitize(requestURI));
             } else {
                 authenticateWithJwt(jwt, request, requestURI);
             }
@@ -70,7 +71,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private void authenticateWithJwt(String jwt, HttpServletRequest request, String requestURI) {
         if (!jwtUtil.validateToken(jwt)) {
             log.warn("JWT validation failed for request: {}, token preview: {}...",
-                    requestURI, jwt.substring(0, Math.min(jwt.length(), 30)));
+                    LogSanitizer.sanitize(requestURI),
+                    LogSanitizer.sanitize(jwt.substring(0, Math.min(jwt.length(), 30))));
             return;
         }
 
@@ -82,14 +84,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             userDetails = userDetailsService.loadUserByUsername(username);
         } catch (UsernameNotFoundException e) {
-            log.warn("User not found in token for request: {}, username: {}", requestURI, username);
+            log.warn("User not found in token for request: {}, username: {}",
+                    LogSanitizer.sanitize(requestURI), LogSanitizer.sanitize(username));
             return;
         }
 
         setSpringSecurityAuthentication(userDetails, request);
         setApplicationContext(userId, username, tenantId);
 
-        log.debug("Authenticated user '{}' for request: {}", username, requestURI);
+        log.debug("Authenticated user '{}' for request: {}",
+                LogSanitizer.sanitize(username), LogSanitizer.sanitize(requestURI));
     }
 
     private void setSpringSecurityAuthentication(UserDetails userDetails, HttpServletRequest request) {

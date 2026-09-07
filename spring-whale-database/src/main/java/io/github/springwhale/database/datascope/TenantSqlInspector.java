@@ -1,5 +1,6 @@
 package io.github.springwhale.database.datascope;
 
+import io.github.springwhale.framework.core.utils.LogSanitizer;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -56,7 +57,7 @@ public class TenantSqlInspector extends SqlInspectorSupport {
 
         String modifiedSql = applyCondition(sql, condition, tableName);
         log.debug("Tenant filter applied: entity={}, table={}, tenantId={}, condition={}",
-                entityClass.getSimpleName(), tableName, tenantId, condition);
+                entityClass.getSimpleName(), tableName, LogSanitizer.sanitize(tenantId), condition);
         log.trace("Original SQL: {}", sql);
         log.trace("Modified SQL: {}", modifiedSql);
         return modifiedSql;

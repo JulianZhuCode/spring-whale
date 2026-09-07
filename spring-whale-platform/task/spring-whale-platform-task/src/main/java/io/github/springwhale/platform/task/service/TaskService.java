@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.springwhale.database.SortUtils;
 import io.github.springwhale.framework.core.exception.BusinessException;
+import io.github.springwhale.framework.core.utils.LogSanitizer;
 import io.github.springwhale.platform.task.dao.entity.TaskBatchEntity;
 import io.github.springwhale.platform.task.dao.entity.TaskBatchItemEntity;
 import io.github.springwhale.platform.task.dao.repository.TaskBatchItemRepository;
@@ -99,7 +100,7 @@ public class TaskService {
         if (!existing.isEmpty()) {
             TaskBatchEntity activeTask = existing.get(0);
             log.info("Task type [{}] already has an active task [{}], returning existing",
-                    request.getTaskType(), activeTask.getId());
+                    LogSanitizer.sanitize(request.getTaskType()), activeTask.getId());
             return toVO(activeTask);
         }
 
@@ -127,7 +128,7 @@ public class TaskService {
         itemRepository.saveAll(items);
 
         log.info("Created task [{}] type={}, items={}, concurrency={}",
-                task.getId(), request.getTaskType(), itemKeys.size(), task.getConcurrency());
+                task.getId(), LogSanitizer.sanitize(request.getTaskType()), itemKeys.size(), task.getConcurrency());
         return toVO(task);
     }
 

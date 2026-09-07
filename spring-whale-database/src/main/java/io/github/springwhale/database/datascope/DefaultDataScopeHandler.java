@@ -1,5 +1,6 @@
 package io.github.springwhale.database.datascope;
 
+import io.github.springwhale.framework.core.utils.LogSanitizer;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -17,7 +18,7 @@ public class DefaultDataScopeHandler implements DataScopeHandler {
     public List<Object> resolveDeptIds(DataScopeType scopeType, String module) {
         log.warn("DefaultDataScopeHandler.resolveDeptIds() returns null (no permission). " +
                         "Please implement a custom DataScopeHandler to provide department IDs for data scope type: {}, module: {}",
-                scopeType, module);
+                LogSanitizer.sanitize(scopeType), LogSanitizer.sanitize(module));
         return null;
     }
 }

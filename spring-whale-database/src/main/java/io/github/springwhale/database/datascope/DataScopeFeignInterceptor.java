@@ -2,6 +2,7 @@ package io.github.springwhale.database.datascope;
 
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
+import io.github.springwhale.framework.core.utils.LogSanitizer;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.UUID;
@@ -41,7 +42,8 @@ public class DataScopeFeignInterceptor implements RequestInterceptor {
                 if (module != null && !module.isEmpty()) {
                     template.header(properties.getModuleHeader(), module);
                 }
-                log.debug("Data scope transmitted via feign: type={}, module={}", scopeType, module);
+                log.debug("Data scope transmitted via feign: type={}, module={}",
+                        LogSanitizer.sanitize(scopeType), LogSanitizer.sanitize(module));
             }
         }
 

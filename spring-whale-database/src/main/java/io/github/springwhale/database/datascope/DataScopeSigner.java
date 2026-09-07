@@ -1,5 +1,6 @@
 package io.github.springwhale.database.datascope;
 
+import io.github.springwhale.framework.core.utils.LogSanitizer;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.crypto.Mac;
@@ -98,7 +99,8 @@ public class DataScopeSigner {
         }
 
         if (!checkAndStoreNonce(nonce)) {
-            log.warn("DataScope signature verification failed: nonce {} already used or expired", nonce);
+            log.warn("DataScope signature verification failed: nonce {} already used or expired",
+                    LogSanitizer.sanitize(nonce));
             return false;
         }
 
@@ -110,7 +112,8 @@ public class DataScopeSigner {
 
         boolean valid = MessageDigest.isEqual(sigBytes, expBytes);
         if (!valid) {
-            log.warn("DataScope signature verification failed: signature mismatch for path={}", path);
+            log.warn("DataScope signature verification failed: signature mismatch for path={}",
+                    LogSanitizer.sanitize(path));
         }
         return valid;
     }

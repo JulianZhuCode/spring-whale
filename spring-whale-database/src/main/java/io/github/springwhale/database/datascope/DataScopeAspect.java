@@ -1,6 +1,7 @@
 package io.github.springwhale.database.datascope;
 
 import io.github.springwhale.database.datascope.annotation.DataScope;
+import io.github.springwhale.framework.core.utils.LogSanitizer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -81,7 +82,7 @@ public class DataScopeAspect {
 
         DataScopeContext.pushScope(result);
         log.debug("DataScope pushed: type={}, module={}, userId={}, deptIds={}, denied={}",
-                effectiveType, effectiveModule, result.getUserId(), result.getDeptIds(), result.isDenied());
+                effectiveType, LogSanitizer.sanitize(effectiveModule), result.getUserId(), result.getDeptIds(), result.isDenied());
 
         try {
             return joinPoint.proceed();
