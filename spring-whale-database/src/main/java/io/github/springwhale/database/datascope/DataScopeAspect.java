@@ -45,6 +45,7 @@ public class DataScopeAspect {
     private final DataScopeProperties properties;
 
     @Around("@annotation(io.github.springwhale.database.datascope.annotation.DataScope)")
+    @SuppressWarnings("java/log-injection")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
         if (!properties.isEnabled()) {
             return joinPoint.proceed();

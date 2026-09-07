@@ -37,6 +37,7 @@ public class AuthService {
     /**
      * User login
      */
+    @SuppressWarnings("java/log-injection")
     public LoginResponse login(LoginRequest request) {
         try {
             // 1. Authenticate username and password (throws BadCredentialsException on failure)

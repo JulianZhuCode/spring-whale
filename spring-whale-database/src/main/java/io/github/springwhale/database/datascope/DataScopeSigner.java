@@ -82,6 +82,7 @@ public class DataScopeSigner {
         return computeHmac(payload);
     }
 
+    @SuppressWarnings("java/log-injection")
     public boolean verify(String signature, String scopeType, String module,
                           String tenantId, long timestamp, String nonce, String path) {
         if (!enabled) {

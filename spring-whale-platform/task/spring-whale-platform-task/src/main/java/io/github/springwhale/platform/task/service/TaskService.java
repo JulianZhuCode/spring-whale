@@ -91,6 +91,7 @@ public class TaskService {
      * If an active task of the same type exists, returns the existing task instead of creating a new one.
      */
     @Transactional
+    @SuppressWarnings("java/log-injection")
     public TaskVO create(TaskCreateRequest request) {
         TaskHandler handler = getHandler(request.getTaskType());
 

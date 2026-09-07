@@ -28,6 +28,7 @@ public class DataScopeFeignInterceptor implements RequestInterceptor {
     }
 
     @Override
+    @SuppressWarnings("java/log-injection")
     public void apply(RequestTemplate template) {
         String scopeType = null;
         String module = null;

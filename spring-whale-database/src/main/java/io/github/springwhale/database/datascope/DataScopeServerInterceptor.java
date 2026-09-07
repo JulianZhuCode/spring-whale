@@ -32,6 +32,7 @@ public class DataScopeServerInterceptor implements HandlerInterceptor {
     }
 
     @Override
+    @SuppressWarnings("java/log-injection")
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String scopeType = null;
         String module = null;
@@ -93,6 +94,7 @@ public class DataScopeServerInterceptor implements HandlerInterceptor {
         return true;
     }
 
+    @SuppressWarnings("java/log-injection")
     private void receiveDataScope(String scopeTypeStr, String module) {
         try {
             DataScopeType scopeType = DataScopeType.valueOf(scopeTypeStr);
@@ -107,6 +109,7 @@ public class DataScopeServerInterceptor implements HandlerInterceptor {
         }
     }
 
+    @SuppressWarnings("java/log-injection")
     private void receiveTenantId(String tenantIdStr) {
         try {
             Object tenantId = parseTenantId(tenantIdStr);

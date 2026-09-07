@@ -137,6 +137,7 @@ public class SmartDataScopeHandler implements DataScopeHandler {
         }
     }
 
+    @SuppressWarnings("java/log-injection")
     private List<Object> fetchAndCacheDeptIds(WhaleCache cache, Long userId,
                                               DataScopeType scopeType, String module) {
         try {

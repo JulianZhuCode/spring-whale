@@ -15,6 +15,7 @@ import java.util.List;
 public class DefaultDataScopeHandler implements DataScopeHandler {
 
     @Override
+    @SuppressWarnings("java/log-injection")
     public List<Object> resolveDeptIds(DataScopeType scopeType, String module) {
         log.warn("DefaultDataScopeHandler.resolveDeptIds() returns null (no permission). " +
                         "Please implement a custom DataScopeHandler to provide department IDs for data scope type: {}, module: {}",

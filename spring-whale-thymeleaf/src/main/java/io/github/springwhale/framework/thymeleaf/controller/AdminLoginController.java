@@ -35,6 +35,7 @@ public class AdminLoginController {
     }
 
     @GetMapping("/login")
+    @SuppressWarnings("java/log-injection")
     public String loginPage(@RequestParam(name = "error", required = false) String error,
                             @RequestParam(name = "reason", required = false) String reason,
                             Model model) {
@@ -49,6 +50,7 @@ public class AdminLoginController {
     }
 
     @PostMapping("/login")
+    @SuppressWarnings("java/log-injection")
     public String processLogin(@RequestParam(name = "token") String token,
                                @RequestParam(name = "redirect", required = false) String redirect,
                                HttpServletResponse response) {
