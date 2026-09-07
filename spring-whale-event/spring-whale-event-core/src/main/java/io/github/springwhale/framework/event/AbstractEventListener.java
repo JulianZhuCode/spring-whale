@@ -107,8 +107,8 @@ public abstract class AbstractEventListener<T> {
      * @param event the event object (never null, already type-checked)
      * @return true if the event should be processed, false to skip
      */
-    @SuppressWarnings({"unused", "java/unused-parameter"})
-    public boolean accept(Object event) {
+    @SuppressWarnings("unused")
+    public boolean accept(@SuppressWarnings("java/unused-parameter") Object event) {
         return true;
     }
 
