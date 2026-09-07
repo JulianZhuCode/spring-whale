@@ -74,7 +74,7 @@ public abstract class EventPublisher {
     /**
      * Publish a pre-built {@link EventMessage} directly.
      */
-    public void publish(EventMessage message) {
+    public void publishMessage(EventMessage message) {
         Assert.notNull(message, "message must not be null");
         send(message, null);
     }

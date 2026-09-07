@@ -33,7 +33,7 @@ public class CaffeineWhaleCacheManager implements WhaleCacheManager {
     }
 
     @Slf4j
-    static class CaffeineWhaleCache implements WhaleCache, org.springframework.cache.Cache {
+    static class CaffeineWhaleCache implements WhaleCache {
 
         private final String name;
         private final Duration defaultTtl;
@@ -41,6 +41,7 @@ public class CaffeineWhaleCacheManager implements WhaleCacheManager {
         private final Duration nullValueTtl;
         private final ConcurrentMap<String, Duration> ttlOverrides = new ConcurrentHashMap<>();
         private final Cache<String, Object> cache;
+        private final SpringCacheAdapter springCacheAdapter = new SpringCacheAdapter();
 
         CaffeineWhaleCache(String name, WhaleCacheProperties properties) {
             this.name = name;
@@ -149,53 +150,71 @@ public class CaffeineWhaleCacheManager implements WhaleCacheManager {
         }
 
         @Override
-        public Object getNativeCache() {
-            return cache;
+        public org.springframework.cache.Cache toSpringCache() {
+            return springCacheAdapter;
         }
 
-        @Override
-        @SuppressWarnings("unchecked")
-        public <T> T get(Object key, Class<T> type) {
-            Object value = cache.getIfPresent(key.toString());
-            return unwrapNull(value);
-        }
+        private class SpringCacheAdapter implements org.springframework.cache.Cache {
 
-        @Override
-        public ValueWrapper get(Object key) {
-            Object value = cache.getIfPresent(key.toString());
-            if (value == null) {
-                return null;
+            @Override
+            public String getName() {
+                return CaffeineWhaleCache.this.getName();
             }
-            Object unwrapped = unwrapNull(value);
-            return () -> unwrapped;
-        }
 
-        @Override
-        @SuppressWarnings("unchecked")
-        public <T> T get(Object key, Callable<T> valueLoader) {
-            Object value = cache.get(key.toString(), k -> {
-                try {
-                    T loaded = valueLoader.call();
-                    if (loaded == null && cacheNullValues) {
-                        return NULL_VALUE;
-                    }
-                    return loaded;
-                } catch (Exception e) {
-                    throw new CacheException("Failed to load cache value for key: " + key, e);
+            @Override
+            public Object getNativeCache() {
+                return cache;
+            }
+
+            @Override
+            @SuppressWarnings("unchecked")
+            public <T> T get(Object key, Class<T> type) {
+                Object value = cache.getIfPresent(key.toString());
+                return unwrapNull(value);
+            }
+
+            @Override
+            public ValueWrapper get(Object key) {
+                Object value = cache.getIfPresent(key.toString());
+                if (value == null) {
+                    return null;
                 }
-            });
-            return unwrapNull(value);
-        }
+                Object unwrapped = unwrapNull(value);
+                return () -> unwrapped;
+            }
 
-        @Override
-        public void put(Object key, Object value) {
-            cache.put(key.toString(), wrapNull(value));
-        }
+            @Override
+            @SuppressWarnings("unchecked")
+            public <T> T get(Object key, Callable<T> valueLoader) {
+                Object value = cache.get(key.toString(), k -> {
+                    try {
+                        T loaded = valueLoader.call();
+                        if (loaded == null && cacheNullValues) {
+                            return NULL_VALUE;
+                        }
+                        return loaded;
+                    } catch (Exception e) {
+                        throw new CacheException("Failed to load cache value for key: " + key, e);
+                    }
+                });
+                return unwrapNull(value);
+            }
 
-        @Override
-        public void evict(Object key) {
-            cache.invalidate(key.toString());
-            ttlOverrides.remove(key.toString());
+            @Override
+            public void put(Object key, Object value) {
+                cache.put(key.toString(), wrapNull(value));
+            }
+
+            @Override
+            public void evict(Object key) {
+                cache.invalidate(key.toString());
+                ttlOverrides.remove(key.toString());
+            }
+
+            @Override
+            public void clear() {
+                CaffeineWhaleCache.this.clear();
+            }
         }
     }
 }

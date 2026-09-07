@@ -16,6 +16,7 @@ import net.sf.jsqlparser.statement.update.Update;
 import net.sf.jsqlparser.util.TablesNamesFinder;
 import org.hibernate.resource.jdbc.spi.StatementInspector;
 
+import java.io.StringReader;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -58,7 +59,7 @@ public abstract class SqlInspectorSupport implements StatementInspector {
      */
     protected boolean isTargetQuery(String sql, String tableName) {
         try {
-            Statement stmt = CCJSqlParserUtil.parse(sql);
+            Statement stmt = CCJSqlParserUtil.parse(new StringReader(sql));
             TablesNamesFinder finder = new TablesNamesFinder();
             List<String> tables = finder.getTableList(stmt);
             return tables.stream().anyMatch(t ->
@@ -86,7 +87,7 @@ public abstract class SqlInspectorSupport implements StatementInspector {
      */
     protected String applyCondition(String sql, String condition, String tableName) {
         try {
-            Statement stmt = CCJSqlParserUtil.parse(sql);
+            Statement stmt = CCJSqlParserUtil.parse(new StringReader(sql));
             Expression parsedCondition = CCJSqlParserUtil.parseExpression(condition);
 
             boolean modified = false;
@@ -261,16 +262,11 @@ public abstract class SqlInspectorSupport implements StatementInspector {
             table = t;
             alias = t.getAlias() != null ? t.getAlias().getName() : null;
         } else {
-            // For sub-selects etc., check if the alias matches the table name
             alias = fromItem.getAlias() != null ? fromItem.getAlias().getName() : null;
             String itemName = fromItem.toString().toLowerCase();
             if (itemName.contains(tableName.toLowerCase())) {
                 return alias != null ? alias : tableName;
             }
-            return null;
-        }
-
-        if (table == null) {
             return null;
         }
 

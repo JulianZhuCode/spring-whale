@@ -97,7 +97,7 @@ class BusinessExceptionTest {
     @Test
     @DisplayName("Should create exception with i18n and fallback message")
     void testCreateWithI18nAndFallbackMessage() {
-        BusinessException ex = BusinessException.createWithI18n(
+        BusinessException ex = BusinessException.createWithI18nAndMessage(
                 "USER_NOT_FOUND",
                 "error.user.notfound",
                 "User not found"
@@ -183,7 +183,7 @@ class BusinessExceptionTest {
     @Test
     @DisplayName("Should create exception with i18n, module and fallback message")
     void testCreateI18nWithModuleAndMessage() {
-        BusinessException ex = BusinessException.createI18nWithModule(
+        BusinessException ex = BusinessException.createI18nWithModuleAndMessage(
                 "USER_NOT_FOUND",
                 "error.user.notfound",
                 "user-module",

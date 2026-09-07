@@ -17,7 +17,7 @@ public class WhaleCacheManagerAdapter implements CacheManager {
 
     @Override
     public Cache getCache(String name) {
-        return (Cache) delegate.getCache(name);
+        return delegate.getCache(name).toSpringCache();
     }
 
     @Override

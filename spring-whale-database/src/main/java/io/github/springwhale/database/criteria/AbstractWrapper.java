@@ -237,6 +237,10 @@ public abstract class AbstractWrapper<T, Children extends AbstractWrapper<T, Chi
     @FunctionalInterface
     protected interface HavingCondition<T> {
         Predicate apply(Root<T> root, CriteriaBuilder cb, Map<String, Join<?, ?>> joinMap);
+
+        default Predicate apply(Root<T> root, CriteriaBuilder cb) {
+            return apply(root, cb, Collections.emptyMap());
+        }
     }
 
     protected record SortInfo(String fieldName, boolean asc) {

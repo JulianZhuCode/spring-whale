@@ -271,7 +271,7 @@ class SpringWhaleWebMvcExceptionHandlerTest {
         testProperties.setEnableI18n(true);
         SpringWhaleWebMvcExceptionHandler handlerWithI18n = new SpringWhaleWebMvcExceptionHandler(mockMessageSource, testProperties);
 
-        BusinessException ex = BusinessException.createWithI18n(
+        BusinessException ex = BusinessException.createWithI18nAndMessage(
                 "USER_NOT_FOUND",
                 "error.user.notfound",
                 "User not found"

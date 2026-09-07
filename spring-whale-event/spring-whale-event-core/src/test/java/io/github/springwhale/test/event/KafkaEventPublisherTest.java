@@ -145,7 +145,7 @@ class KafkaEventPublisherTest {
         message.setTopic("test-topic");
         message.setData("{\"key\":\"value\"}");
 
-        assertDoesNotThrow(() -> publisher.publish(message));
+        assertDoesNotThrow(() -> publisher.publishMessage(message));
     }
 
     @Test

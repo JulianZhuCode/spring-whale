@@ -39,7 +39,7 @@ public class RedisWhaleCacheManager implements WhaleCacheManager {
     }
 
     @Slf4j
-    static class RedisWhaleCache implements WhaleCache, org.springframework.cache.Cache {
+    static class RedisWhaleCache implements WhaleCache {
 
         private final String name;
         private final String keyPrefix;
@@ -48,6 +48,7 @@ public class RedisWhaleCacheManager implements WhaleCacheManager {
         private final Duration nullValueTtl;
         private final StringRedisTemplate redisTemplate;
         private final ObjectMapper objectMapper;
+        private final SpringCacheAdapter springCacheAdapter = new SpringCacheAdapter();
 
         RedisWhaleCache(String name, WhaleCacheProperties properties,
                         StringRedisTemplate redisTemplate, ObjectMapper objectMapper) {
@@ -150,60 +151,78 @@ public class RedisWhaleCacheManager implements WhaleCacheManager {
         }
 
         @Override
-        public Object getNativeCache() {
-            return redisTemplate;
+        public org.springframework.cache.Cache toSpringCache() {
+            return springCacheAdapter;
         }
 
-        @Override
-        @SuppressWarnings("unchecked")
-        public <T> T get(Object key, Class<T> type) {
-            return get(key.toString(), type);
-        }
+        private class SpringCacheAdapter implements org.springframework.cache.Cache {
 
-        @Override
-        public ValueWrapper get(Object key) {
-            String redisKey = buildKey(key.toString());
-            String json = redisTemplate.opsForValue().get(redisKey);
-            if (json == null) {
-                return null;
+            @Override
+            public String getName() {
+                return RedisWhaleCache.this.getName();
             }
-            Object value = NULL_VALUE_MARKER.equals(json) ? null : json;
-            return () -> value;
-        }
 
-        @Override
-        @SuppressWarnings("unchecked")
-        public <T> T get(Object key, Callable<T> valueLoader) {
-            String redisKey = buildKey(key.toString());
-            String json = redisTemplate.opsForValue().get(redisKey);
-            if (json != null) {
-                if (NULL_VALUE_MARKER.equals(json)) {
+            @Override
+            public Object getNativeCache() {
+                return redisTemplate;
+            }
+
+            @Override
+            @SuppressWarnings("unchecked")
+            public <T> T get(Object key, Class<T> type) {
+                return RedisWhaleCache.this.get(key.toString(), type);
+            }
+
+            @Override
+            public ValueWrapper get(Object key) {
+                String redisKey = buildKey(key.toString());
+                String json = redisTemplate.opsForValue().get(redisKey);
+                if (json == null) {
                     return null;
                 }
-                return (T) json;
+                Object value = NULL_VALUE_MARKER.equals(json) ? null : json;
+                return () -> value;
             }
 
-            try {
-                T value = valueLoader.call();
-                if (value != null) {
-                    redisTemplate.opsForValue().set(redisKey, serialize(value), defaultTtl);
-                } else if (cacheNullValues) {
-                    redisTemplate.opsForValue().set(redisKey, NULL_VALUE_MARKER, nullValueTtl);
+            @Override
+            @SuppressWarnings("unchecked")
+            public <T> T get(Object key, Callable<T> valueLoader) {
+                String redisKey = buildKey(key.toString());
+                String json = redisTemplate.opsForValue().get(redisKey);
+                if (json != null) {
+                    if (NULL_VALUE_MARKER.equals(json)) {
+                        return null;
+                    }
+                    return (T) json;
                 }
-                return value;
-            } catch (Exception e) {
-                throw new CacheException("Failed to load cache value for key: " + key, e);
+
+                try {
+                    T value = valueLoader.call();
+                    if (value != null) {
+                        redisTemplate.opsForValue().set(redisKey, serialize(value), defaultTtl);
+                    } else if (cacheNullValues) {
+                        redisTemplate.opsForValue().set(redisKey, NULL_VALUE_MARKER, nullValueTtl);
+                    }
+                    return value;
+                } catch (Exception e) {
+                    throw new CacheException("Failed to load cache value for key: " + key, e);
+                }
             }
-        }
 
-        @Override
-        public void put(Object key, Object value) {
-            put(key.toString(), value);
-        }
+            @Override
+            public void put(Object key, Object value) {
+                RedisWhaleCache.this.put(key.toString(), value);
+            }
 
-        @Override
-        public void evict(Object key) {
-            evict(key.toString());
+            @Override
+            public void evict(Object key) {
+                RedisWhaleCache.this.evict(key.toString());
+            }
+
+            @Override
+            public void clear() {
+                RedisWhaleCache.this.clear();
+            }
         }
     }
 }

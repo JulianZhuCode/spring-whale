@@ -1,5 +1,7 @@
 package io.github.springwhale.framework.core.cache;
 
+import org.springframework.cache.Cache;
+
 import java.time.Duration;
 import java.util.List;
 import java.util.function.Supplier;
@@ -45,4 +47,13 @@ public interface WhaleCache {
     void clear();
 
     boolean exists(String key);
+
+    /**
+     * Returns a Spring {@link Cache} adapter for this cache.
+     * The default implementation assumes {@code this} implements {@link Cache}.
+     * Override to provide a delegate adapter.
+     */
+    default Cache toSpringCache() {
+        return (Cache) this;
+    }
 }

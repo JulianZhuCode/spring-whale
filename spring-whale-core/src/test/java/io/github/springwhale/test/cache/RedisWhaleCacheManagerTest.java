@@ -16,11 +16,10 @@ import org.springframework.data.redis.core.ValueOperations;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.Duration;
-import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @DisplayName("RedisWhaleCacheManager")
@@ -165,10 +164,10 @@ class RedisWhaleCacheManagerTest {
         @Test
         @DisplayName("Should support get with Callable valueLoader")
         void testGetWithCallable() {
-            Cache springCache = (Cache) cache;
+            Cache springCache = cache.toSpringCache();
             when(valueOps.get("whale:cache:test:callableKey")).thenReturn(null);
 
-            String result = springCache.get("callableKey", (Callable<String>) () -> "from-callable");
+            String result = springCache.get("callableKey", () -> "from-callable");
             assertEquals("from-callable", result);
             verify(valueOps).set(eq("whale:cache:test:callableKey"), eq("\"from-callable\""), eq(Duration.ofSeconds(10)));
         }
@@ -176,7 +175,7 @@ class RedisWhaleCacheManagerTest {
         @Test
         @DisplayName("Should return cached value via Spring Cache get with ValueWrapper")
         void testGetValueWrapper() {
-            Cache springCache = (Cache) cache;
+            Cache springCache = cache.toSpringCache();
             when(valueOps.get("whale:cache:test:vwKey")).thenReturn("\"vwValue\"");
 
             Cache.ValueWrapper wrapper = springCache.get("vwKey");
@@ -187,7 +186,7 @@ class RedisWhaleCacheManagerTest {
         @Test
         @DisplayName("Should return null when key not in Redis via Spring Cache get")
         void testGetValueWrapperMiss() {
-            Cache springCache = (Cache) cache;
+            Cache springCache = cache.toSpringCache();
             when(valueOps.get("whale:cache:test:missing")).thenReturn(null);
 
             Cache.ValueWrapper wrapper = springCache.get("missing");
@@ -197,7 +196,7 @@ class RedisWhaleCacheManagerTest {
         @Test
         @DisplayName("Should support put via Spring Cache interface")
         void testPutViaSpringCache() {
-            Cache springCache = (Cache) cache;
+            Cache springCache = cache.toSpringCache();
             springCache.put("springKey", "springValue");
 
             verify(valueOps).set(eq("whale:cache:test:springKey"), eq("\"springValue\""), eq(Duration.ofSeconds(10)));
@@ -206,7 +205,7 @@ class RedisWhaleCacheManagerTest {
         @Test
         @DisplayName("Should support evict via Spring Cache interface")
         void testEvictViaSpringCache() {
-            Cache springCache = (Cache) cache;
+            Cache springCache = cache.toSpringCache();
             springCache.evict("springEvictKey");
 
             verify(redisTemplate).delete("whale:cache:test:springEvictKey");

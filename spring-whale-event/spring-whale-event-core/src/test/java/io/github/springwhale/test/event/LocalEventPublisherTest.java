@@ -97,7 +97,7 @@ class LocalEventPublisherTest {
     @DisplayName("Should throw IllegalArgumentException when publishing null EventMessage")
     void testPublishNullEventMessage() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> publisher.publish((EventMessage) null));
+                () -> publisher.publishMessage((EventMessage) null));
         assertEquals("message must not be null", ex.getMessage());
     }
 
@@ -110,7 +110,7 @@ class LocalEventPublisherTest {
         message.setTopic("test-topic");
         message.setData("{\"data\":\"test\"}");
 
-        publisher.publish(message);
+        publisher.publishMessage(message);
 
         verify(applicationEventPublisher, times(1)).publishEvent(message);
     }

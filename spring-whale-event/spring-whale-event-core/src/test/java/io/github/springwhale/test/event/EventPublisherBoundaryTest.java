@@ -62,7 +62,7 @@ class EventPublisherBoundaryTest {
     @DisplayName("Should throw IllegalArgumentException when publishing null EventMessage")
     void testPublishNullEventMessage() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> publisher.publish((EventMessage) null));
+                () -> publisher.publishMessage((EventMessage) null));
         assertEquals("message must not be null", ex.getMessage());
     }
 
@@ -132,6 +132,6 @@ class EventPublisherBoundaryTest {
         message.setTopic("test");
         message.setData("{}");
 
-        assertDoesNotThrow(() -> publisher.publish(message));
+        assertDoesNotThrow(() -> publisher.publishMessage(message));
     }
 }

@@ -118,7 +118,7 @@ class RabbitEventPublisherTest {
         message.setTopic("test-topic");
         message.setData("{\"key\":\"value\"}");
 
-        assertDoesNotThrow(() -> publisher.publish(message));
+        assertDoesNotThrow(() -> publisher.publishMessage(message));
 
         verify(rabbitTemplate).convertAndSend(eq("test-topic"), eq("test.business"), anyString());
     }
@@ -147,7 +147,7 @@ class RabbitEventPublisherTest {
     @DisplayName("Should throw IllegalArgumentException when publishing null EventMessage")
     void testPublishNullEventMessage() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> publisher.publish((EventMessage) null));
+                () -> publisher.publishMessage((EventMessage) null));
         assertEquals("message must not be null", ex.getMessage());
     }
 

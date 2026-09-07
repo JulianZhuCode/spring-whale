@@ -171,7 +171,7 @@ class CaffeineWhaleCacheManagerTest {
         @Test
         @DisplayName("Should support get with Callable valueLoader")
         void testGetWithCallable() {
-            Cache springCache = (Cache) cache;
+            Cache springCache = cache.toSpringCache();
             AtomicInteger callCount = new AtomicInteger(0);
 
             String result = springCache.get("callableKey", (Callable<String>) () -> {
@@ -192,7 +192,7 @@ class CaffeineWhaleCacheManagerTest {
         @Test
         @DisplayName("Should support put and get via Spring Cache interface")
         void testPutAndGetViaSpringCache() {
-            Cache springCache = (Cache) cache;
+            Cache springCache = cache.toSpringCache();
             springCache.put("springKey", "springValue");
 
             Cache.ValueWrapper wrapper = springCache.get("springKey");
@@ -206,7 +206,7 @@ class CaffeineWhaleCacheManagerTest {
             cache.put("springEvictKey", "value", Duration.ofMinutes(5));
             assertTrue(cache.exists("springEvictKey"));
 
-            Cache springCache = (Cache) cache;
+            Cache springCache = cache.toSpringCache();
             springCache.evict("springEvictKey");
 
             assertFalse(cache.exists("springEvictKey"));

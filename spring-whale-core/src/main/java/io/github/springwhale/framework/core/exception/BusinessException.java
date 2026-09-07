@@ -75,7 +75,7 @@ public class BusinessException extends RuntimeException {
                 .build();
     }
 
-    public static BusinessException createWithI18n(String errorCode, String messageCode, String errorMessage) {
+    public static BusinessException createWithI18nAndMessage(String errorCode, String messageCode, String errorMessage) {
         return BusinessException.builder()
                 .errorCode(errorCode)
                 .messageCode(messageCode)
@@ -117,7 +117,7 @@ public class BusinessException extends RuntimeException {
                 .build();
     }
 
-    public static BusinessException createI18nWithModule(String errorCode, String messageCode, String module, String errorMessage) {
+    public static BusinessException createI18nWithModuleAndMessage(String errorCode, String messageCode, String module, String errorMessage) {
         return BusinessException.builder()
                 .errorCode(errorCode)
                 .messageCode(messageCode)
