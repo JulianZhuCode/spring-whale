@@ -552,6 +552,16 @@ class JpaQueryWrapperTest {
         assertNotNull(spec);
     }
 
+    @Test
+    void testHavingWithJoinMap() {
+        Specification<TestEntity> spec = JpaQueryWrapper.of(TestEntity.class)
+                .groupBy("department.name")
+                .having((root, cb, joinMap) ->
+                        cb.gt(cb.count(joinMap.get("department").get("name")), 1))
+                .buildSpec();
+        assertNotNull(spec);
+    }
+
     // ==================== raw ====================
 
     @Test

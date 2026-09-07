@@ -87,21 +87,21 @@ public interface TaskHandler {
     /**
      * Optional callback invoked before the task starts processing.
      */
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "java/unused-parameter"})
     default void beforeStart(Map<String, Object> params) {
     }
 
     /**
      * Optional callback invoked after the task completes (all items processed).
      */
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "java/unused-parameter"})
     default void afterComplete(Map<String, Object> params) {
     }
 
     /**
      * Optional callback invoked when the task is cancelled.
      */
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "java/unused-parameter"})
     default void onCancel(Map<String, Object> params) {
     }
 

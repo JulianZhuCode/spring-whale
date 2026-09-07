@@ -18,6 +18,7 @@ import org.hibernate.resource.jdbc.spi.StatementInspector;
 
 import java.io.StringReader;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -61,7 +62,7 @@ public abstract class SqlInspectorSupport implements StatementInspector {
         try {
             Statement stmt = CCJSqlParserUtil.parse(new StringReader(sql));
             TablesNamesFinder finder = new TablesNamesFinder();
-            List<String> tables = finder.getTableList(stmt);
+            Set<String> tables = finder.getTables(stmt);
             return tables.stream().anyMatch(t ->
                     t.equalsIgnoreCase(tableName) || t.endsWith("." + tableName));
         } catch (JSQLParserException e) {
