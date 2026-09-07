@@ -5,6 +5,7 @@ import io.github.springwhale.framework.thymeleaf.controller.AdminControllerAdvic
 import io.github.springwhale.framework.thymeleaf.controller.AdminErrorController;
 import io.github.springwhale.framework.thymeleaf.controller.AdminLoginController;
 import io.github.springwhale.framework.thymeleaf.menu.AdminMenuProvider;
+import io.github.springwhale.framework.thymeleaf.resource.WebJarsVersionResolver;
 import io.github.springwhale.framework.thymeleaf.security.ThymeleafSecurityConfigProvider;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

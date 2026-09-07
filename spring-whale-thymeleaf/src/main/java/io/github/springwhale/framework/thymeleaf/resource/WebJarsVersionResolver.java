@@ -1,4 +1,4 @@
-package io.github.springwhale.framework.thymeleaf.autoconfigure;
+package io.github.springwhale.framework.thymeleaf.resource;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.io.Resource;
