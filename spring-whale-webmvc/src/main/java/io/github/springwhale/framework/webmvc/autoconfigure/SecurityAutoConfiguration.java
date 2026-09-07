@@ -115,6 +115,8 @@ public class SecurityAutoConfiguration {
                         csrf.disable();
                     } else {
                         csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
+                        csrf.ignoringRequestMatchers(
+                                permitAllUrls.toArray(new String[0]));
                     }
                 })
                 .cors(cors -> corsConfigurationSource.ifAvailable(cors::configurationSource))
