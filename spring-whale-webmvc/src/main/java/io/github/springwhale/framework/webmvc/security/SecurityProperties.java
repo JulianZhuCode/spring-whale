@@ -15,7 +15,7 @@ public class SecurityProperties {
 
     private List<String> permitAllUrls = new ArrayList<>();
 
-    private boolean csrfEnabled = false;
+    private boolean csrfEnabled = true;
 
     private String tokenPrefix = "Bearer ";
 

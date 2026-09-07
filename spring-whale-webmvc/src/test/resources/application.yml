@@ -10,4 +10,3 @@ spring:
         jwt-secret: "test-secret-key-for-unit-testing-purposes-only-at-least-32-bytes"
         permit-all-urls:
           - "/**"
-        csrf-enabled: false

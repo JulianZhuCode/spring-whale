@@ -4,6 +4,17 @@
     const form = document.getElementById('loginForm');
     if (!form) return;
 
+    function getCsrfToken() {
+        const cookies = document.cookie.split(';');
+        for (let c of cookies) {
+            const parts = c.trim().split('=');
+            if (parts[0] === 'XSRF-TOKEN') {
+                return decodeURIComponent(parts[1]);
+            }
+        }
+        return '';
+    }
+
     form.addEventListener('submit', function (e) {
         e.preventDefault();
 
@@ -26,7 +37,10 @@
         var loginApi = form.getAttribute('data-login-api') || '/api/rbac/auth/login';
         fetch(loginApi, {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: {
+                'Content-Type': 'application/json',
+                'X-XSRF-TOKEN': getCsrfToken()
+            },
             body: JSON.stringify({username, password})
         })
             .then(response => {

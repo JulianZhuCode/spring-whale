@@ -3,6 +3,7 @@ package io.github.springwhale.framework.thymeleaf.controller;
 import io.github.springwhale.framework.core.utils.LogConstants;
 import io.github.springwhale.framework.thymeleaf.autoconfigure.AdminProperties;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,6 +52,7 @@ public class AdminLoginController {
     @PostMapping("/login")
     public String processLogin(@RequestParam(name = "token") String token,
                                @RequestParam(name = "redirect", required = false) String redirect,
+                               HttpServletRequest request,
                                HttpServletResponse response) {
         log.info("Processing login: token length={}, redirect={}",
                 token != null ? token.length() : 0, (redirect != null ? redirect.replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER) : null));
@@ -59,7 +61,7 @@ public class AdminLoginController {
         cookie.setHttpOnly(true);
         cookie.setPath("/");
         cookie.setMaxAge(COOKIE_MAX_AGE);
-        cookie.setSecure(false); // Set to true in production with HTTPS
+        cookie.setSecure(request.isSecure());
         response.addCookie(cookie);
         log.info("Set cookie sw_token, maxAge={}, path=/", COOKIE_MAX_AGE);
 
@@ -74,9 +76,10 @@ public class AdminLoginController {
     }
 
     @GetMapping("/logout")
-    public String logout(HttpServletResponse response) {
+    public String logout(HttpServletRequest request, HttpServletResponse response) {
         Cookie cookie = new Cookie(TOKEN_COOKIE, "");
         cookie.setHttpOnly(true);
+        cookie.setSecure(request.isSecure());
         cookie.setPath("/");
         cookie.setMaxAge(0);
         response.addCookie(cookie);

@@ -10,6 +10,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -77,6 +78,7 @@ class AdminLoginControllerTest {
         @DisplayName("should set JWT cookie and redirect to /admin")
         void processLogin() throws Exception {
             mvc.perform(post("/admin/login")
+                            .with(csrf())
                             .param("token", "eyJhbGciOiJIUzI1NiJ9.test-token"))
                     .andExpect(status().is3xxRedirection())
                     .andExpect(redirectedUrl("/admin"))
@@ -89,6 +91,7 @@ class AdminLoginControllerTest {
         @DisplayName("should redirect to safe relative path")
         void processLoginWithRedirect() throws Exception {
             mvc.perform(post("/admin/login")
+                            .with(csrf())
                             .param("token", "test-token")
                             .param("redirect", "/admin/rbac/users"))
                     .andExpect(status().is3xxRedirection())
@@ -99,6 +102,7 @@ class AdminLoginControllerTest {
         @DisplayName("should reject protocol-relative redirect (//evil.com)")
         void rejectProtocolRelativeRedirect() throws Exception {
             mvc.perform(post("/admin/login")
+                            .with(csrf())
                             .param("token", "test-token")
                             .param("redirect", "//evil.com"))
                     .andExpect(status().is3xxRedirection())
@@ -109,6 +113,7 @@ class AdminLoginControllerTest {
         @DisplayName("should reject absolute URL redirect")
         void rejectAbsoluteRedirect() throws Exception {
             mvc.perform(post("/admin/login")
+                            .with(csrf())
                             .param("token", "test-token")
                             .param("redirect", "https://evil.com/phishing"))
                     .andExpect(status().is3xxRedirection())
@@ -119,6 +124,7 @@ class AdminLoginControllerTest {
         @DisplayName("should reject redirect to /admin/login to prevent loop")
         void rejectLoginRedirectLoop() throws Exception {
             mvc.perform(post("/admin/login")
+                            .with(csrf())
                             .param("token", "test-token")
                             .param("redirect", "/admin/login"))
                     .andExpect(status().is3xxRedirection())
@@ -129,6 +135,7 @@ class AdminLoginControllerTest {
         @DisplayName("should fall back to /admin when redirect is blank")
         void blankRedirect() throws Exception {
             mvc.perform(post("/admin/login")
+                            .with(csrf())
                             .param("token", "test-token")
                             .param("redirect", "   "))
                     .andExpect(status().is3xxRedirection())
