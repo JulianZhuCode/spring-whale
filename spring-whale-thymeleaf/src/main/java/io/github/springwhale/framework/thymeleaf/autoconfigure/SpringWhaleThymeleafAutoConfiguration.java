@@ -18,6 +18,9 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.webjars.WebJarVersionLocator;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -45,6 +48,25 @@ public class SpringWhaleThymeleafAutoConfiguration {
     public ThymeleafSecurityConfigProvider thymeleafSecurityConfigProvider(
             AuthenticationEntryPoint adminConsoleEntryPoint) {
         return new ThymeleafSecurityConfigProvider(adminConsoleEntryPoint);
+    }
+
+    /**
+     * Registers the {@code /webjars/**} resource handler with a version-agnostic resolver,
+     * so templates can reference WebJar assets without a hard-coded version.
+     */
+    @Bean
+    @ConditionalOnMissingBean(name = "webJarsVersionAgnosticWebMvcConfigurer")
+    public WebMvcConfigurer webJarsVersionAgnosticWebMvcConfigurer() {
+        WebJarVersionLocator locator = new WebJarVersionLocator();
+        return new WebMvcConfigurer() {
+            @Override
+            public void addResourceHandlers(ResourceHandlerRegistry registry) {
+                registry.addResourceHandler("/webjars/**")
+                        .addResourceLocations("classpath:/META-INF/resources/webjars/")
+                        .resourceChain(false)
+                        .addResolver(new WebJarsVersionResolver(locator));
+            }
+        };
     }
 
     @Bean
