@@ -1,8 +1,8 @@
 package io.github.springwhale.database.datascope;
 
-import io.github.springwhale.framework.core.utils.LogSanitizer;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import io.github.springwhale.framework.core.utils.LogConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -32,7 +32,6 @@ public class DataScopeServerInterceptor implements HandlerInterceptor {
     }
 
     @Override
-    @SuppressWarnings("java/log-injection")
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String scopeType = null;
         String module = null;
@@ -69,7 +68,7 @@ public class DataScopeServerInterceptor implements HandlerInterceptor {
                 timestamp = Long.parseLong(timestampStr);
             } catch (NumberFormatException e) {
                 log.warn("DataScope HMAC verification failed: invalid timestamp {}",
-                        LogSanitizer.sanitize(timestampStr));
+                        timestampStr.replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER));
                 response.setStatus(403);
                 return false;
             }
@@ -77,7 +76,8 @@ public class DataScopeServerInterceptor implements HandlerInterceptor {
             String path = request.getRequestURI();
             if (!signer.verify(signature, scopeType, module, tenantId, timestamp, nonce, path)) {
                 log.warn("DataScope HMAC verification failed for path={} from remote={}",
-                        path, request.getRemoteAddr());
+                        path.replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER),
+                        (request.getRemoteAddr() != null ? request.getRemoteAddr().replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER) : null));
                 response.setStatus(403);
                 return false;
             }
@@ -93,8 +93,6 @@ public class DataScopeServerInterceptor implements HandlerInterceptor {
         }
         return true;
     }
-
-    @SuppressWarnings("java/log-injection")
     private void receiveDataScope(String scopeTypeStr, String module) {
         try {
             DataScopeType scopeType = DataScopeType.valueOf(scopeTypeStr);
@@ -103,20 +101,18 @@ public class DataScopeServerInterceptor implements HandlerInterceptor {
             result.setModule(module);
             DataScopeContext.pushScope(result);
             log.debug("Data scope received from header: type={}, module={}",
-                    LogSanitizer.sanitize(scopeType), LogSanitizer.sanitize(module));
+                    String.valueOf(scopeType).replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER), (module != null ? module.replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER) : null));
         } catch (IllegalArgumentException e) {
-            log.warn("Invalid DataScopeType from header: {}", LogSanitizer.sanitize(scopeTypeStr));
+            log.warn("Invalid DataScopeType from header: {}", scopeTypeStr.replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER));
         }
     }
-
-    @SuppressWarnings("java/log-injection")
     private void receiveTenantId(String tenantIdStr) {
         try {
             Object tenantId = parseTenantId(tenantIdStr);
             DataScopeContext.setTenantId(tenantId);
-            log.debug("Tenant id received from header: {}", LogSanitizer.sanitize(tenantId));
+            log.debug("Tenant id received from header: {}", String.valueOf(tenantId).replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER));
         } catch (NumberFormatException e) {
-            log.warn("Invalid tenant id from header: {}", LogSanitizer.sanitize(tenantIdStr));
+            log.warn("Invalid tenant id from header: {}", tenantIdStr.replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER));
         }
     }
 

@@ -34,3 +34,6 @@ build/
 
 ### Code scanning local exports ###
 code-scanning-alerts*.json
+
+### CodeQL local database ###
+.codeql/

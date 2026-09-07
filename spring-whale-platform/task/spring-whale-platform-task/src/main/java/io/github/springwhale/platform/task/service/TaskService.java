@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.springwhale.database.SortUtils;
 import io.github.springwhale.framework.core.exception.BusinessException;
-import io.github.springwhale.framework.core.utils.LogSanitizer;
 import io.github.springwhale.platform.task.dao.entity.TaskBatchEntity;
 import io.github.springwhale.platform.task.dao.entity.TaskBatchItemEntity;
 import io.github.springwhale.platform.task.dao.repository.TaskBatchItemRepository;
@@ -17,6 +16,7 @@ import io.github.springwhale.platform.task.enums.TaskStatus;
 import io.github.springwhale.platform.task.handler.TaskHandler;
 import io.github.springwhale.platform.task.mapper.TaskMapper;
 import jakarta.annotation.PostConstruct;
+import io.github.springwhale.framework.core.utils.LogConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -91,7 +91,6 @@ public class TaskService {
      * If an active task of the same type exists, returns the existing task instead of creating a new one.
      */
     @Transactional
-    @SuppressWarnings("java/log-injection")
     public TaskVO create(TaskCreateRequest request) {
         TaskHandler handler = getHandler(request.getTaskType());
 
@@ -101,7 +100,7 @@ public class TaskService {
         if (!existing.isEmpty()) {
             TaskBatchEntity activeTask = existing.get(0);
             log.info("Task type [{}] already has an active task [{}], returning existing",
-                    LogSanitizer.sanitize(request.getTaskType()), activeTask.getId());
+                    request.getTaskType().replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER), activeTask.getId());
             return toVO(activeTask);
         }
 
@@ -129,7 +128,7 @@ public class TaskService {
         itemRepository.saveAll(items);
 
         log.info("Created task [{}] type={}, items={}, concurrency={}",
-                task.getId(), LogSanitizer.sanitize(request.getTaskType()), itemKeys.size(), task.getConcurrency());
+                task.getId(), request.getTaskType().replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER), itemKeys.size(), task.getConcurrency());
         return toVO(task);
     }
 

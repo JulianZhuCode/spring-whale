@@ -1,8 +1,8 @@
 package io.github.springwhale.database.datascope;
 
 import io.github.springwhale.database.datascope.annotation.DataScope;
-import io.github.springwhale.framework.core.utils.LogSanitizer;
 import lombok.RequiredArgsConstructor;
+import io.github.springwhale.framework.core.utils.LogConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -45,7 +45,6 @@ public class DataScopeAspect {
     private final DataScopeProperties properties;
 
     @Around("@annotation(io.github.springwhale.database.datascope.annotation.DataScope)")
-    @SuppressWarnings("java/log-injection")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
         if (!properties.isEnabled()) {
             return joinPoint.proceed();
@@ -83,7 +82,11 @@ public class DataScopeAspect {
 
         DataScopeContext.pushScope(result);
         log.debug("DataScope pushed: type={}, module={}, userId={}, deptIds={}, denied={}",
-                effectiveType, LogSanitizer.sanitize(effectiveModule), result.getUserId(), result.getDeptIds(), result.isDenied());
+                String.valueOf(effectiveType).replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER),
+                (effectiveModule != null ? effectiveModule.replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER) : null),
+                result.getUserId(),
+                String.valueOf(result.getDeptIds()).replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER),
+                result.isDenied());
 
         try {
             return joinPoint.proceed();

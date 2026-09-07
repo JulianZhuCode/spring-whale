@@ -1,12 +1,12 @@
 package io.github.springwhale.platform.rbac.service;
 
-import io.github.springwhale.framework.core.utils.LogSanitizer;
 import io.github.springwhale.framework.webmvc.security.JwtUtil;
 import io.github.springwhale.framework.webmvc.security.SecurityProperties;
 import io.github.springwhale.platform.rbac.dao.entity.UserEntity;
 import io.github.springwhale.platform.rbac.dao.repository.UserRepository;
 import io.github.springwhale.platform.rbac.dto.request.LoginRequest;
 import io.github.springwhale.platform.rbac.dto.response.LoginResponse;
+import io.github.springwhale.framework.core.utils.LogConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -37,7 +37,6 @@ public class AuthService {
     /**
      * User login
      */
-    @SuppressWarnings("java/log-injection")
     public LoginResponse login(LoginRequest request) {
         try {
             // 1. Authenticate username and password (throws BadCredentialsException on failure)
@@ -66,7 +65,7 @@ public class AuthService {
                     .build();
 
         } catch (BadCredentialsException e) {
-            log.warn("Login failed for user: {}", LogSanitizer.sanitize(request.getUsername()));
+            log.warn("Login failed for user: {}", request.getUsername().replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER));
             throw new BadCredentialsException("Invalid username or password");
         }
     }

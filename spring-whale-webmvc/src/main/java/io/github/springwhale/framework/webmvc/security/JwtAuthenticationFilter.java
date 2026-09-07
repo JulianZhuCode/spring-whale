@@ -2,7 +2,7 @@ package io.github.springwhale.framework.webmvc.security;
 
 import io.github.springwhale.framework.core.context.AuthenticationContext;
 import io.github.springwhale.framework.core.context.AuthenticationContextHolder;
-import io.github.springwhale.framework.core.utils.LogSanitizer;
+import io.github.springwhale.framework.core.utils.LogConstants;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -49,7 +49,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final UserDetailsService userDetailsService;
 
     @Override
-    @SuppressWarnings("java/log-injection")
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
@@ -58,7 +57,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String jwt = jwtUtil.extractJwtFromRequest(request);
             if (jwt == null) {
-                log.debug("JWT not found in request: {}", LogSanitizer.sanitize(requestURI));
+                log.debug("JWT not found in request: {}", requestURI.replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER));
             } else {
                 authenticateWithJwt(jwt, request, requestURI);
             }
@@ -71,9 +70,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private void authenticateWithJwt(String jwt, HttpServletRequest request, String requestURI) {
         if (!jwtUtil.validateToken(jwt)) {
-            log.warn("JWT validation failed for request: {}, token preview: {}...",
-                    LogSanitizer.sanitize(requestURI),
-                    LogSanitizer.sanitize(jwt.substring(0, Math.min(jwt.length(), 30))));
+            log.warn("JWT validation failed for request: {}, token length: {}",
+                    requestURI.replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER), jwt.length());
             return;
         }
 
@@ -86,7 +84,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             userDetails = userDetailsService.loadUserByUsername(username);
         } catch (UsernameNotFoundException e) {
             log.warn("User not found in token for request: {}, username: {}",
-                    LogSanitizer.sanitize(requestURI), LogSanitizer.sanitize(username));
+                    requestURI.replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER),
+                    String.valueOf(username).replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER));
             return;
         }
 
@@ -94,7 +93,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         setApplicationContext(userId, username, tenantId);
 
         log.debug("Authenticated user '{}' for request: {}",
-                LogSanitizer.sanitize(username), LogSanitizer.sanitize(requestURI));
+                username.replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER),
+                requestURI.replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER));
     }
 
     private void setSpringSecurityAuthentication(UserDetails userDetails, HttpServletRequest request) {

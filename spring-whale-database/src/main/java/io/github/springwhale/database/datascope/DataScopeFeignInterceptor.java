@@ -2,7 +2,7 @@ package io.github.springwhale.database.datascope;
 
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
-import io.github.springwhale.framework.core.utils.LogSanitizer;
+import io.github.springwhale.framework.core.utils.LogConstants;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.UUID;
@@ -28,7 +28,6 @@ public class DataScopeFeignInterceptor implements RequestInterceptor {
     }
 
     @Override
-    @SuppressWarnings("java/log-injection")
     public void apply(RequestTemplate template) {
         String scopeType = null;
         String module = null;
@@ -44,7 +43,7 @@ public class DataScopeFeignInterceptor implements RequestInterceptor {
                     template.header(properties.getModuleHeader(), module);
                 }
                 log.debug("Data scope transmitted via feign: type={}, module={}",
-                        LogSanitizer.sanitize(scopeType), LogSanitizer.sanitize(module));
+                        scopeType.replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER), (module != null ? module.replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER) : null));
             }
         }
 

@@ -1,6 +1,6 @@
 package io.github.springwhale.database.datascope;
 
-import io.github.springwhale.framework.core.utils.LogSanitizer;
+import io.github.springwhale.framework.core.utils.LogConstants;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -15,11 +15,10 @@ import java.util.List;
 public class DefaultDataScopeHandler implements DataScopeHandler {
 
     @Override
-    @SuppressWarnings("java/log-injection")
     public List<Object> resolveDeptIds(DataScopeType scopeType, String module) {
         log.warn("DefaultDataScopeHandler.resolveDeptIds() returns null (no permission). " +
                         "Please implement a custom DataScopeHandler to provide department IDs for data scope type: {}, module: {}",
-                LogSanitizer.sanitize(scopeType), LogSanitizer.sanitize(module));
+                String.valueOf(scopeType).replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER), (module != null ? module.replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER) : null));
         return null;
     }
 }

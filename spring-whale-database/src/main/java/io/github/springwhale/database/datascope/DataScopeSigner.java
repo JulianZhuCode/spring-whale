@@ -1,6 +1,6 @@
 package io.github.springwhale.database.datascope;
 
-import io.github.springwhale.framework.core.utils.LogSanitizer;
+import io.github.springwhale.framework.core.utils.LogConstants;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.crypto.Mac;
@@ -81,8 +81,6 @@ public class DataScopeSigner {
         String payload = buildPayload(scopeType, module, tenantId, timestamp, nonce, path);
         return computeHmac(payload);
     }
-
-    @SuppressWarnings("java/log-injection")
     public boolean verify(String signature, String scopeType, String module,
                           String tenantId, long timestamp, String nonce, String path) {
         if (!enabled) {
@@ -101,7 +99,7 @@ public class DataScopeSigner {
 
         if (!checkAndStoreNonce(nonce)) {
             log.warn("DataScope signature verification failed: nonce {} already used or expired",
-                    LogSanitizer.sanitize(nonce));
+                    nonce.replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER));
             return false;
         }
 
@@ -114,7 +112,7 @@ public class DataScopeSigner {
         boolean valid = MessageDigest.isEqual(sigBytes, expBytes);
         if (!valid) {
             log.warn("DataScope signature verification failed: signature mismatch for path={}",
-                    LogSanitizer.sanitize(path));
+                    path.replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER));
         }
         return valid;
     }

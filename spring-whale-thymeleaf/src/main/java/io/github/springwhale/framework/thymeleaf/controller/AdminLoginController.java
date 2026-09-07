@@ -1,6 +1,6 @@
 package io.github.springwhale.framework.thymeleaf.controller;
 
-import io.github.springwhale.framework.core.utils.LogSanitizer;
+import io.github.springwhale.framework.core.utils.LogConstants;
 import io.github.springwhale.framework.thymeleaf.autoconfigure.AdminProperties;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -35,7 +35,6 @@ public class AdminLoginController {
     }
 
     @GetMapping("/login")
-    @SuppressWarnings("java/log-injection")
     public String loginPage(@RequestParam(name = "error", required = false) String error,
                             @RequestParam(name = "reason", required = false) String reason,
                             Model model) {
@@ -43,19 +42,18 @@ public class AdminLoginController {
             model.addAttribute("error", "Invalid username or password");
         }
         if (reason != null) {
-            log.warn("Redirected to login page with reason: {}", LogSanitizer.sanitize(reason));
+            log.warn("Redirected to login page with reason: {}", reason.replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER));
             model.addAttribute("reason", reason);
         }
         return "admin/login";
     }
 
     @PostMapping("/login")
-    @SuppressWarnings("java/log-injection")
     public String processLogin(@RequestParam(name = "token") String token,
                                @RequestParam(name = "redirect", required = false) String redirect,
                                HttpServletResponse response) {
         log.info("Processing login: token length={}, redirect={}",
-                token != null ? token.length() : 0, LogSanitizer.sanitize(redirect));
+                token != null ? token.length() : 0, (redirect != null ? redirect.replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER) : null));
 
         Cookie cookie = new Cookie(TOKEN_COOKIE, token);
         cookie.setHttpOnly(true);
@@ -68,7 +66,7 @@ public class AdminLoginController {
         if (redirect != null && !redirect.isBlank()
                 && redirect.startsWith("/") && !redirect.startsWith("//")
                 && !redirect.equals("/admin/login")) {
-            log.info("Redirecting to: {}", LogSanitizer.sanitize(redirect));
+            log.info("Redirecting to: {}", redirect.replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER));
             return "redirect:" + redirect;
         }
         log.info("Redirecting to: /admin");
