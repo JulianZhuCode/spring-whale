@@ -10,28 +10,52 @@ package io.github.springwhale.framework.event;
  */
 public interface EventMetricsCollector {
 
-    /** Called when an event is successfully published to the MQ broker. */
-    default void onPublishSuccess(String topic, String businessName) {}
+    /**
+     * Called when an event is successfully published to the MQ broker.
+     */
+    default void onPublishSuccess(String topic, String businessName) {
+    }
 
-    /** Called when an event publish attempt fails. */
-    default void onPublishFailure(String topic, String businessName, Throwable error) {}
+    /**
+     * Called when an event publish attempt fails.
+     */
+    default void onPublishFailure(String topic, String businessName, Throwable error) {
+    }
 
-    /** Called when a listener successfully processes an event. */
-    default void onConsumeSuccess(String businessName, String listenerName) {}
+    /**
+     * Called when a listener successfully processes an event.
+     */
+    default void onConsumeSuccess(String businessName, String listenerName) {
+    }
 
-    /** Called when a listener throws an exception during event processing. */
-    default void onConsumeFailure(String businessName, String listenerName, Throwable error) {}
+    /**
+     * Called when a listener throws an exception during event processing.
+     */
+    default void onConsumeFailure(String businessName, String listenerName, Throwable error) {
+    }
 
-    /** Called when a retry message is scheduled (re-published to the MQ broker). */
-    default void onRetryScheduled(String messageId, String listenerName, int retryCount) {}
+    /**
+     * Called when a retry message is scheduled (re-published to the MQ broker).
+     */
+    default void onRetryScheduled(String messageId, String listenerName, int retryCount) {
+    }
 
-    /** Called when a retry finally succeeds. */
-    default void onRetrySuccess(String messageId, String listenerName) {}
+    /**
+     * Called when a retry finally succeeds.
+     */
+    default void onRetrySuccess(String messageId, String listenerName) {
+    }
 
-    /** Called when retries are exhausted and the message is discarded. */
-    default void onRetryExhausted(String messageId, String listenerName, int retryCount) {}
+    /**
+     * Called when retries are exhausted and the message is discarded.
+     */
+    default void onRetryExhausted(String messageId, String listenerName, int retryCount) {
+    }
 
-    /** Called after a listener processes an event, recording the elapsed time in milliseconds. */
-    default void onConsumeLatency(String businessName, String listenerName, long durationMs, boolean success) {}
+    /**
+     * Called after a listener processes an event, recording the elapsed time in milliseconds.
+     */
+    default void onConsumeLatency(String businessName, String listenerName, long durationMs, boolean success) {
+    }
 
 }

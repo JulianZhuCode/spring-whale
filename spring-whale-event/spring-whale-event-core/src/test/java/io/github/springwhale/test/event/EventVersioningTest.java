@@ -29,94 +29,6 @@ class EventVersioningTest {
     private V2Listener v2Listener;
     private MultiVersionListener multiVersionListener;
 
-    @Event(value = "V1Event", version = 1)
-    static class V1Event {
-        private String data;
-
-        public String getData() { return data; }
-        public void setData(String data) { this.data = data; }
-    }
-
-    @Event(value = "V2Event", version = 2)
-    static class V2Event {
-        private String data;
-
-        public String getData() { return data; }
-        public void setData(String data) { this.data = data; }
-    }
-
-    static class UnannotatedEvent {
-        private String data;
-
-        public String getData() { return data; }
-        public void setData(String data) { this.data = data; }
-    }
-
-    static class V1Listener extends AbstractEventListener<V1Event> {
-        private final AtomicBoolean invoked = new AtomicBoolean(false);
-
-        public V1Listener() {
-            super(V1Event.class);
-        }
-
-        @Override
-        public void doEvent(V1Event event, EventContext eventContext) {
-            invoked.set(true);
-        }
-
-        public boolean isInvoked() { return invoked.get(); }
-    }
-
-    static class V2Listener extends AbstractEventListener<V2Event> {
-        private final AtomicBoolean invoked = new AtomicBoolean(false);
-
-        public V2Listener() {
-            super(V2Event.class);
-        }
-
-        @Override
-        public void doEvent(V2Event event, EventContext eventContext) {
-            invoked.set(true);
-        }
-
-        public boolean isInvoked() { return invoked.get(); }
-    }
-
-    static class MultiVersionListener extends AbstractEventListener<V2Event> {
-        private final AtomicBoolean invoked = new AtomicBoolean(false);
-
-        public MultiVersionListener() {
-            super(V2Event.class);
-        }
-
-        @Override
-        public int[] supportedVersions() {
-            return new int[] { 1, 2 };
-        }
-
-        @Override
-        public void doEvent(V2Event event, EventContext eventContext) {
-            invoked.set(true);
-        }
-
-        public boolean isInvoked() { return invoked.get(); }
-    }
-
-    static class UnannotatedListener extends AbstractEventListener<UnannotatedEvent> {
-        private final AtomicBoolean invoked = new AtomicBoolean(false);
-
-        public UnannotatedListener() {
-            super(UnannotatedEvent.class);
-        }
-
-        @Override
-        public void doEvent(UnannotatedEvent event, EventContext eventContext) {
-            invoked.set(true);
-        }
-
-        public boolean isInvoked() { return invoked.get(); }
-    }
-
     @BeforeEach
     void setUp() {
         v1Listener = new V1Listener();
@@ -134,7 +46,7 @@ class EventVersioningTest {
     }
 
     private void assertEventProcessed(TestableEventKafkaMessageConsumer c, String businessName,
-                                       Object event, Integer version) throws Exception {
+                                      Object event, Integer version) throws Exception {
         EventMessage message = new EventMessage();
         message.setSource("test-service");
         message.setBusinessName(businessName);
@@ -263,7 +175,7 @@ class EventVersioningTest {
     void testDefaultSupportedVersionsFromAnnotation() {
         V2Listener listener = new V2Listener();
         int[] versions = listener.supportedVersions();
-        assertArrayEquals(new int[] { 2 }, versions);
+        assertArrayEquals(new int[]{2}, versions);
     }
 
     @Test
@@ -271,6 +183,117 @@ class EventVersioningTest {
     void testDefaultSupportedVersionsNoAnnotation() {
         UnannotatedListener listener = new UnannotatedListener();
         int[] versions = listener.supportedVersions();
-        assertArrayEquals(new int[] { Event.DEFAULT_VERSION }, versions);
+        assertArrayEquals(new int[]{Event.DEFAULT_VERSION}, versions);
+    }
+
+    @Event(value = "V1Event", version = 1)
+    static class V1Event {
+        private String data;
+
+        public String getData() {
+            return data;
+        }
+
+        public void setData(String data) {
+            this.data = data;
+        }
+    }
+
+    @Event(value = "V2Event", version = 2)
+    static class V2Event {
+        private String data;
+
+        public String getData() {
+            return data;
+        }
+
+        public void setData(String data) {
+            this.data = data;
+        }
+    }
+
+    static class UnannotatedEvent {
+        private String data;
+
+        public String getData() {
+            return data;
+        }
+
+        public void setData(String data) {
+            this.data = data;
+        }
+    }
+
+    static class V1Listener extends AbstractEventListener<V1Event> {
+        private final AtomicBoolean invoked = new AtomicBoolean(false);
+
+        public V1Listener() {
+            super(V1Event.class);
+        }
+
+        @Override
+        public void doEvent(V1Event event, EventContext eventContext) {
+            invoked.set(true);
+        }
+
+        public boolean isInvoked() {
+            return invoked.get();
+        }
+    }
+
+    static class V2Listener extends AbstractEventListener<V2Event> {
+        private final AtomicBoolean invoked = new AtomicBoolean(false);
+
+        public V2Listener() {
+            super(V2Event.class);
+        }
+
+        @Override
+        public void doEvent(V2Event event, EventContext eventContext) {
+            invoked.set(true);
+        }
+
+        public boolean isInvoked() {
+            return invoked.get();
+        }
+    }
+
+    static class MultiVersionListener extends AbstractEventListener<V2Event> {
+        private final AtomicBoolean invoked = new AtomicBoolean(false);
+
+        public MultiVersionListener() {
+            super(V2Event.class);
+        }
+
+        @Override
+        public int[] supportedVersions() {
+            return new int[]{1, 2};
+        }
+
+        @Override
+        public void doEvent(V2Event event, EventContext eventContext) {
+            invoked.set(true);
+        }
+
+        public boolean isInvoked() {
+            return invoked.get();
+        }
+    }
+
+    static class UnannotatedListener extends AbstractEventListener<UnannotatedEvent> {
+        private final AtomicBoolean invoked = new AtomicBoolean(false);
+
+        public UnannotatedListener() {
+            super(UnannotatedEvent.class);
+        }
+
+        @Override
+        public void doEvent(UnannotatedEvent event, EventContext eventContext) {
+            invoked.set(true);
+        }
+
+        public boolean isInvoked() {
+            return invoked.get();
+        }
     }
 }

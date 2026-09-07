@@ -1,12 +1,7 @@
 package io.github.springwhale.test.event;
 
 import com.rabbitmq.client.Channel;
-import io.github.springwhale.framework.event.AbstractEventListener;
-import io.github.springwhale.framework.event.EventContext;
-import io.github.springwhale.framework.event.EventMessage;
-import io.github.springwhale.framework.event.EventMetricsCollector;
-import io.github.springwhale.framework.event.EventProperties;
-import io.github.springwhale.framework.event.MessageType;
+import io.github.springwhale.framework.event.*;
 import io.github.springwhale.framework.event.rabbit.RabbitEventMessageConsumer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,7 +20,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class RabbitEventMessageConsumerTest {
@@ -38,45 +34,6 @@ class RabbitEventMessageConsumerTest {
 
     @Mock
     private Channel channel;
-
-    static class OrderCreatedEvent {
-        private String orderId;
-        public String getOrderId() { return orderId; }
-        public void setOrderId(String orderId) { this.orderId = orderId; }
-    }
-
-    static class OrderCreatedListener extends AbstractEventListener<OrderCreatedEvent> {
-        private final AtomicBoolean invoked = new AtomicBoolean(false);
-        private OrderCreatedEvent receivedEvent;
-
-        public OrderCreatedListener() {
-            super(OrderCreatedEvent.class);
-        }
-
-        @Override
-        public void doEvent(OrderCreatedEvent event, EventContext eventContext) {
-            invoked.set(true);
-            receivedEvent = event;
-        }
-
-        public boolean isInvoked() { return invoked.get(); }
-        public OrderCreatedEvent getReceivedEvent() { return receivedEvent; }
-    }
-
-    static class TestableRabbitEventMessageConsumer extends RabbitEventMessageConsumer {
-        public TestableRabbitEventMessageConsumer(ObjectMapper jsonMapper, EventProperties eventProperties,
-                                                  List<EventMetricsCollector> metricsCollectors,
-                                                  Map<String, AbstractEventListener<?>> springListenerBeanMap,
-                                                  RabbitTemplate rabbitTemplate) {
-            super(jsonMapper, eventProperties, metricsCollectors, springListenerBeanMap, rabbitTemplate);
-        }
-
-        @Override
-        public void sendToFailedTopic(EventMessage message) {
-            super.sendToFailedTopic(message);
-        }
-    }
-
     private TestableRabbitEventMessageConsumer consumer;
     private OrderCreatedListener listener;
 
@@ -166,5 +123,54 @@ class RabbitEventMessageConsumerTest {
         consumer.sendToFailedTopic(message);
 
         verify(rabbitTemplate).convertAndSend(anyString(), eq("order.created"), anyString());
+    }
+
+    static class OrderCreatedEvent {
+        private String orderId;
+
+        public String getOrderId() {
+            return orderId;
+        }
+
+        public void setOrderId(String orderId) {
+            this.orderId = orderId;
+        }
+    }
+
+    static class OrderCreatedListener extends AbstractEventListener<OrderCreatedEvent> {
+        private final AtomicBoolean invoked = new AtomicBoolean(false);
+        private OrderCreatedEvent receivedEvent;
+
+        public OrderCreatedListener() {
+            super(OrderCreatedEvent.class);
+        }
+
+        @Override
+        public void doEvent(OrderCreatedEvent event, EventContext eventContext) {
+            invoked.set(true);
+            receivedEvent = event;
+        }
+
+        public boolean isInvoked() {
+            return invoked.get();
+        }
+
+        public OrderCreatedEvent getReceivedEvent() {
+            return receivedEvent;
+        }
+    }
+
+    static class TestableRabbitEventMessageConsumer extends RabbitEventMessageConsumer {
+        public TestableRabbitEventMessageConsumer(ObjectMapper jsonMapper, EventProperties eventProperties,
+                                                  List<EventMetricsCollector> metricsCollectors,
+                                                  Map<String, AbstractEventListener<?>> springListenerBeanMap,
+                                                  RabbitTemplate rabbitTemplate) {
+            super(jsonMapper, eventProperties, metricsCollectors, springListenerBeanMap, rabbitTemplate);
+        }
+
+        @Override
+        public void sendToFailedTopic(EventMessage message) {
+            super.sendToFailedTopic(message);
+        }
     }
 }

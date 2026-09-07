@@ -31,6 +31,9 @@ class CaffeineWhaleCacheManagerTest {
         cache = manager.getCache("test");
     }
 
+    private record TestDto(String name, int age) {
+    }
+
     @Nested
     @DisplayName("put and get")
     class PutAndGet {
@@ -174,14 +177,14 @@ class CaffeineWhaleCacheManagerTest {
             Cache springCache = cache.toSpringCache();
             AtomicInteger callCount = new AtomicInteger(0);
 
-            String result = springCache.get("callableKey", (Callable<String>) () -> {
+            String result = springCache.get("callableKey", () -> {
                 callCount.incrementAndGet();
                 return "from-callable";
             });
             assertEquals("from-callable", result);
             assertEquals(1, callCount.get());
 
-            String cached = springCache.get("callableKey", (Callable<String>) () -> {
+            String cached = springCache.get("callableKey", () -> {
                 callCount.incrementAndGet();
                 return "should-not-call";
             });
@@ -211,8 +214,5 @@ class CaffeineWhaleCacheManagerTest {
 
             assertFalse(cache.exists("springEvictKey"));
         }
-    }
-
-    private record TestDto(String name, int age) {
     }
 }

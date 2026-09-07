@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
@@ -16,8 +17,6 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
-
-import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -34,11 +33,11 @@ class EventPublisherPartitionKeyTest {
 
     private KafkaEventPublisher publisher;
 
-    static class OrderEvent {
-        private String orderId;
-
-        public String getOrderId() { return orderId; }
-        public void setOrderId(String orderId) { this.orderId = orderId; }
+    @SuppressWarnings("unchecked")
+    private static CompletableFuture<SendResult<String, String>> successFuture() {
+        CompletableFuture<SendResult<String, String>> future = new CompletableFuture<>();
+        future.complete(null);
+        return future;
     }
 
     @BeforeEach
@@ -46,13 +45,6 @@ class EventPublisherPartitionKeyTest {
         Mockito.reset(kafkaTemplate);
         publisher = new KafkaEventPublisher(eventProperties, objectMapper,
                 Collections.emptyList(), kafkaTemplate);
-    }
-
-    @SuppressWarnings("unchecked")
-    private static CompletableFuture<SendResult<String, String>> successFuture() {
-        CompletableFuture<SendResult<String, String>> future = new CompletableFuture<>();
-        future.complete(null);
-        return future;
     }
 
     @Test
@@ -156,5 +148,17 @@ class EventPublisherPartitionKeyTest {
         ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
         verify(kafkaTemplate).send(anyString(), keyCaptor.capture(), anyString());
         assertEquals("ORDER-006", keyCaptor.getValue());
+    }
+
+    static class OrderEvent {
+        private String orderId;
+
+        public String getOrderId() {
+            return orderId;
+        }
+
+        public void setOrderId(String orderId) {
+            this.orderId = orderId;
+        }
     }
 }

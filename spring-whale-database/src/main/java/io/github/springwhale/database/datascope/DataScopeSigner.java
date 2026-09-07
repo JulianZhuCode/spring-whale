@@ -69,6 +69,10 @@ public class DataScopeSigner {
                 TimeUnit.MILLISECONDS);
     }
 
+    private static String nullToEmpty(String value) {
+        return value == null ? "" : value;
+    }
+
     public boolean isEnabled() {
         return enabled;
     }
@@ -81,6 +85,7 @@ public class DataScopeSigner {
         String payload = buildPayload(scopeType, module, tenantId, timestamp, nonce, path);
         return computeHmac(payload);
     }
+
     public boolean verify(String signature, String scopeType, String module,
                           String tenantId, long timestamp, String nonce, String path) {
         if (!enabled) {
@@ -165,9 +170,5 @@ public class DataScopeSigner {
     private void evictExpiredNonces() {
         long now = System.currentTimeMillis();
         nonceStore.entrySet().removeIf(entry -> entry.getValue() <= now);
-    }
-
-    private static String nullToEmpty(String value) {
-        return value == null ? "" : value;
     }
 }

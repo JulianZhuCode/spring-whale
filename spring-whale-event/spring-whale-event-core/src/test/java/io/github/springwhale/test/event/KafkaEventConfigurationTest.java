@@ -1,8 +1,8 @@
 package io.github.springwhale.test.event;
 
 import io.github.springwhale.framework.event.EventProperties;
-import io.github.springwhale.framework.event.kafka.KafkaEventPublisher;
 import io.github.springwhale.framework.event.kafka.KafkaEventProperties;
+import io.github.springwhale.framework.event.kafka.KafkaEventPublisher;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

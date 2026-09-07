@@ -1,11 +1,6 @@
 package io.github.springwhale.test.event;
 
-import io.github.springwhale.framework.event.AbstractEventListener;
-import io.github.springwhale.framework.event.EventContext;
-import io.github.springwhale.framework.event.EventMessage;
-import io.github.springwhale.framework.event.EventMetricsCollector;
-import io.github.springwhale.framework.event.EventProperties;
-import io.github.springwhale.framework.event.MessageType;
+import io.github.springwhale.framework.event.*;
 import io.github.springwhale.framework.event.kafka.EventKafkaMessageConsumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,45 +36,6 @@ class EventKafkaMessageConsumerTest {
 
     @Mock
     private Acknowledgment ack;
-
-    static class OrderCreatedEvent {
-        private String orderId;
-        public String getOrderId() { return orderId; }
-        public void setOrderId(String orderId) { this.orderId = orderId; }
-    }
-
-    static class OrderCreatedListener extends AbstractEventListener<OrderCreatedEvent> {
-        private final AtomicBoolean invoked = new AtomicBoolean(false);
-        private OrderCreatedEvent receivedEvent;
-
-        public OrderCreatedListener() {
-            super(OrderCreatedEvent.class);
-        }
-
-        @Override
-        public void doEvent(OrderCreatedEvent event, EventContext eventContext) {
-            invoked.set(true);
-            receivedEvent = event;
-        }
-
-        public boolean isInvoked() { return invoked.get(); }
-        public OrderCreatedEvent getReceivedEvent() { return receivedEvent; }
-    }
-
-    static class TestableEventKafkaMessageConsumer2 extends EventKafkaMessageConsumer {
-        public TestableEventKafkaMessageConsumer2(ObjectMapper jsonMapper, EventProperties eventProperties,
-                                                  List<EventMetricsCollector> metricsCollectors,
-                                                  Map<String, AbstractEventListener<?>> springListenerBeanMap,
-                                                  KafkaTemplate<String, String> kafkaTemplate) {
-            super(jsonMapper, eventProperties, metricsCollectors, springListenerBeanMap, kafkaTemplate);
-        }
-
-        @Override
-        public void sendToFailedTopic(EventMessage message) {
-            super.sendToFailedTopic(message);
-        }
-    }
-
     private TestableEventKafkaMessageConsumer2 consumer;
     private OrderCreatedListener listener;
 
@@ -191,5 +147,54 @@ class EventKafkaMessageConsumerTest {
         consumer.sendToFailedTopic(message);
 
         verify(kafkaTemplate).send(anyString(), eq("msg-001"), anyString());
+    }
+
+    static class OrderCreatedEvent {
+        private String orderId;
+
+        public String getOrderId() {
+            return orderId;
+        }
+
+        public void setOrderId(String orderId) {
+            this.orderId = orderId;
+        }
+    }
+
+    static class OrderCreatedListener extends AbstractEventListener<OrderCreatedEvent> {
+        private final AtomicBoolean invoked = new AtomicBoolean(false);
+        private OrderCreatedEvent receivedEvent;
+
+        public OrderCreatedListener() {
+            super(OrderCreatedEvent.class);
+        }
+
+        @Override
+        public void doEvent(OrderCreatedEvent event, EventContext eventContext) {
+            invoked.set(true);
+            receivedEvent = event;
+        }
+
+        public boolean isInvoked() {
+            return invoked.get();
+        }
+
+        public OrderCreatedEvent getReceivedEvent() {
+            return receivedEvent;
+        }
+    }
+
+    static class TestableEventKafkaMessageConsumer2 extends EventKafkaMessageConsumer {
+        public TestableEventKafkaMessageConsumer2(ObjectMapper jsonMapper, EventProperties eventProperties,
+                                                  List<EventMetricsCollector> metricsCollectors,
+                                                  Map<String, AbstractEventListener<?>> springListenerBeanMap,
+                                                  KafkaTemplate<String, String> kafkaTemplate) {
+            super(jsonMapper, eventProperties, metricsCollectors, springListenerBeanMap, kafkaTemplate);
+        }
+
+        @Override
+        public void sendToFailedTopic(EventMessage message) {
+            super.sendToFailedTopic(message);
+        }
     }
 }

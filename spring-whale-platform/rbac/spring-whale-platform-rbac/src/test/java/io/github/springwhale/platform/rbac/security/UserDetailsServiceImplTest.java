@@ -1,16 +1,8 @@
 package io.github.springwhale.platform.rbac.security;
 
 import io.github.springwhale.platform.rbac.constant.RbacConstants;
-import io.github.springwhale.platform.rbac.dao.entity.MenuEntity;
-import io.github.springwhale.platform.rbac.dao.entity.RoleEntity;
-import io.github.springwhale.platform.rbac.dao.entity.RoleMenuEntity;
-import io.github.springwhale.platform.rbac.dao.entity.UserEntity;
-import io.github.springwhale.platform.rbac.dao.entity.UserRoleEntity;
-import io.github.springwhale.platform.rbac.dao.repository.MenuRepository;
-import io.github.springwhale.platform.rbac.dao.repository.RoleMenuRepository;
-import io.github.springwhale.platform.rbac.dao.repository.RoleRepository;
-import io.github.springwhale.platform.rbac.dao.repository.UserRepository;
-import io.github.springwhale.platform.rbac.dao.repository.UserRoleRepository;
+import io.github.springwhale.platform.rbac.dao.entity.*;
+import io.github.springwhale.platform.rbac.dao.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,7 +17,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("UserDetailsServiceImpl Unit Tests")

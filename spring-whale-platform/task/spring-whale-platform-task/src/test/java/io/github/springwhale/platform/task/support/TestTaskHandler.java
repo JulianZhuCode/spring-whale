@@ -23,15 +23,30 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class TestTaskHandler implements TaskHandler {
 
     public static final String TASK_TYPE = "TEST_TASK";
-
+    public final AtomicInteger beforeStartCount = new AtomicInteger();
+    public final AtomicInteger afterCompleteCount = new AtomicInteger();
+    public final AtomicInteger onCancelCount = new AtomicInteger();
     private final Map<String, Integer> attempts = new ConcurrentHashMap<>();
     private final List<String> flakyKeys = Collections.synchronizedList(new ArrayList<>());
     private final List<String> errorKeys = Collections.synchronizedList(new ArrayList<>());
     private final List<String> processedKeys = Collections.synchronizedList(new ArrayList<>());
 
-    public final AtomicInteger beforeStartCount = new AtomicInteger();
-    public final AtomicInteger afterCompleteCount = new AtomicInteger();
-    public final AtomicInteger onCancelCount = new AtomicInteger();
+    private static int intParam(Map<String, Object> params, String name, int defaultValue) {
+        Object value = params == null ? null : params.get(name);
+        if (value instanceof Number number) {
+            return number.intValue();
+        }
+        return defaultValue;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<String> stringListParam(Map<String, Object> params, String name) {
+        Object value = params == null ? null : params.get(name);
+        if (value instanceof List<?> list) {
+            return (List<String>) list;
+        }
+        return List.of();
+    }
 
     @Override
     public String getTaskType() {
@@ -62,10 +77,7 @@ public class TestTaskHandler implements TaskHandler {
             throw new IllegalStateException("simulated processing error for " + itemKey);
         }
         // Flaky items fail on the first attempt, succeed from the second attempt on.
-        if (flakyKeys.contains(itemKey) && attempts.get(itemKey) < 2) {
-            return false;
-        }
-        return true;
+        return !flakyKeys.contains(itemKey) || attempts.get(itemKey) >= 2;
     }
 
     @Override
@@ -108,22 +120,5 @@ public class TestTaskHandler implements TaskHandler {
         beforeStartCount.set(0);
         afterCompleteCount.set(0);
         onCancelCount.set(0);
-    }
-
-    private static int intParam(Map<String, Object> params, String name, int defaultValue) {
-        Object value = params == null ? null : params.get(name);
-        if (value instanceof Number number) {
-            return number.intValue();
-        }
-        return defaultValue;
-    }
-
-    @SuppressWarnings("unchecked")
-    private static List<String> stringListParam(Map<String, Object> params, String name) {
-        Object value = params == null ? null : params.get(name);
-        if (value instanceof List<?> list) {
-            return (List<String>) list;
-        }
-        return List.of();
     }
 }

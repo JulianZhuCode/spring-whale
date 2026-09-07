@@ -1,6 +1,9 @@
 package io.github.springwhale.framework.webmvc.autoconfigure;
 
-import io.github.springwhale.framework.webmvc.security.*;
+import io.github.springwhale.framework.webmvc.security.JwtAuthenticationFilter;
+import io.github.springwhale.framework.webmvc.security.SecurityConfigProvider;
+import io.github.springwhale.framework.webmvc.security.SecurityFeignInterceptor;
+import io.github.springwhale.framework.webmvc.security.SecurityProperties;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
@@ -62,6 +65,13 @@ public class SecurityAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    public static SecurityPropertiesValidator securityPropertiesValidator(SecurityProperties securityProperties,
+                                                                          Environment environment) {
+        return new SecurityPropertiesValidator(securityProperties, environment);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
@@ -69,7 +79,7 @@ public class SecurityAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService,
-                                                          PasswordEncoder passwordEncoder) {
+                                                         PasswordEncoder passwordEncoder) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder);
         return provider;
@@ -78,7 +88,7 @@ public class SecurityAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public AuthenticationManager authenticationManager(HttpSecurity http,
-                                                        AuthenticationProvider authenticationProvider) throws Exception {
+                                                       AuthenticationProvider authenticationProvider) throws Exception {
         AuthenticationManagerBuilder authBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
         authBuilder.authenticationProvider(authenticationProvider);
         return authBuilder.build();
@@ -106,7 +116,8 @@ public class SecurityAutoConfiguration {
                 })
                 .cors(cors -> corsConfigurationSource.ifAvailable(cors::configurationSource))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .exceptionHandling(exceptions -> {})
+                .exceptionHandling(exceptions -> {
+                })
                 .authorizeHttpRequests(auth -> {
                     for (String url : permitAllUrls) {
                         auth.requestMatchers(url).permitAll();
@@ -127,13 +138,6 @@ public class SecurityAutoConfiguration {
                 });
 
         return http.build();
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public static SecurityPropertiesValidator securityPropertiesValidator(SecurityProperties securityProperties,
-                                                                           Environment environment) {
-        return new SecurityPropertiesValidator(securityProperties, environment);
     }
 
     static class SecurityPropertiesValidator {

@@ -16,7 +16,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 @DisplayName("SecurityFeignInterceptor unit tests")

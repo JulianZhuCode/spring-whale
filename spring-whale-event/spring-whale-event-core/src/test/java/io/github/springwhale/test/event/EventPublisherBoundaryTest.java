@@ -18,7 +18,6 @@ import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -37,13 +36,6 @@ class EventPublisherBoundaryTest {
 
     private KafkaEventPublisher publisher;
 
-    static class TestEvent {
-        private String data;
-
-        public String getData() { return data; }
-        public void setData(String data) { this.data = data; }
-    }
-
     @BeforeEach
     void setUp() {
         publisher = new KafkaEventPublisher(eventProperties, objectMapper,
@@ -54,7 +46,7 @@ class EventPublisherBoundaryTest {
     @DisplayName("Should throw IllegalArgumentException when publishing null event")
     void testPublishNullEvent() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> publisher.publish((Object) null));
+                () -> publisher.publish(null));
         assertEquals("event must not be null", ex.getMessage());
     }
 
@@ -62,7 +54,7 @@ class EventPublisherBoundaryTest {
     @DisplayName("Should throw IllegalArgumentException when publishing null EventMessage")
     void testPublishNullEventMessage() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> publisher.publishMessage((EventMessage) null));
+                () -> publisher.publishMessage(null));
         assertEquals("message must not be null", ex.getMessage());
     }
 
@@ -133,5 +125,17 @@ class EventPublisherBoundaryTest {
         message.setData("{}");
 
         assertDoesNotThrow(() -> publisher.publishMessage(message));
+    }
+
+    static class TestEvent {
+        private String data;
+
+        public String getData() {
+            return data;
+        }
+
+        public void setData(String data) {
+            this.data = data;
+        }
     }
 }

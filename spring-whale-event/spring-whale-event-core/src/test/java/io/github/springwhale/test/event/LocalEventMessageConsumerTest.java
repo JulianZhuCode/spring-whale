@@ -1,11 +1,6 @@
 package io.github.springwhale.test.event;
 
-import io.github.springwhale.framework.event.AbstractEventListener;
-import io.github.springwhale.framework.event.EventContext;
-import io.github.springwhale.framework.event.EventMessage;
-import io.github.springwhale.framework.event.EventMetricsCollector;
-import io.github.springwhale.framework.event.EventProperties;
-import io.github.springwhale.framework.event.MessageType;
+import io.github.springwhale.framework.event.*;
 import io.github.springwhale.framework.event.local.LocalEventMessageConsumer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -23,8 +18,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class LocalEventMessageConsumerTest {
@@ -34,45 +28,6 @@ class LocalEventMessageConsumerTest {
 
     @Mock
     private ApplicationEventPublisher applicationEventPublisher;
-
-    static class OrderCreatedEvent {
-        private String orderId;
-        public String getOrderId() { return orderId; }
-        public void setOrderId(String orderId) { this.orderId = orderId; }
-    }
-
-    static class OrderCreatedListener extends AbstractEventListener<OrderCreatedEvent> {
-        private final AtomicBoolean invoked = new AtomicBoolean(false);
-        private OrderCreatedEvent receivedEvent;
-
-        public OrderCreatedListener() {
-            super(OrderCreatedEvent.class);
-        }
-
-        @Override
-        public void doEvent(OrderCreatedEvent event, EventContext eventContext) {
-            invoked.set(true);
-            receivedEvent = event;
-        }
-
-        public boolean isInvoked() { return invoked.get(); }
-        public OrderCreatedEvent getReceivedEvent() { return receivedEvent; }
-    }
-
-    static class TestableLocalEventMessageConsumer extends LocalEventMessageConsumer {
-        public TestableLocalEventMessageConsumer(ObjectMapper jsonMapper, EventProperties eventProperties,
-                                                 List<EventMetricsCollector> metricsCollectors,
-                                                 Map<String, AbstractEventListener<?>> springListenerBeanMap,
-                                                 ApplicationEventPublisher publisher) {
-            super(jsonMapper, eventProperties, metricsCollectors, springListenerBeanMap, publisher);
-        }
-
-        @Override
-        public void sendToFailedTopic(EventMessage message) {
-            super.sendToFailedTopic(message);
-        }
-    }
-
     private TestableLocalEventMessageConsumer consumer;
     private OrderCreatedListener listener;
 
@@ -150,5 +105,54 @@ class LocalEventMessageConsumerTest {
         verify(applicationEventPublisher).publishEvent(captor.capture());
         assertEquals("msg-001", captor.getValue().getId());
         assertEquals(MessageType.FAIL, captor.getValue().getMessageType());
+    }
+
+    static class OrderCreatedEvent {
+        private String orderId;
+
+        public String getOrderId() {
+            return orderId;
+        }
+
+        public void setOrderId(String orderId) {
+            this.orderId = orderId;
+        }
+    }
+
+    static class OrderCreatedListener extends AbstractEventListener<OrderCreatedEvent> {
+        private final AtomicBoolean invoked = new AtomicBoolean(false);
+        private OrderCreatedEvent receivedEvent;
+
+        public OrderCreatedListener() {
+            super(OrderCreatedEvent.class);
+        }
+
+        @Override
+        public void doEvent(OrderCreatedEvent event, EventContext eventContext) {
+            invoked.set(true);
+            receivedEvent = event;
+        }
+
+        public boolean isInvoked() {
+            return invoked.get();
+        }
+
+        public OrderCreatedEvent getReceivedEvent() {
+            return receivedEvent;
+        }
+    }
+
+    static class TestableLocalEventMessageConsumer extends LocalEventMessageConsumer {
+        public TestableLocalEventMessageConsumer(ObjectMapper jsonMapper, EventProperties eventProperties,
+                                                 List<EventMetricsCollector> metricsCollectors,
+                                                 Map<String, AbstractEventListener<?>> springListenerBeanMap,
+                                                 ApplicationEventPublisher publisher) {
+            super(jsonMapper, eventProperties, metricsCollectors, springListenerBeanMap, publisher);
+        }
+
+        @Override
+        public void sendToFailedTopic(EventMessage message) {
+            super.sendToFailedTopic(message);
+        }
     }
 }

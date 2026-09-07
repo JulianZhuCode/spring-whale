@@ -79,7 +79,7 @@ public abstract class AbstractEventListener<T> {
     /**
      * Process the event. Subclasses must implement the business logic here.
      *
-     * @param event       the event object (never null)
+     * @param event        the event object (never null)
      * @param eventContext the event context with metadata
      */
     public abstract void doEvent(T event, EventContext eventContext);
@@ -123,8 +123,8 @@ public abstract class AbstractEventListener<T> {
      */
     public int[] supportedVersions() {
         if (cachedEventAnnotation != null) {
-            return new int[] { cachedEventAnnotation.version() };
+            return new int[]{cachedEventAnnotation.version()};
         }
-        return new int[] { Event.DEFAULT_VERSION };
+        return new int[]{Event.DEFAULT_VERSION};
     }
 }

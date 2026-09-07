@@ -1,29 +1,21 @@
 package io.github.springwhale.platform.rbac.controller;
 
-import tools.jackson.databind.ObjectMapper;
 import io.github.springwhale.platform.rbac.TestSecurityConfiguration;
-import io.github.springwhale.platform.rbac.dao.entity.MenuEntity;
-import io.github.springwhale.platform.rbac.dao.entity.RoleEntity;
-import io.github.springwhale.platform.rbac.dao.entity.RoleMenuEntity;
-import io.github.springwhale.platform.rbac.dao.entity.UserEntity;
-import io.github.springwhale.platform.rbac.dao.entity.UserRoleEntity;
-import io.github.springwhale.platform.rbac.dao.repository.MenuRepository;
-import io.github.springwhale.platform.rbac.dao.repository.RoleMenuRepository;
-import io.github.springwhale.platform.rbac.dao.repository.RoleRepository;
-import io.github.springwhale.platform.rbac.dao.repository.UserRepository;
-import io.github.springwhale.platform.rbac.dao.repository.UserRoleRepository;
+import io.github.springwhale.platform.rbac.dao.entity.*;
+import io.github.springwhale.platform.rbac.dao.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 

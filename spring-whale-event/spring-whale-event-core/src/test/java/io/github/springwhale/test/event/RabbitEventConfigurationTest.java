@@ -22,20 +22,10 @@ import static org.mockito.Mockito.mock;
 @Import(RabbitEventConfigurationTest.RabbitTestConfig.class)
 class RabbitEventConfigurationTest {
 
-    @TestConfiguration
-    static class RabbitTestConfig {
-        @Bean
-        public RabbitTemplate rabbitTemplate() {
-            return mock(RabbitTemplate.class);
-        }
-    }
-
     @Autowired
     private RabbitEventPublisher rabbitEventPublisher;
-
     @Autowired
     private RabbitEventMessageConsumer rabbitEventMessageConsumer;
-
     @Autowired
     private EventProperties eventProperties;
 
@@ -55,5 +45,13 @@ class RabbitEventConfigurationTest {
     @DisplayName("Should auto-configure EventProperties")
     void testEventProperties() {
         assertNotNull(eventProperties);
+    }
+
+    @TestConfiguration
+    static class RabbitTestConfig {
+        @Bean
+        public RabbitTemplate rabbitTemplate() {
+            return mock(RabbitTemplate.class);
+        }
     }
 }

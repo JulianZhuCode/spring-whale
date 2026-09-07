@@ -22,11 +22,11 @@ import org.springframework.transaction.support.TransactionTemplate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -53,6 +53,14 @@ public class TaskExecutionEngine {
     private final ConcurrentHashMap<Long, AtomicLong> executionEpochs = new ConcurrentHashMap<>();
     private final ReentrantLock flushLock = new ReentrantLock();
     private ExecutorService taskExecutor;
+
+    private static <T> List<List<T>> partition(List<T> list, int size) {
+        List<List<T>> result = new ArrayList<>();
+        for (int i = 0; i < list.size(); i += size) {
+            result.add(list.subList(i, Math.min(i + size, list.size())));
+        }
+        return result;
+    }
 
     @PostConstruct
     public void init() {
@@ -353,14 +361,6 @@ public class TaskExecutionEngine {
                 }
             }
         }
-    }
-
-    private static <T> List<List<T>> partition(List<T> list, int size) {
-        List<List<T>> result = new ArrayList<>();
-        for (int i = 0; i < list.size(); i += size) {
-            result.add(list.subList(i, Math.min(i + size, list.size())));
-        }
-        return result;
     }
 
     private TaskHandler.BatchProgressCallback createCallback(

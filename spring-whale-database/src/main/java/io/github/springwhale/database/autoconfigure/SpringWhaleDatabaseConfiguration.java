@@ -151,7 +151,7 @@ public class SpringWhaleDatabaseConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnClass(DispatcherServlet.class)
     public DataScopeServerInterceptor dataScopeServerInterceptor(DataScopeProperties properties,
-                                                                  DataScopeSigner signer) {
+                                                                 DataScopeSigner signer) {
         return new DataScopeServerInterceptor(properties, signer);
     }
 

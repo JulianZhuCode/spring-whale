@@ -11,18 +11,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.SendResult;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class EventMessageConsumerTest {
@@ -33,32 +28,6 @@ class EventMessageConsumerTest {
 
     @Mock
     private KafkaTemplate<String, String> kafkaTemplate;
-
-    static class OrderCreatedEvent {
-        private String orderId;
-
-        public String getOrderId() { return orderId; }
-        public void setOrderId(String orderId) { this.orderId = orderId; }
-    }
-
-    static class OrderCreatedListener extends AbstractEventListener<OrderCreatedEvent> {
-        private final AtomicBoolean invoked = new AtomicBoolean(false);
-        private OrderCreatedEvent receivedEvent;
-
-        public OrderCreatedListener() {
-            super(OrderCreatedEvent.class);
-        }
-
-        @Override
-        public void doEvent(OrderCreatedEvent event, EventContext eventContext) {
-            invoked.set(true);
-            receivedEvent = event;
-        }
-
-        public boolean isInvoked() { return invoked.get(); }
-        public OrderCreatedEvent getReceivedEvent() { return receivedEvent; }
-    }
-
     private TestableEventKafkaMessageConsumer consumer;
     private OrderCreatedListener listener;
 
@@ -197,5 +166,40 @@ class EventMessageConsumerTest {
     void testRefreshListeners() {
         assertDoesNotThrow(() -> consumer.refreshListeners());
         assertFalse(consumer.listenerIsEmpty());
+    }
+
+    static class OrderCreatedEvent {
+        private String orderId;
+
+        public String getOrderId() {
+            return orderId;
+        }
+
+        public void setOrderId(String orderId) {
+            this.orderId = orderId;
+        }
+    }
+
+    static class OrderCreatedListener extends AbstractEventListener<OrderCreatedEvent> {
+        private final AtomicBoolean invoked = new AtomicBoolean(false);
+        private OrderCreatedEvent receivedEvent;
+
+        public OrderCreatedListener() {
+            super(OrderCreatedEvent.class);
+        }
+
+        @Override
+        public void doEvent(OrderCreatedEvent event, EventContext eventContext) {
+            invoked.set(true);
+            receivedEvent = event;
+        }
+
+        public boolean isInvoked() {
+            return invoked.get();
+        }
+
+        public OrderCreatedEvent getReceivedEvent() {
+            return receivedEvent;
+        }
     }
 }

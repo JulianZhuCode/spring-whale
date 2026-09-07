@@ -12,11 +12,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
@@ -55,19 +51,25 @@ public class EdgeTtsEngine {
 
     // ──────────────────────────── Sync API ────────────────────────────
 
+    private static TtsRequest request(String text, String voice, String outputPath) {
+        return new TtsRequest(outputPath, text, voice, outputPath);
+    }
+
     public TtsResult ttsToMp3(String text, String voice, String outputPath) {
         return ttsToMp3(text, voice, outputPath, timeoutSeconds);
     }
+
+    // ──────────────────────────── Async API ───────────────────────────
 
     public TtsResult ttsToMp3(String text, String voice, String outputPath, int timeoutSeconds) {
         return withTracking(() -> ttsToMp3Internal(request(text, voice, outputPath), timeoutSeconds));
     }
 
-    // ──────────────────────────── Async API ───────────────────────────
-
     public CompletableFuture<TtsResult> ttsToMp3Async(String text, String voice, String outputPath) {
         return ttsToMp3Async(text, voice, outputPath, timeoutSeconds);
     }
+
+    // ──────────────────────────── Batch API ───────────────────────────
 
     public CompletableFuture<TtsResult> ttsToMp3Async(String text, String voice, String outputPath, int timeoutSeconds) {
         return CompletableFuture.supplyAsync(
@@ -76,11 +78,11 @@ public class EdgeTtsEngine {
         );
     }
 
-    // ──────────────────────────── Batch API ───────────────────────────
-
     public List<TtsResult> ttsToMp3Batch(List<TtsRequest> requests) {
         return ttsToMp3Batch(requests, timeoutSeconds);
     }
+
+    // ──────────────────────────── Monitoring ──────────────────────────
 
     public List<TtsResult> ttsToMp3Batch(List<TtsRequest> requests, int timeoutSeconds) {
         if (requests == null || requests.isEmpty()) {
@@ -114,13 +116,13 @@ public class EdgeTtsEngine {
         return results;
     }
 
-    // ──────────────────────────── Monitoring ──────────────────────────
+    // ──────────────────────────── Lifecycle ───────────────────────────
 
     public int getActiveTaskCount() {
         return activeTasks.get();
     }
 
-    // ──────────────────────────── Lifecycle ───────────────────────────
+    // ──────────────────────────── Internal ────────────────────────────
 
     @PreDestroy
     public void shutdown() {
@@ -133,12 +135,6 @@ public class EdgeTtsEngine {
             executor.shutdownNow();
             Thread.currentThread().interrupt();
         }
-    }
-
-    // ──────────────────────────── Internal ────────────────────────────
-
-    private static TtsRequest request(String text, String voice, String outputPath) {
-        return new TtsRequest(outputPath, text, voice, outputPath);
     }
 
     private TtsResult withTracking(Supplier<TtsResult> task) {

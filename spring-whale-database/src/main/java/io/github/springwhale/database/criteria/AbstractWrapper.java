@@ -8,7 +8,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 import java.lang.invoke.SerializedLambda;
 import java.util.*;
-import java.util.function.BiFunction;
 
 /**
  * Base class for JPA Criteria API wrappers. Manages the internal condition list,
@@ -246,15 +245,8 @@ public abstract class AbstractWrapper<T, Children extends AbstractWrapper<T, Chi
     protected record SortInfo(String fieldName, boolean asc) {
     }
 
-    protected record LikeCondition<T>(String fieldName, String pattern, boolean ignoreCase, boolean not) implements Condition<T> {
-
-        @Override
-        public Predicate apply(Root<T> root, CriteriaBuilder cb, Map<String, Join<?, ?>> joinMap) {
-            Path<String> path = resolvePathForCondition(root, joinMap, fieldName);
-            Expression<String> expr = ignoreCase ? cb.lower(path) : path;
-            Predicate like = cb.like(expr, pattern);
-            return not ? cb.not(like) : like;
-        }
+    protected record LikeCondition<T>(String fieldName, String pattern, boolean ignoreCase,
+                                      boolean not) implements Condition<T> {
 
         @SuppressWarnings("unchecked")
         private static <T, X> Path<X> resolvePathForCondition(Root<T> root, Map<String, Join<?, ?>> joinMap, String fieldName) {
@@ -269,10 +261,32 @@ public abstract class AbstractWrapper<T, Children extends AbstractWrapper<T, Chi
             }
             return root.get(fieldName);
         }
+
+        @Override
+        public Predicate apply(Root<T> root, CriteriaBuilder cb, Map<String, Join<?, ?>> joinMap) {
+            Path<String> path = resolvePathForCondition(root, joinMap, fieldName);
+            Expression<String> expr = ignoreCase ? cb.lower(path) : path;
+            Predicate like = cb.like(expr, pattern);
+            return not ? cb.not(like) : like;
+        }
     }
 
     protected record RangeCondition<T>(String fieldName, Object start, Object end,
                                        RangeType type) implements Condition<T> {
+
+        @SuppressWarnings("unchecked")
+        private static <T, X> Path<X> resolvePathForCondition(Root<T> root, Map<String, Join<?, ?>> joinMap, String fieldName) {
+            int dotIndex = fieldName.indexOf('.');
+            if (dotIndex > 0) {
+                String joinAttr = fieldName.substring(0, dotIndex);
+                String nestedField = fieldName.substring(dotIndex + 1);
+                Join<?, ?> join = joinMap.get(joinAttr);
+                if (join != null) {
+                    return (Path<X>) join.get(nestedField);
+                }
+            }
+            return root.get(fieldName);
+        }
 
         @Override
         @SuppressWarnings("unchecked")
@@ -287,20 +301,6 @@ public abstract class AbstractWrapper<T, Children extends AbstractWrapper<T, Chi
                 case LESS_THAN_OR_EQUAL -> cb.lessThanOrEqualTo((Path<Comparable>) path, (Comparable) end);
             };
             return predicate;
-        }
-
-        @SuppressWarnings("unchecked")
-        private static <T, X> Path<X> resolvePathForCondition(Root<T> root, Map<String, Join<?, ?>> joinMap, String fieldName) {
-            int dotIndex = fieldName.indexOf('.');
-            if (dotIndex > 0) {
-                String joinAttr = fieldName.substring(0, dotIndex);
-                String nestedField = fieldName.substring(dotIndex + 1);
-                Join<?, ?> join = joinMap.get(joinAttr);
-                if (join != null) {
-                    return (Path<X>) join.get(nestedField);
-                }
-            }
-            return root.get(fieldName);
         }
     }
 

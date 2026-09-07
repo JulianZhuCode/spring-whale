@@ -136,6 +136,7 @@ public class SmartDataScopeHandler implements DataScopeHandler {
             return false;
         }
     }
+
     private List<Object> fetchAndCacheDeptIds(WhaleCache cache, Long userId,
                                               DataScopeType scopeType, String module) {
         try {

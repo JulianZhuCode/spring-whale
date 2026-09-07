@@ -43,7 +43,7 @@ class EventRecoveryManagerTest {
     }
 
     private EventConsumeFailedRecord createRecord(String id, String messageId,
-                                                   EventConsumeStatus status) {
+                                                  EventConsumeStatus status) {
         EventConsumeFailedRecord record = new EventConsumeFailedRecord();
         record.setId(id);
         record.setMessageId(messageId);

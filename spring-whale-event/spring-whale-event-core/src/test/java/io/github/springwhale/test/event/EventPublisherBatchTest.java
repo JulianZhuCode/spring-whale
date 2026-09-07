@@ -7,6 +7,7 @@ import io.github.springwhale.framework.event.kafka.KafkaEventPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -18,10 +19,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import org.mockito.Mockito;
-
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -40,20 +38,6 @@ class EventPublisherBatchTest {
 
     private KafkaEventPublisher publisher;
 
-    static class TestEvent {
-        private String data;
-
-        public String getData() { return data; }
-        public void setData(String data) { this.data = data; }
-    }
-
-    @BeforeEach
-    void setUp() {
-        Mockito.reset(kafkaTemplate);
-        publisher = new KafkaEventPublisher(eventProperties, objectMapper,
-                Collections.emptyList(), kafkaTemplate);
-    }
-
     @SuppressWarnings("unchecked")
     private static CompletableFuture<SendResult<String, String>> successFuture() {
         CompletableFuture<SendResult<String, String>> future = new CompletableFuture<>();
@@ -66,6 +50,13 @@ class EventPublisherBatchTest {
         CompletableFuture<SendResult<String, String>> future = new CompletableFuture<>();
         future.completeExceptionally(new RuntimeException("Kafka send failed"));
         return future;
+    }
+
+    @BeforeEach
+    void setUp() {
+        Mockito.reset(kafkaTemplate);
+        publisher = new KafkaEventPublisher(eventProperties, objectMapper,
+                Collections.emptyList(), kafkaTemplate);
     }
 
     @Test
@@ -160,5 +151,17 @@ class EventPublisherBatchTest {
     @DisplayName("Should handle empty batch without error")
     void testPublishBatchEmpty() {
         assertDoesNotThrow(() -> publisher.publishBatch(Collections.emptyList()));
+    }
+
+    static class TestEvent {
+        private String data;
+
+        public String getData() {
+            return data;
+        }
+
+        public void setData(String data) {
+            this.data = data;
+        }
     }
 }

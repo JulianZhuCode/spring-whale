@@ -3,7 +3,6 @@ package io.github.springwhale.database.datascope;
 import io.github.springwhale.database.autoconfigure.SpringWhaleDatabaseConfiguration;
 import io.github.springwhale.framework.core.context.AuthenticationContext;
 import io.github.springwhale.framework.core.context.AuthenticationContextHolder;
-import jakarta.persistence.criteria.Predicate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -12,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;

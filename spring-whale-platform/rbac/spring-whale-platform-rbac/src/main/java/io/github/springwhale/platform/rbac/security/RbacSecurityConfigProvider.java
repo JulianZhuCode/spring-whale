@@ -1,7 +1,7 @@
 package io.github.springwhale.platform.rbac.security;
 
 import io.github.springwhale.framework.webmvc.security.SecurityConfigProvider;
-import lombok.RequiredArgsConstructor;
+
 import java.util.List;
 
 /**

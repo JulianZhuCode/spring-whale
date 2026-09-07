@@ -101,7 +101,8 @@ class EventMetricsCollectorTest {
     @Test
     @DisplayName("Default EventMetricsCollector methods should not throw")
     void testDefaultMethodsNoOp() {
-        EventMetricsCollector noop = new EventMetricsCollector() {};
+        EventMetricsCollector noop = new EventMetricsCollector() {
+        };
 
         assertDoesNotThrow(() -> noop.onPublishSuccess("topic", "business"));
         assertDoesNotThrow(() -> noop.onPublishFailure("topic", "business", new RuntimeException()));

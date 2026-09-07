@@ -43,7 +43,7 @@ public class DataScopeFeignAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public DataScopeFeignInterceptor dataScopeFeignInterceptor(DataScopeProperties properties,
-                                                                DataScopeSigner signer) {
+                                                               DataScopeSigner signer) {
         return new DataScopeFeignInterceptor(properties, signer);
     }
 

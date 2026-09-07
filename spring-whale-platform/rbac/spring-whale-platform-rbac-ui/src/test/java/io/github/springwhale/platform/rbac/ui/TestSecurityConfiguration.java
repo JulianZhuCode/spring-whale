@@ -47,8 +47,8 @@ public class TestSecurityConfiguration {
     @Bean
     @Primary
     public EventPublisher testEventPublisher(EventProperties properties,
-                                              ObjectMapper jsonMapper,
-                                              ApplicationEventPublisher applicationEventPublisher) {
+                                             ObjectMapper jsonMapper,
+                                             ApplicationEventPublisher applicationEventPublisher) {
         return new EventPublisher(properties, jsonMapper, null) {
             @Override
             protected void doSend(EventMessage message, String partitionKey) {

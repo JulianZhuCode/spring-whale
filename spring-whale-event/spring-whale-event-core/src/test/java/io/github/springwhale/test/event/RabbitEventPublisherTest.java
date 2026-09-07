@@ -34,23 +34,6 @@ class RabbitEventPublisherTest {
 
     private RabbitEventPublisher publisher;
 
-    static class OrderCreatedEvent {
-        private String orderId;
-        private String userId;
-
-        public String getOrderId() { return orderId; }
-        public void setOrderId(String orderId) { this.orderId = orderId; }
-        public String getUserId() { return userId; }
-        public void setUserId(String userId) { this.userId = userId; }
-    }
-
-    static class PlainEvent {
-        private String data;
-
-        public String getData() { return data; }
-        public void setData(String data) { this.data = data; }
-    }
-
     @BeforeEach
     void setUp() {
         reset(rabbitTemplate);
@@ -139,7 +122,7 @@ class RabbitEventPublisherTest {
     @DisplayName("Should throw IllegalArgumentException when publishing null event")
     void testPublishNullEvent() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> publisher.publish((Object) null));
+                () -> publisher.publish(null));
         assertEquals("event must not be null", ex.getMessage());
     }
 
@@ -147,7 +130,7 @@ class RabbitEventPublisherTest {
     @DisplayName("Should throw IllegalArgumentException when publishing null EventMessage")
     void testPublishNullEventMessage() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> publisher.publishMessage((EventMessage) null));
+                () -> publisher.publishMessage(null));
         assertEquals("message must not be null", ex.getMessage());
     }
 
@@ -233,5 +216,38 @@ class RabbitEventPublisherTest {
         assertDoesNotThrow(() -> publisher.publish(event2));
 
         verify(rabbitTemplate, times(2)).convertAndSend(anyString(), anyString(), anyString());
+    }
+
+    static class OrderCreatedEvent {
+        private String orderId;
+        private String userId;
+
+        public String getOrderId() {
+            return orderId;
+        }
+
+        public void setOrderId(String orderId) {
+            this.orderId = orderId;
+        }
+
+        public String getUserId() {
+            return userId;
+        }
+
+        public void setUserId(String userId) {
+            this.userId = userId;
+        }
+    }
+
+    static class PlainEvent {
+        private String data;
+
+        public String getData() {
+            return data;
+        }
+
+        public void setData(String data) {
+            this.data = data;
+        }
     }
 }

@@ -7,6 +7,7 @@ import io.github.springwhale.framework.event.kafka.KafkaEventPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -17,12 +18,10 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
-
-import org.mockito.Mockito;
 
 @SpringBootTest
 @Import(TestEventConfiguration.class)
@@ -38,23 +37,6 @@ class KafkaEventPublisherTest {
     private KafkaTemplate<String, String> kafkaTemplate;
 
     private KafkaEventPublisher publisher;
-
-    static class OrderCreatedEvent {
-        private String orderId;
-        private String userId;
-
-        public String getOrderId() { return orderId; }
-        public void setOrderId(String orderId) { this.orderId = orderId; }
-        public String getUserId() { return userId; }
-        public void setUserId(String userId) { this.userId = userId; }
-    }
-
-    static class PlainEvent {
-        private String data;
-
-        public String getData() { return data; }
-        public void setData(String data) { this.data = data; }
-    }
 
     @BeforeEach
     void setUp() {
@@ -173,5 +155,38 @@ class KafkaEventPublisherTest {
 
         assertDoesNotThrow(() -> publisher.publish(event1));
         assertDoesNotThrow(() -> publisher.publish(event2));
+    }
+
+    static class OrderCreatedEvent {
+        private String orderId;
+        private String userId;
+
+        public String getOrderId() {
+            return orderId;
+        }
+
+        public void setOrderId(String orderId) {
+            this.orderId = orderId;
+        }
+
+        public String getUserId() {
+            return userId;
+        }
+
+        public void setUserId(String userId) {
+            this.userId = userId;
+        }
+    }
+
+    static class PlainEvent {
+        private String data;
+
+        public String getData() {
+            return data;
+        }
+
+        public void setData(String data) {
+            this.data = data;
+        }
     }
 }

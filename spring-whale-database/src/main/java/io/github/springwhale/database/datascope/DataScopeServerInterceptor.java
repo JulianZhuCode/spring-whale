@@ -1,8 +1,8 @@
 package io.github.springwhale.database.datascope;
 
+import io.github.springwhale.framework.core.utils.LogConstants;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import io.github.springwhale.framework.core.utils.LogConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -93,6 +93,7 @@ public class DataScopeServerInterceptor implements HandlerInterceptor {
         }
         return true;
     }
+
     private void receiveDataScope(String scopeTypeStr, String module) {
         try {
             DataScopeType scopeType = DataScopeType.valueOf(scopeTypeStr);
@@ -106,6 +107,7 @@ public class DataScopeServerInterceptor implements HandlerInterceptor {
             log.warn("Invalid DataScopeType from header: {}", scopeTypeStr.replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER));
         }
     }
+
     private void receiveTenantId(String tenantIdStr) {
         try {
             Object tenantId = parseTenantId(tenantIdStr);

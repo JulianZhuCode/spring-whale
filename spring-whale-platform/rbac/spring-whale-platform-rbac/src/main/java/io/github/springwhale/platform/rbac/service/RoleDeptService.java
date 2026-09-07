@@ -1,8 +1,8 @@
 package io.github.springwhale.platform.rbac.service;
 
+import io.github.springwhale.framework.event.EventPublisher;
 import io.github.springwhale.platform.rbac.dao.entity.RoleDeptEntity;
 import io.github.springwhale.platform.rbac.dao.repository.RoleDeptRepository;
-import io.github.springwhale.framework.event.EventPublisher;
 import io.github.springwhale.platform.rbac.event.RoleChangedEvent;
 import org.springframework.transaction.annotation.Transactional;
 

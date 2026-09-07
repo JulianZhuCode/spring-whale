@@ -21,9 +21,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class EventPublisher {
     protected final Map<Class<?>, Event> eventAnnotations = new ConcurrentHashMap<>();
-    private final Set<Class<?>> noAnnotationClasses = ConcurrentHashMap.newKeySet();
     protected final EventProperties properties;
     protected final ObjectMapper jsonMapper;
+    private final Set<Class<?>> noAnnotationClasses = ConcurrentHashMap.newKeySet();
     private final List<EventMetricsCollector> metricsCollectors;
 
     public EventPublisher(EventProperties properties, ObjectMapper jsonMapper,

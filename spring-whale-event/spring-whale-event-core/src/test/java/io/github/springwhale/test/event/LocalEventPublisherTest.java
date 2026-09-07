@@ -32,23 +32,6 @@ class LocalEventPublisherTest {
     private ApplicationEventPublisher applicationEventPublisher;
     private LocalEventPublisher publisher;
 
-    static class OrderCreatedEvent {
-        private String orderId;
-        private String userId;
-
-        public String getOrderId() { return orderId; }
-        public void setOrderId(String orderId) { this.orderId = orderId; }
-        public String getUserId() { return userId; }
-        public void setUserId(String userId) { this.userId = userId; }
-    }
-
-    static class PlainEvent {
-        private String data;
-
-        public String getData() { return data; }
-        public void setData(String data) { this.data = data; }
-    }
-
     @BeforeEach
     void setUp() {
         applicationEventPublisher = mock(ApplicationEventPublisher.class);
@@ -89,7 +72,7 @@ class LocalEventPublisherTest {
     @DisplayName("Should throw IllegalArgumentException when publishing null event")
     void testPublishNullEvent() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> publisher.publish((Object) null));
+                () -> publisher.publish(null));
         assertEquals("event must not be null", ex.getMessage());
     }
 
@@ -97,7 +80,7 @@ class LocalEventPublisherTest {
     @DisplayName("Should throw IllegalArgumentException when publishing null EventMessage")
     void testPublishNullEventMessage() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> publisher.publishMessage((EventMessage) null));
+                () -> publisher.publishMessage(null));
         assertEquals("message must not be null", ex.getMessage());
     }
 
@@ -124,5 +107,38 @@ class LocalEventPublisherTest {
         assertDoesNotThrow(() -> publisher.publish(event));
 
         verify(applicationEventPublisher, times(1)).publishEvent(any(EventMessage.class));
+    }
+
+    static class OrderCreatedEvent {
+        private String orderId;
+        private String userId;
+
+        public String getOrderId() {
+            return orderId;
+        }
+
+        public void setOrderId(String orderId) {
+            this.orderId = orderId;
+        }
+
+        public String getUserId() {
+            return userId;
+        }
+
+        public void setUserId(String userId) {
+            this.userId = userId;
+        }
+    }
+
+    static class PlainEvent {
+        private String data;
+
+        public String getData() {
+            return data;
+        }
+
+        public void setData(String data) {
+            this.data = data;
+        }
     }
 }

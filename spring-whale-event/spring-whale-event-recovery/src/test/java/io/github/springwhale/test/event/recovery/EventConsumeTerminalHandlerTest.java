@@ -9,29 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class EventConsumeTerminalHandlerTest {
-
-    static class TestTerminalHandler implements EventConsumeTerminalHandler {
-        private final AtomicBoolean discardedCalled = new AtomicBoolean(false);
-        private final AtomicBoolean finalFailedCalled = new AtomicBoolean(false);
-
-        @Override
-        public void onDiscarded(EventConsumeFailedRecord record) {
-            discardedCalled.set(true);
-        }
-
-        @Override
-        public void onFinalFailed(EventConsumeFailedRecord record) {
-            finalFailedCalled.set(true);
-        }
-
-        @Override
-        public int getOrder() {
-            return 0;
-        }
-    }
 
     @Test
     @DisplayName("Should invoke onDiscarded")
@@ -97,24 +78,32 @@ class EventConsumeTerminalHandlerTest {
     void testHandlerOrdering() {
         EventConsumeTerminalHandler low = new EventConsumeTerminalHandler() {
             @Override
-            public void onDiscarded(EventConsumeFailedRecord r) {}
+            public void onDiscarded(EventConsumeFailedRecord r) {
+            }
 
             @Override
-            public void onFinalFailed(EventConsumeFailedRecord r) {}
+            public void onFinalFailed(EventConsumeFailedRecord r) {
+            }
 
             @Override
-            public int getOrder() { return 10; }
+            public int getOrder() {
+                return 10;
+            }
         };
 
         EventConsumeTerminalHandler high = new EventConsumeTerminalHandler() {
             @Override
-            public void onDiscarded(EventConsumeFailedRecord r) {}
+            public void onDiscarded(EventConsumeFailedRecord r) {
+            }
 
             @Override
-            public void onFinalFailed(EventConsumeFailedRecord r) {}
+            public void onFinalFailed(EventConsumeFailedRecord r) {
+            }
 
             @Override
-            public int getOrder() { return 20; }
+            public int getOrder() {
+                return 20;
+            }
         };
 
         List<EventConsumeTerminalHandler> handlers = new ArrayList<>();
@@ -125,5 +114,25 @@ class EventConsumeTerminalHandlerTest {
 
         assertEquals(10, handlers.get(0).getOrder());
         assertEquals(20, handlers.get(1).getOrder());
+    }
+
+    static class TestTerminalHandler implements EventConsumeTerminalHandler {
+        private final AtomicBoolean discardedCalled = new AtomicBoolean(false);
+        private final AtomicBoolean finalFailedCalled = new AtomicBoolean(false);
+
+        @Override
+        public void onDiscarded(EventConsumeFailedRecord record) {
+            discardedCalled.set(true);
+        }
+
+        @Override
+        public void onFinalFailed(EventConsumeFailedRecord record) {
+            finalFailedCalled.set(true);
+        }
+
+        @Override
+        public int getOrder() {
+            return 0;
+        }
     }
 }

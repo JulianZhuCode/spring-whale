@@ -1,6 +1,5 @@
 package io.github.springwhale.database.datascope;
 
-import io.github.springwhale.database.datascope.annotation.SkipSqlInspector;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -32,10 +31,12 @@ import org.springframework.core.annotation.Order;
 public class SkipSqlInspectorAspect {
 
     @Pointcut("@annotation(io.github.springwhale.database.datascope.annotation.SkipSqlInspector)")
-    public void annotatedMethod() {}
+    public void annotatedMethod() {
+    }
 
     @Pointcut("@within(io.github.springwhale.database.datascope.annotation.SkipSqlInspector)")
-    public void annotatedClass() {}
+    public void annotatedClass() {
+    }
 
     @Around("annotatedMethod() || annotatedClass()")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
