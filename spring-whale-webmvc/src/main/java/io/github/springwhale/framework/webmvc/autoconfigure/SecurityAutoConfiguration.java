@@ -111,13 +111,9 @@ public class SecurityAutoConfiguration {
 
         http
                 .csrf(csrf -> {
-                    if (!securityProperties.isCsrfEnabled()) {
-                        csrf.disable();
-                    } else {
-                        csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
-                        csrf.ignoringRequestMatchers(
-                                permitAllUrls.toArray(new String[0]));
-                    }
+                    csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
+                    csrf.ignoringRequestMatchers(
+                            permitAllUrls.toArray(new String[0]));
                 })
                 .cors(cors -> corsConfigurationSource.ifAvailable(cors::configurationSource))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

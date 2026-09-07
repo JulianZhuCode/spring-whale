@@ -62,8 +62,6 @@ spring:
         token-prefix: "Bearer "
         # トークン用 Cookie 名（デフォルト：sw_token）
         token-cookie-name: sw_token
-        # CSRF を有効にするか（デフォルト：false）
-        csrf-enabled: false
         # 認証不要 URL リスト
         permit-all-urls:
           - /public/**
@@ -81,7 +79,6 @@ spring:
 | `token-header` | String | `Authorization` | トークンを格納する HTTP ヘッダー名 |
 | `token-prefix` | String | `Bearer ` | トークン値のプレフィックス、抽出時に自動除去 |
 | `token-cookie-name` | String | `sw_token` | トークンを格納する Cookie 名 |
-| `csrf-enabled` | boolean | `false` | CSRF 保護を有効にするか |
 | `permit-all-urls` | List\<String\> | `[]` | 認証不要 URL リスト、Ant スタイルパターンをサポート |
 
 

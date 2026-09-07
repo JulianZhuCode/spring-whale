@@ -2,7 +2,6 @@ package io.github.springwhale.framework.webmvc.security;
 
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
-import io.github.springwhale.framework.core.utils.LogConstants;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,8 +35,5 @@ public class SecurityFeignInterceptor implements RequestInterceptor {
         String headerValue = securityProperties.getTokenPrefix() + jwt;
         template.header(securityProperties.getTokenHeader(), headerValue);
 
-        log.debug("JWT token transmitted via Feign: header={}, prefix={}",
-                securityProperties.getTokenHeader().replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER),
-                securityProperties.getTokenPrefix().replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER));
     }
 }

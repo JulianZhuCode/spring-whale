@@ -3,6 +3,7 @@ package io.github.springwhale.platform.task;
 import io.github.springwhale.framework.webmvc.security.SecurityConfigProvider;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -33,6 +34,13 @@ public class TestSecurityConfiguration {
             @Override
             public List<String> getPermitAllUrls() {
                 return List.of("/**");
+            }
+
+            // Test-only: disable CSRF so REST endpoints can be exercised via
+            // plain POST requests without CSRF tokens (framework default is enabled).
+            @Override
+            public void configure(HttpSecurity http) throws Exception {
+                http.csrf(csrf -> csrf.disable());
             }
         };
     }

@@ -62,8 +62,6 @@ spring:
         token-prefix: "Bearer "
         # Cookie name for token (default: sw_token)
         token-cookie-name: sw_token
-        # Enable CSRF (default: false)
-        csrf-enabled: false
         # URLs that bypass authentication
         permit-all-urls:
           - /public/**
@@ -81,7 +79,6 @@ spring:
 | `token-header` | String | `Authorization` | HTTP header name for token |
 | `token-prefix` | String | `Bearer ` | Token prefix, stripped during extraction |
 | `token-cookie-name` | String | `sw_token` | Cookie name for token |
-| `csrf-enabled` | boolean | `false` | Whether to enable CSRF protection |
 | `permit-all-urls` | List\<String\> | `[]` | URLs bypassing authentication, supports Ant-style patterns |
 
 

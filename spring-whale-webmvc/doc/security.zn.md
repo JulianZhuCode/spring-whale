@@ -62,8 +62,6 @@ spring:
         token-prefix: "Bearer "
         # Cookie 中 Token 的名称（默认：sw_token）
         token-cookie-name: sw_token
-        # 是否启用 CSRF（默认：false）
-        csrf-enabled: false
         # 免认证 URL 列表
         permit-all-urls:
           - /public/**
@@ -81,7 +79,6 @@ spring:
 | `token-header` | String | `Authorization` | 存放 Token 的 HTTP 请求头名称 |
 | `token-prefix` | String | `Bearer ` | Token 值前缀，提取时会自动去除 |
 | `token-cookie-name` | String | `sw_token` | 存放 Token 的 Cookie 名称 |
-| `csrf-enabled` | boolean | `false` | 是否启用 CSRF 防护 |
 | `permit-all-urls` | List\<String\> | `[]` | 免认证 URL 列表，支持 Ant 风格通配符 |
 
 

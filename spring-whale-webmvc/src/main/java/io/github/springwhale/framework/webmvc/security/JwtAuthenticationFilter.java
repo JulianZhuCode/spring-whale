@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -56,10 +57,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             String jwt = jwtUtil.extractJwtFromRequest(request);
-            if (jwt == null) {
-                log.debug("JWT not found in request: {}", requestURI.replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER));
-            } else {
-                authenticateWithJwt(jwt, request, requestURI);
+            AuthenticationResult result = resolveAuthentication(jwt, request, requestURI);
+            Authentication current = SecurityContextHolder.getContext().getAuthentication();
+            SecurityContextHolder.getContext().setAuthentication(
+                    result.authentication() != null ? result.authentication() : current);
+            if (result.authentication() != null) {
+                setApplicationContext(result.userId(), result.username(), result.tenantId());
             }
             filterChain.doFilter(request, response);
         } finally {
@@ -68,11 +71,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
     }
 
-    private void authenticateWithJwt(String jwt, HttpServletRequest request, String requestURI) {
+    /**
+     * Resolves the authentication for the given JWT. Returns a null authentication
+     * (and null context values) when the token is missing or invalid, leaving the
+     * request unauthenticated — the security filter chain then enforces access.
+     */
+    private AuthenticationResult resolveAuthentication(String jwt, HttpServletRequest request, String requestURI) {
+        if (jwt == null) {
+            log.debug("JWT not found in request: {}", requestURI.replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER));
+            return new AuthenticationResult(null, null, null, null);
+        }
+
         if (!jwtUtil.validateToken(jwt)) {
             log.warn("JWT validation failed for request: {}, token length: {}",
                     requestURI.replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER), jwt.length());
-            return;
+            return new AuthenticationResult(null, null, null, null);
         }
 
         String username = jwtUtil.getUsernameFromToken(jwt);
@@ -86,25 +99,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             log.warn("User not found in token for request: {}, username: {}",
                     requestURI.replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER),
                     String.valueOf(username).replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER));
-            return;
+            return new AuthenticationResult(null, null, null, null);
         }
 
-        setSpringSecurityAuthentication(userDetails, request);
-        setApplicationContext(userId, username, tenantId);
-
-        log.debug("Authenticated user '{}' for request: {}",
-                username.replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER),
-                requestURI.replaceAll(LogConstants.LINE_BREAKS, LogConstants.PLACEHOLDER));
-    }
-
-    private void setSpringSecurityAuthentication(UserDetails userDetails, HttpServletRequest request) {
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                 userDetails, null, userDetails.getAuthorities());
         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        return new AuthenticationResult(authentication, userId, username, tenantId);
     }
 
     private void setApplicationContext(Long userId, String username, Long tenantId) {
         AuthenticationContextHolder.setContext(new AuthenticationContext(userId, username, tenantId));
+    }
+
+    private record AuthenticationResult(Authentication authentication, Long userId, String username, Long tenantId) {
     }
 }
