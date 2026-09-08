@@ -20,6 +20,7 @@
     </properties>
 
     <dependencies>
+        <!-- Production dependencies (compile / provided) -->
         <dependency>
             <groupId>io.github.julianzhucode</groupId>
             <artifactId>spring-whale-thymeleaf</artifactId>
@@ -33,6 +34,7 @@
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
+        <!-- Test dependencies (test) -->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>

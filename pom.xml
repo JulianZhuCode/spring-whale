@@ -193,6 +193,15 @@
         </dependencies>
     </dependencyManagement>
 
+    <dependencies>
+        <!-- Common test base: inherited by all modules (JUnit Jupiter / AssertJ / Mockito) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
     <build>
         <pluginManagement>
             <plugins>

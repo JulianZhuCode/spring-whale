@@ -20,6 +20,7 @@
     </properties>
 
     <dependencies>
+        <!-- Production dependencies (compile / provided) -->
         <dependency>
             <groupId>io.github.julianzhucode</groupId>
             <artifactId>spring-whale-webmvc</artifactId>
@@ -37,6 +38,7 @@
             <groupId>io.github.julianzhucode</groupId>
             <artifactId>spring-whale-event-core</artifactId>
         </dependency>
+        <!-- Test dependencies (test) -->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
