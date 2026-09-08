@@ -57,7 +57,7 @@ dependencies need no version tags; the parent already imports the Spring Boot / 
 <parent>
     <groupId>io.github.julianzhucode</groupId>
     <artifactId>spring-whale</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
 </parent>
 
 <dependencies>
@@ -80,7 +80,7 @@ dependencies need no version tags; the parent already imports the Spring Boot / 
 
 ```xml
 <properties>
-    <spring-whale.version>1.0.0</spring-whale.version>
+    <spring-whale.version>1.1.0</spring-whale.version>
 </properties>
 
 <dependencies>

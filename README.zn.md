@@ -48,7 +48,7 @@ Spring Boot / Spring Cloud BOM）：
 <parent>
     <groupId>io.github.julianzhucode</groupId>
     <artifactId>spring-whale</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
 </parent>
 
 <dependencies>
@@ -71,7 +71,7 @@ Spring Boot / Spring Cloud BOM）：
 
 ```xml
 <properties>
-    <spring-whale.version>1.0.0</spring-whale.version>
+    <spring-whale.version>1.1.0</spring-whale.version>
 </properties>
 
 <dependencies>
