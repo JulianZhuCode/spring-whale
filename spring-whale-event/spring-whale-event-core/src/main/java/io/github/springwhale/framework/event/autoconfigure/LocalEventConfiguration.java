@@ -1,10 +1,13 @@
 package io.github.springwhale.framework.event.autoconfigure;
 
 import io.github.springwhale.framework.event.AbstractEventListener;
+import io.github.springwhale.framework.event.EventDedupHandler;
+
 import io.github.springwhale.framework.event.EventMetricsCollector;
 import io.github.springwhale.framework.event.EventProperties;
 import io.github.springwhale.framework.event.local.LocalEventMessageConsumer;
 import io.github.springwhale.framework.event.local.LocalEventPublisher;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -45,9 +48,10 @@ public class LocalEventConfiguration {
                                                                EventProperties eventProperties,
                                                                List<EventMetricsCollector> metricsCollectors,
                                                                Map<String, AbstractEventListener<?>> springListenerBeanMap,
+                                                               ObjectProvider<EventDedupHandler> dedupHandlerProvider,
                                                                ApplicationEventPublisher applicationEventPublisher) {
         return new LocalEventMessageConsumer(jsonMapper, eventProperties, metricsCollectors,
-                springListenerBeanMap, applicationEventPublisher);
+                springListenerBeanMap, dedupHandlerProvider.getIfAvailable(), applicationEventPublisher);
     }
 
 }

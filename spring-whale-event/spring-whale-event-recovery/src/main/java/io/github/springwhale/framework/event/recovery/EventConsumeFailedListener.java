@@ -127,6 +127,7 @@ public abstract class EventConsumeFailedListener {
         entity.setSource(message.getSource());
         entity.setBusinessName(message.getBusinessName());
         entity.setListenerName(message.getFailListener());
+        entity.setVersion(message.getVersion());
         entity.setAuthenticationContext(jsonMapper.writeValueAsString(message.getAuthenticationContext()));
         entity.setTopic(message.getTopic());
         entity.setRawMessage(message.getData());

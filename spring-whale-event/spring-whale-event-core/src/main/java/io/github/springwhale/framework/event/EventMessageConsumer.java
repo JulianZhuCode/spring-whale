@@ -27,6 +27,7 @@ public abstract class EventMessageConsumer {
     protected final EventProperties eventProperties;
     private final Map<String, AbstractEventListener<?>> customRegisterMap = new ConcurrentHashMap<>();
     private final List<EventMetricsCollector> metricsCollectors;
+    private final EventDedupHandler dedupHandler;
     private final Map<String, AbstractEventListener<?>> springListenerBeanMap;
 
     @Getter
@@ -40,10 +41,12 @@ public abstract class EventMessageConsumer {
 
     public EventMessageConsumer(ObjectMapper jsonMapper, EventProperties eventProperties,
                                 List<EventMetricsCollector> metricsCollectors,
-                                Map<String, AbstractEventListener<?>> springListenerBeanMap) {
+                                Map<String, AbstractEventListener<?>> springListenerBeanMap,
+                                EventDedupHandler dedupHandler) {
         this.jsonMapper = jsonMapper;
         this.eventProperties = eventProperties;
         this.metricsCollectors = metricsCollectors != null ? metricsCollectors : Collections.emptyList();
+        this.dedupHandler = dedupHandler;
         this.springListenerBeanMap = springListenerBeanMap;
         rebuildRouteTable();
     }
@@ -118,6 +121,11 @@ public abstract class EventMessageConsumer {
             }
             tempNameToInstance.put(name, listener);
             tempInstanceToName.put(listener, name);
+            // Wire the global idempotency handler and the registered name into the
+            // listener. Name is set first: a reader can then never observe a handler
+            // without its name (worst case it sees neither -> no dedup).
+            listener.setIdempotencyName(name);
+            listener.setDedupHandler(dedupHandler);
         }
 
         this.listenerGroup = Collections.unmodifiableMap(groupMap);
@@ -179,7 +187,7 @@ public abstract class EventMessageConsumer {
             default:
                 return false;
         }
-        if (listeners == null) {
+        if (listeners == null || listeners.isEmpty()) {
             return false;
         }
         dispatchToListeners(context, listeners, message);
@@ -196,6 +204,15 @@ public abstract class EventMessageConsumer {
      * ensuring no cross-message context leakage.</p>
      */
     private void dispatchToListeners(EventContext context, List<AbstractEventListener<?>> listeners, EventMessage message) {
+        boolean locked = false;
+        if (dedupHandler != null) {
+            try {
+                dedupHandler.lock(message.getId());
+                locked = true;
+            } catch (Exception ex) {
+                log.error("Message lock failed, proceed without lock: messageId={}", message.getId(), ex);
+            }
+        }
         try {
             if (message.getTraceId() != null) {
                 MDC.put("traceId", message.getTraceId());
@@ -204,6 +221,29 @@ public abstract class EventMessageConsumer {
                 AuthenticationContextHolder.setContext(message.getAuthenticationContext());
             }
             for (AbstractEventListener<?> listener : listeners) {
+                if (listener == null) {
+                    // Multi-module/distributed scenario: the retry target may be
+                    // registered on another module or instance. Skip, do not NPE,
+                    // do not ack-discard or converge the failed record.
+                    log.warn("Retry target listener not found, skip: messageId={}", message.getId());
+                    continue;
+                }
+                String listenerName = getListenerInstanceToNameMap().get(listener);
+
+                // Idempotency: delegate to the listener - the global EventDedupHandler
+                // default or a per-listener override.
+                if (listener.isProcessed(message)) {
+                    log.debug("Duplicate event skipped: messageId={}, listener={}", message.getId(), listenerName);
+                    if (MessageType.RETRY == message.getMessageType()) {
+                        // The retry already succeeded but its completion signal may have been lost
+                        // (e.g. sendToFailedTopic failed after success). Re-emit RETRY_SUCCESS so the
+                        // failed record converges to REPLAY_SUCCESS instead of being stuck in PENDING_RETRY.
+                        message.setMessageType(MessageType.RETRY_SUCCESS);
+                        sendToFailedTopic(message);
+                    }
+                    continue;
+                }
+
                 long start = System.currentTimeMillis();
                 boolean success = true;
                 try {
@@ -218,21 +258,34 @@ public abstract class EventMessageConsumer {
                         continue;
                     }
                     listener.onEvent(event, context);
-                    onConsumeSuccess(message.getBusinessName(), getListenerInstanceToNameMap().get(listener));
+                    // Mark after successful processing (fail-open by the listener default).
+                    listener.markProcessed(message);
+                    onConsumeSuccess(message.getBusinessName(), listenerName);
                 } catch (Exception e) {
                     success = false;
                     log.error("Listener [{}] failed to consume message [{}].", listener.businessName(), message.getData(), e);
-                    onConsumeFailure(message.getBusinessName(), getListenerInstanceToNameMap().get(listener), e);
+                    // Notify the listener (fail-open by the listener default) so claim-based
+                    // implementations can release the claim and the retry is not treated as a duplicate.
+                    listener.markFailed(message, e);
                     message.setErrorStack(ExceptionUtil.getStackTrace(e));
                     message.setRetryEnabled(listener.retryEnabled());
-                    message.setFailListener(getListenerInstanceToNameMap().get(listener));
+                    message.setFailListener(listenerName);
                     message.setMessageType(MessageType.FAIL);
                     sendToFailedTopic(message);
+                    onConsumeFailure(message.getBusinessName(), listenerName, e);
+                    continue;
                 } finally {
                     long durationMs = System.currentTimeMillis() - start;
                     boolean finalSuccess = success;
-                    metricsCollectors.forEach(c -> c.onConsumeLatency(
-                            message.getBusinessName(), getListenerInstanceToNameMap().get(listener), durationMs, finalSuccess));
+                    metricsCollectors.forEach(c -> {
+                        try {
+                            c.onConsumeLatency(
+                                    message.getBusinessName(), listenerName, durationMs, finalSuccess);
+                        } catch (Exception ex) {
+                            log.error("Metrics onConsumeLatency failed: businessName={}",
+                                    message.getBusinessName(), ex);
+                        }
+                    });
                 }
                 if (MessageType.RETRY == message.getMessageType()) {
                     message.setMessageType(MessageType.RETRY_SUCCESS);
@@ -242,6 +295,13 @@ public abstract class EventMessageConsumer {
         } finally {
             AuthenticationContextHolder.clearContext();
             MDC.remove("traceId");
+            if (locked) {
+                try {
+                    dedupHandler.unlock(message.getId());
+                } catch (Exception ex) {
+                    log.error("Message unlock failed: messageId={}", message.getId(), ex);
+                }
+            }
         }
     }
 
@@ -261,7 +321,13 @@ public abstract class EventMessageConsumer {
      * <p>Called after a listener processes the event without error.</p>
      */
     protected void onConsumeSuccess(String businessName, String listenerName) {
-        metricsCollectors.forEach(c -> c.onConsumeSuccess(businessName, listenerName));
+        metricsCollectors.forEach(c -> {
+            try {
+                c.onConsumeSuccess(businessName, listenerName);
+            } catch (Exception ex) {
+                log.error("Metrics onConsumeSuccess failed: businessName={}", businessName, ex);
+            }
+        });
     }
 
     /**
@@ -269,6 +335,12 @@ public abstract class EventMessageConsumer {
      * <p>Called when a listener throws an exception.</p>
      */
     protected void onConsumeFailure(String businessName, String listenerName, Throwable error) {
-        metricsCollectors.forEach(c -> c.onConsumeFailure(businessName, listenerName, error));
+        metricsCollectors.forEach(c -> {
+            try {
+                c.onConsumeFailure(businessName, listenerName, error);
+            } catch (Exception ex) {
+                log.error("Metrics onConsumeFailure failed: businessName={}", businessName, ex);
+            }
+        });
     }
 }

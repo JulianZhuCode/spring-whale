@@ -18,6 +18,8 @@ public class EventConsumeFailedRecord {
 
     private String listenerName;
 
+    private Integer version;
+
     private String authenticationContext;
 
     private String topic;

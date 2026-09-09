@@ -19,7 +19,16 @@ public class LocalEventMessageConsumer extends EventMessageConsumer {
                                      List<EventMetricsCollector> metricsCollectors,
                                      Map<String, AbstractEventListener<?>> springListenerBeanMap,
                                      ApplicationEventPublisher applicationEventPublisher) {
-        super(jsonMapper, eventProperties, metricsCollectors, springListenerBeanMap);
+        this(jsonMapper, eventProperties, metricsCollectors, springListenerBeanMap,
+                null, applicationEventPublisher);
+    }
+
+    public LocalEventMessageConsumer(ObjectMapper jsonMapper, EventProperties eventProperties,
+                                     List<EventMetricsCollector> metricsCollectors,
+                                     Map<String, AbstractEventListener<?>> springListenerBeanMap,
+                                     EventDedupHandler dedupHandler,
+                                     ApplicationEventPublisher applicationEventPublisher) {
+        super(jsonMapper, eventProperties, metricsCollectors, springListenerBeanMap, dedupHandler);
         this.applicationEventPublisher = applicationEventPublisher;
     }
 

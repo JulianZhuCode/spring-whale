@@ -25,7 +25,16 @@ public class RabbitEventMessageConsumer extends EventMessageConsumer {
                                       List<EventMetricsCollector> metricsCollectors,
                                       Map<String, AbstractEventListener<?>> springListenerBeanMap,
                                       RabbitTemplate rabbitTemplate) {
-        super(jsonMapper, eventProperties, metricsCollectors, springListenerBeanMap);
+        this(jsonMapper, eventProperties, metricsCollectors, springListenerBeanMap,
+                rabbitTemplate, null);
+    }
+ 
+    public RabbitEventMessageConsumer(ObjectMapper jsonMapper, EventProperties eventProperties,
+                                      List<EventMetricsCollector> metricsCollectors,
+                                      Map<String, AbstractEventListener<?>> springListenerBeanMap,
+                                      RabbitTemplate rabbitTemplate,
+                                      EventDedupHandler dedupHandler) {
+        super(jsonMapper, eventProperties, metricsCollectors, springListenerBeanMap, dedupHandler);
         this.rabbitTemplate = rabbitTemplate;
     }
 

@@ -2,6 +2,7 @@ package io.github.springwhale.framework.event;
 
 import jakarta.annotation.Nullable;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.StringUtils;
@@ -21,6 +22,20 @@ public abstract class AbstractEventListener<T> {
     private final Class<T> eventClass;
     @Nullable
     private final Event cachedEventAnnotation;
+
+    /**
+     * Global idempotency handler injected by the framework (single unique bean).
+     * {@code null} disables dedup for this listener.
+     */
+    @Setter
+    private volatile EventDedupHandler dedupHandler;
+
+    /**
+     * The listener's registered name in the framework routing table, used as part
+     * of the idempotency key. Injected by the framework.
+     */
+    @Setter
+    private volatile String idempotencyName;
 
     protected AbstractEventListener(Class<T> eventClass) {
         this.eventClass = eventClass;
@@ -59,13 +74,13 @@ public abstract class AbstractEventListener<T> {
      * <p>Uses {@link Class#isInstance(Object)} and {@link Class#cast(Object)} for runtime type safety,
      * providing a clear error message when the deserialized object does not match the expected type {@code <T>}.</p>
      *
-     * @param event        the event object (nullable — null events are silently ignored)
+     * @param event        the event object (nullable — a null event is passed through to {@link #doEvent(Object, EventContext)} as null)
      * @param eventContext the event context with metadata
      * @throws ClassCastException if the event object is not an instance of {@code T}
      */
     public void onEvent(Object event, EventContext eventContext) {
         if (event == null) {
-            log.info("No event received for {}", eventClass.getSimpleName());
+            doEvent(null, eventContext);
             return;
         }
         if (!eventClass.isInstance(event)) {
@@ -79,7 +94,7 @@ public abstract class AbstractEventListener<T> {
     /**
      * Process the event. Subclasses must implement the business logic here.
      *
-     * @param event        the event object (never null)
+     * @param event        the event object (may be null when the raw event data is null)
      * @param eventContext the event context with metadata
      */
     public abstract void doEvent(T event, EventContext eventContext);
@@ -126,5 +141,69 @@ public abstract class AbstractEventListener<T> {
             return new int[]{cachedEventAnnotation.version()};
         }
         return new int[]{Event.DEFAULT_VERSION};
+    }
+
+    /**
+     * Whether this message has already been successfully processed by this listener.
+     * <p>Default implementation delegates to the globally registered
+     * {@link EventDedupHandler}. Storage failures are fail-open: an exception
+     * only disables dedup for this message, it never blocks or fails the consumption.
+     * Override to implement per-listener idempotency logic.</p>
+     *
+     * @param message the event message
+     * @return true if the message is a duplicate and should be skipped
+     */
+    public boolean isProcessed(EventMessage message) {
+        EventDedupHandler handler = this.dedupHandler;
+        if (handler == null) {
+            return false;
+        }
+        try {
+            return handler.isProcessed(message, idempotencyName);
+        } catch (Exception ex) {
+            log.error("Idempotency check failed, proceed without dedup: messageId={}, listener={}",
+                    message.getId(), idempotencyName, ex);
+            return false;
+        }
+    }
+
+    /**
+     * Mark the message as successfully processed by this listener.
+     * <p>Default implementation delegates to the globally registered
+     * {@link EventDedupHandler} and is fail-open: a marking failure only
+     * loses dedup, it never fails the consumption. Must be idempotent.</p>
+     */
+    public void markProcessed(EventMessage message) {
+        EventDedupHandler handler = this.dedupHandler;
+        if (handler == null) {
+            return;
+        }
+        try {
+            handler.markProcessed(message, idempotencyName);
+        } catch (Exception ex) {
+            log.error("Idempotency markProcessed failed, continue ack: messageId={}, listener={}",
+                    message.getId(), idempotencyName, ex);
+        }
+    }
+
+    /**
+     * Mark the message as failed for this listener.
+     * <p>Default implementation delegates to the globally registered
+     * {@link EventDedupHandler} and is fail-open. Claim-based implementations
+     * use it to release the claim so a later retry is not treated as a duplicate.</p>
+     *
+     * @param error the exception thrown by {@link #doEvent(Object, EventContext)}
+     */
+    public void markFailed(EventMessage message, Throwable error) {
+        EventDedupHandler handler = this.dedupHandler;
+        if (handler == null) {
+            return;
+        }
+        try {
+            handler.markFailed(message, idempotencyName, error);
+        } catch (Exception ex) {
+            log.error("Idempotency markFailed failed: messageId={}, listener={}",
+                    message.getId(), idempotencyName, ex);
+        }
     }
 }

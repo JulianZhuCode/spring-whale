@@ -1,11 +1,14 @@
 package io.github.springwhale.framework.event.autoconfigure;
 
 import io.github.springwhale.framework.event.AbstractEventListener;
+import io.github.springwhale.framework.event.EventDedupHandler;
+
 import io.github.springwhale.framework.event.EventMetricsCollector;
 import io.github.springwhale.framework.event.EventProperties;
 import io.github.springwhale.framework.event.kafka.EventKafkaMessageConsumer;
 import io.github.springwhale.framework.event.kafka.KafkaEventProperties;
 import io.github.springwhale.framework.event.kafka.KafkaEventPublisher;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -42,9 +45,10 @@ public class KafkaEventConfiguration {
                                                                EventProperties eventProperties,
                                                                List<EventMetricsCollector> metricsCollectors,
                                                                Map<String, AbstractEventListener<?>> springListenerBeanMap,
+                                                               ObjectProvider<EventDedupHandler> dedupHandlerProvider,
                                                                KafkaTemplate<String, String> kafkaTemplate) {
         return new EventKafkaMessageConsumer(jsonMapper, eventProperties, metricsCollectors,
-                springListenerBeanMap, kafkaTemplate);
+                springListenerBeanMap, kafkaTemplate, dedupHandlerProvider.getIfAvailable());
     }
 
 }

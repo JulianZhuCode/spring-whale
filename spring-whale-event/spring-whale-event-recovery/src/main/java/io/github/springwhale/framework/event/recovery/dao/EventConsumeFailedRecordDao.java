@@ -26,19 +26,19 @@ public class EventConsumeFailedRecordDao {
 
     private static final String INSERT_SQL = """
             INSERT INTO event_consume_failed_record
-            (id, message_id, source, business_name, listener_name, authentication_context,
+            (id, message_id, source, business_name, listener_name, version, authentication_context,
              topic, raw_message, status, retry_count, next_retry_time, error_stack, create_time, update_time)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """;
 
     private static final String SELECT_BY_ID = """
-            SELECT id, message_id, source, business_name, listener_name, authentication_context,
+            SELECT id, message_id, source, business_name, listener_name, version, authentication_context,
                    topic, raw_message, status, retry_count, next_retry_time, error_stack, create_time, update_time
             FROM event_consume_failed_record WHERE id = ?
             """;
 
     private static final String SELECT_PENDING_RETRY = """
-            SELECT id, message_id, source, business_name, listener_name, authentication_context,
+            SELECT id, message_id, source, business_name, listener_name, version, authentication_context,
                    topic, raw_message, status, retry_count, next_retry_time, error_stack, create_time, update_time
             FROM event_consume_failed_record
             WHERE status = ? AND next_retry_time < ?
@@ -58,7 +58,7 @@ public class EventConsumeFailedRecordDao {
             """;
 
     private static final String SELECT_TERMINAL = """
-            SELECT id, message_id, source, business_name, listener_name, authentication_context,
+            SELECT id, message_id, source, business_name, listener_name, version, authentication_context,
                    topic, raw_message, status, retry_count, next_retry_time, error_stack, create_time, update_time
             FROM event_consume_failed_record
             WHERE status IN (%s) AND create_time < ? LIMIT ?
@@ -88,7 +88,7 @@ public class EventConsumeFailedRecordDao {
         entity.setUpdateTime(now);
         jdbcTemplate.update(INSERT_SQL,
                 entity.getId(), entity.getMessageId(), entity.getSource(),
-                entity.getBusinessName(), entity.getListenerName(), entity.getAuthenticationContext(),
+                entity.getBusinessName(), entity.getListenerName(), entity.getVersion(), entity.getAuthenticationContext(),
                 entity.getTopic(), entity.getRawMessage(), entity.getStatus().name(),
                 entity.getRetryCount(), entity.getNextRetryTime(), entity.getErrorStack(),
                 entity.getCreateTime(), entity.getUpdateTime());
@@ -190,6 +190,7 @@ public class EventConsumeFailedRecordDao {
             entity.setSource(rs.getString("source"));
             entity.setBusinessName(rs.getString("business_name"));
             entity.setListenerName(rs.getString("listener_name"));
+            entity.setVersion(rs.getObject("version", Integer.class));
             entity.setAuthenticationContext(rs.getString("authentication_context"));
             entity.setTopic(rs.getString("topic"));
             entity.setRawMessage(rs.getString("raw_message"));

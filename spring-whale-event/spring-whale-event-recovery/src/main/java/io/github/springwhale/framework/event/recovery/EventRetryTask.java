@@ -61,6 +61,7 @@ public class EventRetryTask {
         eventMessage.setSource(entity.getSource());
         eventMessage.setData(entity.getRawMessage());
         eventMessage.setBusinessName(entity.getBusinessName());
+        eventMessage.setVersion(entity.getVersion());
         eventMessage.setTopic(entity.getTopic());
         if (entity.getAuthenticationContext() != null) {
             try {

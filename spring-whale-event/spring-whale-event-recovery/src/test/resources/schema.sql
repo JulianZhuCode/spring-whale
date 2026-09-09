@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS event_consume_failed_record (
     source VARCHAR(255),
     business_name VARCHAR(255),
     listener_name VARCHAR(255),
+    version INT,
     authentication_context TEXT,
     topic VARCHAR(255),
     raw_message TEXT,

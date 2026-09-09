@@ -20,7 +20,16 @@ public class EventKafkaMessageConsumer extends EventMessageConsumer {
                                      List<EventMetricsCollector> metricsCollectors,
                                      Map<String, AbstractEventListener<?>> springListenerBeanMap,
                                      KafkaTemplate<String, String> kafkaTemplate) {
-        super(jsonMapper, eventProperties, metricsCollectors, springListenerBeanMap);
+        this(jsonMapper, eventProperties, metricsCollectors, springListenerBeanMap,
+                kafkaTemplate, null);
+    }
+
+    public EventKafkaMessageConsumer(ObjectMapper jsonMapper, EventProperties eventProperties,
+                                     List<EventMetricsCollector> metricsCollectors,
+                                     Map<String, AbstractEventListener<?>> springListenerBeanMap,
+                                     KafkaTemplate<String, String> kafkaTemplate,
+                                     EventDedupHandler dedupHandler) {
+        super(jsonMapper, eventProperties, metricsCollectors, springListenerBeanMap, dedupHandler);
         this.kafkaTemplate = kafkaTemplate;
     }
 
