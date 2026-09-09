@@ -98,6 +98,8 @@ flowchart LR
 - **Type-safe listening**: `AbstractEventListener<T>` provides generic constraints with runtime event type validation.
 - **Event versioning**: `@Event(version=2)` declares the event version. Listeners support multiple versions via `supportedVersions()`.
 - **Failure retry**: Automatic retry on consumption exceptions, supporting fixed-interval and exponential backoff strategies.
+  - **Idempotent consumption**: `EventDedupHandler` SPI (opt-in, no default implementation) marks processed messages and serializes concurrent deliveries via per-message locking; consumption is fail-open — dedup or lock failures never block the listener.
+  - **Parallel listeners**: `spring.whale.event.consume-parallel` dispatches a message to its matching listeners concurrently on virtual threads, shrinking total dispatch time from the sum to the max of listener durations.
 - **Metrics collection**: `EventMetricsCollector` SPI covers the full lifecycle: publish, consume, and retry.
 - **Distributed tracing**: Automatic TraceId propagation across services, ensuring consistent distributed logging.
 - **Terminal handling**: `EventConsumeTerminalHandler` callbacks after retries are exhausted, suitable for alerting and compensation workflows.
@@ -154,6 +156,8 @@ spring:
       retry-interval-seconds: 5
       # Retry strategy: fixed / exponential (default: fixed)
       retry-strategy: fixed
+      # Consume listeners of one message in parallel on virtual threads (default: false)
+      consume-parallel: false
 ```
 
 > **Local mode highlights:** With `mode: local`, event publishing and consumption are entirely based on Spring's `ApplicationEventPublisher` and `@EventListener`, requiring no MQ dependencies. API usage is identical to remote mode. When migrating to microservices later, simply change `mode` to `kafka` or `rabbit` and include the corresponding MQ dependency.
@@ -235,7 +239,43 @@ public class MyMetricsCollector implements EventMetricsCollector {
 }
 ```
 
-### 7. Event Versioning
+### 7. Idempotent Consumption (Optional)
+
+```java
+
+@Component
+public class OrderDedupHandler implements EventDedupHandler {
+    @Override
+    public boolean isProcessed(EventMessage message, String listenerName) {
+        // return true if (messageId, listenerName) was already processed successfully
+    }
+
+    @Override
+    public void markProcessed(EventMessage message, String listenerName) {
+        // record success; must be idempotent
+    }
+
+    @Override
+    public void markFailed(EventMessage message, String listenerName, Throwable error) {
+        // release the claim so a later retry is not treated as a duplicate
+    }
+
+    @Override
+    public void lock(String messageId) {
+        // block until the per-message lock is acquired
+    }
+
+    @Override
+    public void unlock(String messageId) {
+        // release the per-message lock
+    }
+}
+```
+
+> **Enabling:** A single global `EventDedupHandler` bean enables dedup for every listener. The framework ships no default implementation; without a bean, behavior is unchanged (no dedup, no locking). All methods are fail-open.
+> **Scoping:** Dedup is applied per listener by default. For listener-specific behavior, override `isProcessed` / `markProcessed` / `markFailed` on your `AbstractEventListener` subclass instead (the global bean still provides `lock` / `unlock`).
+
+### 8. Event Versioning
 
 ```java
 // ===== Publisher side: declare event version =====
@@ -268,7 +308,7 @@ public class OrderPaidListener extends AbstractEventListener<OrderPaidV2Event> {
 
 > **Version matching rule:** Events with a `version` not in the listener's `supportedVersions()` are silently skipped (at warn level). The default `version` is `1` and the default `supportedVersions` is `{1}`, so applications that do not declare versions are unaffected.
 
-### 8. Terminal Handling (Optional)
+### 9. Terminal Handling (Optional)
 
 ```java
 
@@ -286,7 +326,7 @@ public class MyTerminalHandler implements EventConsumeTerminalHandler {
 }
 ```
 
-### 9. Table Creation for spring-whale-event-recovery
+### 10. Table Creation for spring-whale-event-recovery
 
 ```sql
 CREATE TABLE event_consume_failed_record
@@ -296,6 +336,7 @@ CREATE TABLE event_consume_failed_record
     source                 VARCHAR(128),
     business_name          VARCHAR(128),
     listener_name          VARCHAR(128),
+    version                INT,
     authentication_context TEXT,
     topic                  VARCHAR(256),
     raw_message            TEXT,

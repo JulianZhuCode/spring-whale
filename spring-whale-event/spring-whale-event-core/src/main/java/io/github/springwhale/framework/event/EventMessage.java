@@ -3,6 +3,7 @@ package io.github.springwhale.framework.event;
 import io.github.springwhale.framework.core.context.AuthenticationContext;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import org.springframework.beans.BeanUtils;
 
 import java.util.UUID;
 
@@ -34,5 +35,19 @@ public class EventMessage {
     private String errorStack;
     private String failListener;
     private Integer version;
+
+    /**
+     * Create a shallow copy of this message.
+     * <p>Used when a single message is dispatched to multiple listeners in parallel:
+     * each listener works on its own copy so failure-path mutations
+     * (failListener, errorStack, messageType) cannot race or leak across listeners.</p>
+     * <p>The fields are immutable values (String/Integer/Boolean) or a read-only shared
+     * reference (authenticationContext), so a shallow copy is safe.</p>
+     */
+    public EventMessage copy() {
+        EventMessage copy = new EventMessage();
+        BeanUtils.copyProperties(this, copy);
+        return copy;
+    }
 
 }

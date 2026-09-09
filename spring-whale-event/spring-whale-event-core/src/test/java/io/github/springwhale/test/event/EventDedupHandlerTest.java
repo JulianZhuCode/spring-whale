@@ -4,6 +4,7 @@ import io.github.springwhale.framework.event.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.slf4j.MDC;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.*;
@@ -335,6 +336,135 @@ class EventDedupHandlerTest {
                 "metrics failure must not turn success into FAIL");
     }
 
+    @Test
+    @DisplayName("Parallel mode should execute all listeners")
+    void testParallelExecutesAllListeners() throws Exception {
+        eventProperties.setConsumeParallel(true);
+        OrderCreatedListener a = new OrderCreatedListener();
+        OrderCreatedListener b = new OrderCreatedListener();
+        consumer = new TestableConsumer(objectMapper, eventProperties,
+                Collections.emptyList(), Map.of("listenerA", a, "listenerB", b), handler);
+
+        String rawPayload = objectMapper.writeValueAsString(eventMessage("msg-p1"));
+        AtomicBoolean ack = new AtomicBoolean(false);
+        consumer.consumeRawMessage(rawPayload, ctx(), () -> ack.set(true));
+
+        assertEquals(1, a.invocations(), "listener A must execute");
+        assertEquals(1, b.invocations(), "listener B must execute");
+        assertTrue(ack.get(), "message must be acked");
+        assertTrue(consumer.failedMessages.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Parallel mode should not block fast listeners on a slow one")
+    void testParallelSlowListenerDoesNotBlockFast() throws Exception {
+        eventProperties.setConsumeParallel(true);
+        OrderCreatedListener fast = new OrderCreatedListener();
+        OrderCreatedListener slow = new OrderCreatedListener();
+        slow.enterLatch = new CountDownLatch(1);
+        slow.releaseLatch = new CountDownLatch(1);
+        consumer = new TestableConsumer(objectMapper, eventProperties,
+                Collections.emptyList(), Map.of("fast", fast, "slow", slow), handler);
+
+        String rawPayload = objectMapper.writeValueAsString(eventMessage("msg-p2"));
+        AtomicBoolean ack = new AtomicBoolean(false);
+        Thread t = new Thread(() -> consumer.consumeRawMessage(rawPayload, ctx(), () -> ack.set(true)));
+        t.start();
+
+        assertTrue(slow.enterLatch.await(2, TimeUnit.SECONDS), "slow listener must start");
+        long deadline = System.currentTimeMillis() + 2000;
+        while (fast.invocations() == 0 && System.currentTimeMillis() < deadline) {
+            Thread.sleep(10);
+        }
+        assertEquals(1, fast.invocations(), "fast listener must finish while slow listener is still blocked");
+
+        slow.releaseLatch.countDown();
+        t.join(3000);
+        assertTrue(ack.get(), "message must be acked after all listeners complete");
+        assertEquals(1, slow.invocations());
+    }
+
+    @Test
+    @DisplayName("Parallel mode should propagate trace id into each listener thread")
+    void testParallelPropagatesTraceId() throws Exception {
+        eventProperties.setConsumeParallel(true);
+        TraceAwareListener a = new TraceAwareListener();
+        TraceAwareListener b = new TraceAwareListener();
+        consumer = new TestableConsumer(objectMapper, eventProperties,
+                Collections.emptyList(), Map.of("listenerA", a, "listenerB", b), handler);
+
+        EventMessage message = eventMessage("msg-p3");
+        message.setTraceId("trace-parallel");
+        AtomicBoolean ack = new AtomicBoolean(false);
+        consumer.consumeRawMessage(objectMapper.writeValueAsString(message), ctx(), () -> ack.set(true));
+
+        assertEquals("trace-parallel", a.observedTraceId, "listener A must see the trace id");
+        assertEquals("trace-parallel", b.observedTraceId, "listener B must see the trace id");
+        assertTrue(ack.get());
+    }
+
+    @Test
+    @DisplayName("Parallel mode should not ack when a listener aborts (send failure)")
+    void testParallelSendFailurePreventsAck() throws Exception {
+        eventProperties.setConsumeParallel(true);
+        OrderCreatedListener failing = new OrderCreatedListener();
+        failing.throwOnEvent = true;
+        OrderCreatedListener ok = new OrderCreatedListener();
+        consumer = new ThrowingSendConsumer(objectMapper, eventProperties,
+                Collections.emptyList(), Map.of("failing", failing, "ok", ok), handler);
+
+        String rawPayload = objectMapper.writeValueAsString(eventMessage("msg-p4"));
+        AtomicBoolean ack = new AtomicBoolean(false);
+        assertThrows(RuntimeException.class,
+                () -> consumer.consumeRawMessage(rawPayload, ctx(), () -> ack.set(true)));
+        assertFalse(ack.get(), "message must not be acked when a listener aborts");
+    }
+
+    @Test
+    @DisplayName("Parallel mode should keep each FAIL signal on its own listener copy")
+    void testParallelFailSignalsCarryOwnFailListener() throws Exception {
+        eventProperties.setConsumeParallel(true);
+        OrderCreatedListener a = new OrderCreatedListener();
+        a.throwOnEvent = true;
+        OrderCreatedListener b = new OrderCreatedListener();
+        b.throwOnEvent = true;
+        consumer = new TestableConsumer(objectMapper, eventProperties,
+                Collections.emptyList(), Map.of("listenerA", a, "listenerB", b), handler);
+
+        String rawPayload = objectMapper.writeValueAsString(eventMessage("msg-p5"));
+        AtomicBoolean ack = new AtomicBoolean(false);
+        consumer.consumeRawMessage(rawPayload, ctx(), () -> ack.set(true));
+
+        assertEquals(2, consumer.failedMessages.size(), "two FAIL signals expected");
+        Set<String> failListeners = new HashSet<>();
+        for (EventMessage m : consumer.failedMessages) {
+            failListeners.add(m.getFailListener());
+        }
+        assertEquals(Set.of("listenerA", "listenerB"), failListeners,
+                "each FAIL must carry its own failListener");
+        assertTrue(ack.get(), "business failures are handled inside, message still acked");
+    }
+
+    @Test
+    @DisplayName("copy() should preserve all fields")
+    void testMessageCopyPreservesAllFields() throws Exception {
+        EventMessage message = eventMessage("msg-copy");
+        message.setVersion(3);
+        message.setTraceId("trace-copy");
+        message.setErrorStack("stack");
+        message.setFailListener("l1");
+        message.setRetryCount(2);
+        message.setRetryEnabled(true);
+        message.setMessageType(MessageType.RETRY);
+        message.setSource("src");
+        message.setTopic("t");
+        message.setData("{}");
+
+        // @Data equals covers every field, so this fails if a future field is
+        // added to EventMessage without being copied.
+        assertEquals(message, message.copy(), "copy must preserve every field");
+    }
+
     private EventMessage eventMessage(String id) throws Exception {
         EventMessage message = new EventMessage();
         message.setId(id);
@@ -402,6 +532,19 @@ class EventDedupHandlerTest {
 
         int invocations() {
             return invocations.get();
+        }
+    }
+
+    /**
+     * Listener that records the trace id visible on its executing thread.
+     */
+    static class TraceAwareListener extends OrderCreatedListener {
+        volatile String observedTraceId;
+
+        @Override
+        public void doEvent(OrderCreatedEvent event, EventContext eventContext) {
+            observedTraceId = MDC.get("traceId");
+            super.doEvent(event, eventContext);
         }
     }
 
@@ -534,6 +677,20 @@ class EventDedupHandlerTest {
      * Testable consumer that records every message sent to the failed topic,
      * so the RETRY_SUCCESS re-emission and FAIL paths can be asserted directly.
      */
+    static class ThrowingSendConsumer extends TestableConsumer {
+        ThrowingSendConsumer(ObjectMapper jsonMapper, EventProperties eventProperties,
+                             List<EventMetricsCollector> metricsCollectors,
+                             Map<String, AbstractEventListener<?>> springListenerBeanMap,
+                             EventDedupHandler dedupHandler) {
+            super(jsonMapper, eventProperties, metricsCollectors, springListenerBeanMap, dedupHandler);
+        }
+
+        @Override
+        protected void sendToFailedTopic(EventMessage message) {
+            throw new IllegalStateException("failed topic unavailable");
+        }
+    }
+
     static class TestableConsumer extends EventMessageConsumer {
         private final List<EventMessage> failedMessages = new ArrayList<>();
 

@@ -98,6 +98,8 @@ flowchart LR
 - **类型安全监听**：`AbstractEventListener<T>` 提供泛型约束，运行时校验事件类型
 - **事件版本化**：`@Event(version=2)` 声明事件版本，监听器 `supportedVersions()` 支持多版本兼容
 - **失败重试**：消费异常自动重试，支持固定间隔和指数退避两种策略
+- **幂等消费**：`EventDedupHandler` SPI（可选，框架不提供默认实现）通过处理标记与消息级锁防止重复消费；消费侧全部 fail-open，去重或加锁失败不会阻塞监听器
+- **并行监听**：`spring.whale.event.consume-parallel` 开启后，一条消息的多个匹配监听器在虚拟线程上并发执行，总耗时从各监听器耗时之和降为最大值
 - **指标采集**：`EventMetricsCollector` SPI 覆盖发布、消费、重试全生命周期
 - **链路追踪**：跨服务自动传递 TraceId，保证分布式日志连续性
 - **终端处理**：`EventConsumeTerminalHandler` 在重试耗尽后回调，可对接告警、补偿流程
@@ -154,6 +156,8 @@ spring:
       retry-interval-seconds: 5
       # 重试策略：fixed / exponential（默认 fixed）
       retry-strategy: fixed
+      # 一条消息的多个监听器在虚拟线程上并行消费（默认 false）
+      consume-parallel: false
 ```
 
 > **本地模式特点：** 设置 `mode: local` 后，事件发布/消费完全基于 Spring 的 `ApplicationEventPublisher` 和 `@EventListener`，无需引入任何 MQ 依赖即可运行。API 使用方式与远程模式完全一致，后续切换为微服务时只需将 `mode` 改为 `kafka` 或 `rabbit` 并引入对应 MQ 依赖即可。
@@ -235,7 +239,43 @@ public class MyMetricsCollector implements EventMetricsCollector {
 }
 ```
 
-### 7. 事件版本化（Event Versioning）
+### 7. 幂等消费（可选）
+
+```java
+
+@Component
+public class OrderDedupHandler implements EventDedupHandler {
+    @Override
+    public boolean isProcessed(EventMessage message, String listenerName) {
+        // 若 (messageId, listenerName) 已成功处理过则返回 true
+    }
+
+    @Override
+    public void markProcessed(EventMessage message, String listenerName) {
+        // 记录处理成功；必须幂等
+    }
+
+    @Override
+    public void markFailed(EventMessage message, String listenerName, Throwable error) {
+        // 释放 claim，避免后续重试被当作重复消息
+    }
+
+    @Override
+    public void lock(String messageId) {
+        // 阻塞直到获取该消息的锁
+    }
+
+    @Override
+    public void unlock(String messageId) {
+        // 释放该消息的锁
+    }
+}
+```
+
+> **启用方式：** 注册一个全局唯一的 `EventDedupHandler` bean 即为所有监听器启用幂等。框架不提供默认实现；未注册时行为与原来完全一致（无去重、无加锁）。所有方法均为 fail-open。
+> **作用域：** 幂等默认按监听器粒度生效。需要监听级差异化时，在 `AbstractEventListener` 子类中重写 `isProcessed` / `markProcessed` / `markFailed` 即可（全局 bean 仍负责 `lock` / `unlock`）。
+
+### 8. 事件版本化（Event Versioning）
 
 ```java
 // ===== 发布端：声明事件版本 =====
@@ -268,7 +308,7 @@ public class OrderPaidListener extends AbstractEventListener<OrderPaidV2Event> {
 
 > **版本匹配规则：** 事件 `version` 不在监听器 `supportedVersions()` 中时跳过（warn 日志），默认 `version=1`、默认 `supportedVersions={1}`，未声明版本号的应用零影响。
 
-### 8. 终端处理（可选）
+### 9. 终端处理（可选）
 
 ```java
 
@@ -286,7 +326,7 @@ public class MyTerminalHandler implements EventConsumeTerminalHandler {
 }
 ```
 
-### 9. 引入 spring-whale-event-recovery 所需建表
+### 10. 引入 spring-whale-event-recovery 所需建表
 
 ```sql
 CREATE TABLE event_consume_failed_record
@@ -296,6 +336,7 @@ CREATE TABLE event_consume_failed_record
     source                 VARCHAR(128),
     business_name          VARCHAR(128),
     listener_name          VARCHAR(128),
+    version                INT,
     authentication_context TEXT,
     topic                  VARCHAR(256),
     raw_message            TEXT,

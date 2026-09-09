@@ -98,6 +98,8 @@ flowchart LR
 - **型安全なリスニング**: `AbstractEventListener<T>` がジェネリクス制約と実行時イベント型検証を提供します。
 - **イベントバージョニング**: `@Event(version=2)` でイベントバージョンを宣言。リスナーは `supportedVersions()` で複数バージョンに対応可能です。
 - **失敗リトライ**: 消費例外時に自動リトライ。固定間隔と指数バックオフの2つの戦略をサポートします。
+- **冪等消費**: `EventDedupHandler` SPI（オプション、デフォルト実装なし）が処理済みマークとメッセージ単位ロックで重複消費を防止。消費側はすべて fail-open で、重複排除やロックの失敗がリスナーをブロックすることはありません。
+- **並列リスナー**: `spring.whale.event.consume-parallel` を有効にすると、1メッセージにマッチする複数リスナーが仮想スレッド上で並列実行され、総消費時間が各リスナーの合計から最大値に短縮されます。
 - **メトリクス収集**: `EventMetricsCollector` SPIがパブリッシュ、消費、リトライの全ライフサイクルをカバーします。
 - **分散トレーシング**: サービス間でTraceIdを自動伝播し、分散ログの一貫性を確保します。
 - **ターミナルハンドリング**: `EventConsumeTerminalHandler` がリトライ回数超過後にコールバックされ、アラートや補償フローと連携可能です。
@@ -154,6 +156,8 @@ spring:
       retry-interval-seconds: 5
       # リトライ戦略: fixed / exponential（デフォルト: fixed）
       retry-strategy: fixed
+      # 1メッセージの複数リスナーを仮想スレッドで並列消費（デフォルト: false）
+      consume-parallel: false
 ```
 
 > **ローカルモードの特徴:** `mode: local` に設定すると、イベントのパブリッシュと消費は完全にSpringの `ApplicationEventPublisher` と `@EventListener` に基づいて動作し、MQ依存は一切不要です。APIの使い方はリモートモードと完全に同一です。後日マイクロサービスに移行する際は、`mode` を `kafka` または `rabbit` に変更し、対応するMQ依存関係を導入するだけです。
@@ -235,7 +239,43 @@ public class MyMetricsCollector implements EventMetricsCollector {
 }
 ```
 
-### 7. イベントバージョニング
+### 7. 冪等消費（オプション）
+
+```java
+
+@Component
+public class OrderDedupHandler implements EventDedupHandler {
+    @Override
+    public boolean isProcessed(EventMessage message, String listenerName) {
+        // (messageId, listenerName) が処理済みなら true を返す
+    }
+
+    @Override
+    public void markProcessed(EventMessage message, String listenerName) {
+        // 成功を記録。冪等である必要があります
+    }
+
+    @Override
+    public void markFailed(EventMessage message, String listenerName, Throwable error) {
+        // claim を解放し、後のリトライが重複扱いされないようにする
+    }
+
+    @Override
+    public void lock(String messageId) {
+        // メッセージ単位のロックを取得するまでブロック
+    }
+
+    @Override
+    public void unlock(String messageId) {
+        // メッセージ単位のロックを解放
+    }
+}
+```
+
+> **有効化:** グローバルに一意な `EventDedupHandler` bean を登録すると、全リスナーで冪等が有効になります。フレームワークはデフォルト実装を提供しません。未登録時は従来とまったく同じ動作（重複排除なし、ロックなし）です。すべてのメソッドは fail-open です。
+> **スコープ:** 冪等はデフォルトでリスナー単位に適用されます。リスナーごとの差別化が必要な場合は、`AbstractEventListener` サブクラスで `isProcessed` / `markProcessed` / `markFailed` をオーバーライドしてください（グローバル bean が `lock` / `unlock` を担当します）。
+
+### 8. イベントバージョニング
 
 ```java
 // ===== パブリッシャー側: イベントバージョンを宣言 =====
@@ -268,7 +308,7 @@ public class OrderPaidListener extends AbstractEventListener<OrderPaidV2Event> {
 
 > **バージョン照合ルール:** イベントの `version` がリスナーの `supportedVersions()` に含まれていない場合、スキップされます（warn レベルでログ出力）。デフォルトの `version` は `1`、デフォルトの `supportedVersions` は `{1}` のため、バージョンを宣言していないアプリケーションには影響しません。
 
-### 8. ターミナルハンドリング（オプション）
+### 9. ターミナルハンドリング（オプション）
 
 ```java
 
@@ -286,7 +326,7 @@ public class MyTerminalHandler implements EventConsumeTerminalHandler {
 }
 ```
 
-### 9. spring-whale-event-recovery 導入時のテーブル作成
+### 10. spring-whale-event-recovery 導入時のテーブル作成
 
 ```sql
 CREATE TABLE event_consume_failed_record
@@ -296,6 +336,7 @@ CREATE TABLE event_consume_failed_record
     source                 VARCHAR(128),
     business_name          VARCHAR(128),
     listener_name          VARCHAR(128),
+    version                INT,
     authentication_context TEXT,
     topic                  VARCHAR(256),
     raw_message            TEXT,

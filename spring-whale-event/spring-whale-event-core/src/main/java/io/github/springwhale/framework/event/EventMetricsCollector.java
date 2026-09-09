@@ -7,6 +7,9 @@ package io.github.springwhale.framework.event;
  * key lifecycle points.</p>
  * <p>Implementations are discovered via {@code @Autowired(required = false) List<EventMetricsCollector>}
  * and invoked in insertion order. A no-op default is used when no collector is registered.</p>
+ * <p>Callbacks may be invoked concurrently from multiple consumer threads (when
+ * parallel listener dispatch is enabled), so implementations must be thread-safe
+ * and must not throw: the framework isolates collector failures from the consume flow.</p>
  */
 public interface EventMetricsCollector {
 

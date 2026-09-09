@@ -199,11 +199,25 @@ public abstract class EventMessageConsumer {
      * <p>Each listener failure is handled independently: the exception is caught per-listener,
      * the error info is recorded on the message, and the message is sent to the failed topic
      * via {@link #sendToFailedTopic(EventMessage)} for retry processing.</p>
-     * <p>Trace ID and authentication context are restored on the current thread before
-     * dispatching (if present on the message) and cleared in the finally block,
+     * <p>When {@code spring.whale.event.consume-parallel} is enabled and more than one
+     * listener matches, listeners run concurrently on virtual threads and the total
+     * dispatch time shrinks from the sum to the max of the listener durations; listener
+     * execution order is then not guaranteed. Each listener works on its own shallow
+     * copy of the message so failure-path mutations cannot race across listeners.</p>
+     * <p>The trace id is restored on the calling thread before dispatching so dispatch-level
+     * logs are traceable; the trace id and authentication context are additionally restored
+     * per executing thread inside {@link #consumeForListener(EventContext, AbstractEventListener, EventMessage)}
+     * (virtual threads do not inherit ThreadLocals). Both are cleared in the finally blocks,
      * ensuring no cross-message context leakage.</p>
      */
     private void dispatchToListeners(EventContext context, List<AbstractEventListener<?>> listeners, EventMessage message) {
+        // Restore the trace id on the calling thread first so dispatch-level logs
+        // (lock failure, abort summary) are traceable too. Listener threads set
+        // their own copy inside consumeForListener because virtual threads do not
+        // inherit the calling thread's ThreadLocal.
+        if (message.getTraceId() != null) {
+            MDC.put("traceId", message.getTraceId());
+        }
         boolean locked = false;
         if (dedupHandler != null) {
             try {
@@ -214,12 +228,7 @@ public abstract class EventMessageConsumer {
             }
         }
         try {
-            if (message.getTraceId() != null) {
-                MDC.put("traceId", message.getTraceId());
-            }
-            if (message.getAuthenticationContext() != null) {
-                AuthenticationContextHolder.setContext(message.getAuthenticationContext());
-            }
+            List<AbstractEventListener<?>> targets = new ArrayList<>(listeners.size());
             for (AbstractEventListener<?> listener : listeners) {
                 if (listener == null) {
                     // Multi-module/distributed scenario: the retry target may be
@@ -228,72 +237,62 @@ public abstract class EventMessageConsumer {
                     log.warn("Retry target listener not found, skip: messageId={}", message.getId());
                     continue;
                 }
-                String listenerName = getListenerInstanceToNameMap().get(listener);
-
-                // Idempotency: delegate to the listener - the global EventDedupHandler
-                // default or a per-listener override.
-                if (listener.isProcessed(message)) {
-                    log.debug("Duplicate event skipped: messageId={}, listener={}", message.getId(), listenerName);
-                    if (MessageType.RETRY == message.getMessageType()) {
-                        // The retry already succeeded but its completion signal may have been lost
-                        // (e.g. sendToFailedTopic failed after success). Re-emit RETRY_SUCCESS so the
-                        // failed record converges to REPLAY_SUCCESS instead of being stuck in PENDING_RETRY.
-                        message.setMessageType(MessageType.RETRY_SUCCESS);
-                        sendToFailedTopic(message);
-                    }
-                    continue;
-                }
-
-                long start = System.currentTimeMillis();
-                boolean success = true;
-                try {
-                    var event = jsonMapper.readValue(message.getData(), listener.getEventClass());
-                    if (!versionMatches(message, listener)) {
-                        log.debug("Listener [{}] skipped event due to version mismatch: event version={}, supported={}",
-                                listener.businessName(), message.getVersion(), listener.supportedVersions());
-                        continue;
-                    }
-                    if (!listener.accept(event)) {
-                        log.debug("Listener [{}] skipped event due to accept filter", listener.businessName());
-                        continue;
-                    }
-                    listener.onEvent(event, context);
-                    // Mark after successful processing (fail-open by the listener default).
-                    listener.markProcessed(message);
-                    onConsumeSuccess(message.getBusinessName(), listenerName);
-                } catch (Exception e) {
-                    success = false;
-                    log.error("Listener [{}] failed to consume message [{}].", listener.businessName(), message.getData(), e);
-                    // Notify the listener (fail-open by the listener default) so claim-based
-                    // implementations can release the claim and the retry is not treated as a duplicate.
-                    listener.markFailed(message, e);
-                    message.setErrorStack(ExceptionUtil.getStackTrace(e));
-                    message.setRetryEnabled(listener.retryEnabled());
-                    message.setFailListener(listenerName);
-                    message.setMessageType(MessageType.FAIL);
-                    sendToFailedTopic(message);
-                    onConsumeFailure(message.getBusinessName(), listenerName, e);
-                    continue;
-                } finally {
-                    long durationMs = System.currentTimeMillis() - start;
-                    boolean finalSuccess = success;
-                    metricsCollectors.forEach(c -> {
+                targets.add(listener);
+            }
+            if (eventProperties.isConsumeParallel() && targets.size() > 1) {
+                // Per-listener virtual threads. The lock stays on this (calling)
+                // thread and is released only after every listener has joined, so
+                // the lock window shrinks from the sum to the max of the listener
+                // durations. Multiple listeners only occur for EVENT messages
+                // (RETRY/FAIL route to a single listener), so the RETRY_SUCCESS
+                // convergence signal is never emitted concurrently.
+                List<Thread> threads = new ArrayList<>(targets.size());
+                List<Throwable> errors = Collections.synchronizedList(new ArrayList<>());
+                for (AbstractEventListener<?> listener : targets) {
+                    // Each listener works on its own shallow copy of the message:
+                    // the failure path mutates failListener/errorStack/messageType and
+                    // concurrent mutation of a shared instance would race and could
+                    // attach the wrong failListener to a FAIL signal.
+                    EventMessage listenerMessage = message.copy();
+                    Thread t = Thread.ofVirtual().name("event-listener-" + listener.businessName()).start(() -> {
                         try {
-                            c.onConsumeLatency(
-                                    message.getBusinessName(), listenerName, durationMs, finalSuccess);
-                        } catch (Exception ex) {
-                            log.error("Metrics onConsumeLatency failed: businessName={}",
-                                    message.getBusinessName(), ex);
+                            consumeForListener(context, listener, listenerMessage);
+                        } catch (Throwable ex) {
+                            errors.add(ex);
                         }
                     });
+                    threads.add(t);
                 }
-                if (MessageType.RETRY == message.getMessageType()) {
-                    message.setMessageType(MessageType.RETRY_SUCCESS);
-                    sendToFailedTopic(message);
+                for (Thread t : threads) {
+                    try {
+                        t.join();
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        throw new IllegalStateException("Interrupted while joining event listeners", ie);
+                    }
+                }
+                if (!errors.isEmpty()) {
+                    // Same semantics as the serial path: a listener-level abort
+                    // (e.g. sendToFailedTopic failure) must prevent the ack so the
+                    // broker re-delivers the message.
+                    Throwable first = errors.get(0);
+                    log.error("{} of {} listeners aborted, no ack: messageId={}",
+                            errors.size(), targets.size(), message.getId(), first);
+                    if (first instanceof RuntimeException re) {
+                        throw re;
+                    }
+                    throw new IllegalStateException(first);
+                }
+            } else {
+                for (AbstractEventListener<?> listener : targets) {
+                    consumeForListener(context, listener, message);
                 }
             }
         } finally {
             AuthenticationContextHolder.clearContext();
+            // Defensive cleanup: consumer threads are reused by the MQ broker, so the
+            // trace id must never leak into the next message regardless of the path
+            // taken (serial/parallel, normal/abortive).
             MDC.remove("traceId");
             if (locked) {
                 try {
@@ -302,6 +301,92 @@ public abstract class EventMessageConsumer {
                     log.error("Message unlock failed: messageId={}", message.getId(), ex);
                 }
             }
+        }
+    }
+
+    /**
+     * Execute one listener for the message as a self-contained unit.
+     * <p>The trace ID and authentication context are restored on the executing thread
+     * (virtual threads do not inherit ThreadLocals) and cleared in the finally block,
+     * so the same code path serves both serial and parallel dispatch.</p>
+     * <p>Business failures are handled inside (markFailed + FAIL signal + skip to the
+     * next listener). Only abortive failures, such as {@code sendToFailedTopic} throwing,
+     * propagate to the caller so the message is not acknowledged.</p>
+     */
+    private void consumeForListener(EventContext context, AbstractEventListener<?> listener, EventMessage message) {
+        try {
+            if (message.getTraceId() != null) {
+                MDC.put("traceId", message.getTraceId());
+            }
+            if (message.getAuthenticationContext() != null) {
+                AuthenticationContextHolder.setContext(message.getAuthenticationContext());
+            }
+            String listenerName = getListenerInstanceToNameMap().get(listener);
+
+            // Idempotency: delegate to the listener - the global EventDedupHandler
+            // default or a per-listener override.
+            if (listener.isProcessed(message)) {
+                log.debug("Duplicate event skipped: messageId={}, listener={}", message.getId(), listenerName);
+                if (MessageType.RETRY == message.getMessageType()) {
+                    // The retry already succeeded but its completion signal may have been lost
+                    // (e.g. sendToFailedTopic failed after success). Re-emit RETRY_SUCCESS so the
+                    // failed record converges to REPLAY_SUCCESS instead of being stuck in PENDING_RETRY.
+                    message.setMessageType(MessageType.RETRY_SUCCESS);
+                    sendToFailedTopic(message);
+                }
+                return;
+            }
+
+            long start = System.currentTimeMillis();
+            boolean success = true;
+            try {
+                var event = jsonMapper.readValue(message.getData(), listener.getEventClass());
+                if (!versionMatches(message, listener)) {
+                    log.debug("Listener [{}] skipped event due to version mismatch: event version={}, supported={}",
+                            listener.businessName(), message.getVersion(), listener.supportedVersions());
+                    return;
+                }
+                if (!listener.accept(event)) {
+                    log.debug("Listener [{}] skipped event due to accept filter", listener.businessName());
+                    return;
+                }
+                listener.onEvent(event, context);
+                // Mark after successful processing (fail-open by the listener default).
+                listener.markProcessed(message);
+                onConsumeSuccess(message.getBusinessName(), listenerName);
+            } catch (Exception e) {
+                success = false;
+                log.error("Listener [{}] failed to consume message [{}].", listener.businessName(), message.getData(), e);
+                // Notify the listener (fail-open by the listener default) so claim-based
+                // implementations can release the claim and the retry is not treated as a duplicate.
+                listener.markFailed(message, e);
+                message.setErrorStack(ExceptionUtil.getStackTrace(e));
+                message.setRetryEnabled(listener.retryEnabled());
+                message.setFailListener(listenerName);
+                message.setMessageType(MessageType.FAIL);
+                sendToFailedTopic(message);
+                onConsumeFailure(message.getBusinessName(), listenerName, e);
+                return;
+            } finally {
+                long durationMs = System.currentTimeMillis() - start;
+                boolean finalSuccess = success;
+                metricsCollectors.forEach(c -> {
+                    try {
+                        c.onConsumeLatency(
+                                message.getBusinessName(), listenerName, durationMs, finalSuccess);
+                    } catch (Exception ex) {
+                        log.error("Metrics onConsumeLatency failed: businessName={}",
+                                message.getBusinessName(), ex);
+                    }
+                });
+            }
+            if (MessageType.RETRY == message.getMessageType()) {
+                message.setMessageType(MessageType.RETRY_SUCCESS);
+                sendToFailedTopic(message);
+            }
+        } finally {
+            AuthenticationContextHolder.clearContext();
+            MDC.remove("traceId");
         }
     }
 

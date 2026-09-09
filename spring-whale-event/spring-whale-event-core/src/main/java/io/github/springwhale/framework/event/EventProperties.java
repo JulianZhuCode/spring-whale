@@ -6,6 +6,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 /**
  * Configuration properties for the spring-whale-event framework.
  * <p>All properties are prefixed with {@code spring.whale.event}.</p>
+ * <p>{@code consume-parallel} enables per-listener virtual-thread dispatch when a message
+ * matches more than one listener: listeners then run concurrently (total dispatch time
+ * shrinks from the sum to the max of the listener durations) without any ordering
+ * guarantee. Disabled by default.</p>
  */
 @Data
 @ConfigurationProperties(prefix = "spring.whale.event")
@@ -25,6 +29,7 @@ public class EventProperties {
     public static final int DEFAULT_RETRY_MAX_INTERVAL = 300;
     public static final String DEFAULT_RETRY_STRATEGY = "fixed";
     public static final int DEFAULT_CONCURRENCY = 1;
+    public static final boolean DEFAULT_CONSUME_PARALLEL = false;
     public static final int DEFAULT_FAILED_CONCURRENCY = 1;
     public static final String DEFAULT_FAILED_GROUP_ID = "spring-whale-event-recovery";
     public static final String DEFAULT_MODE = "local";
@@ -60,6 +65,7 @@ public class EventProperties {
     private int retryMaxInterval = DEFAULT_RETRY_MAX_INTERVAL;
 
     private int concurrency = DEFAULT_CONCURRENCY;
+    private boolean consumeParallel = DEFAULT_CONSUME_PARALLEL;
 
     private int failedConcurrency = DEFAULT_FAILED_CONCURRENCY;
 
