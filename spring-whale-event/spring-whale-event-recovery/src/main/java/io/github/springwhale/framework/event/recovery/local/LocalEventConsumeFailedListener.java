@@ -24,17 +24,17 @@ public class LocalEventConsumeFailedListener extends EventConsumeFailedListener 
 
     /**
      * Listener for the local failed event.
-     * <p>Receives FAIL-type {@link EventMessage} via Spring's event mechanism.
+     * <p>Receives FAIL and RETRY_SUCCESS type {@link EventMessage} via Spring's event mechanism.
      * The message is persisted to the database for retry processing by
      * {@link io.github.springwhale.framework.event.recovery.EventRetryTask}.</p>
-     * <p>Non-FAIL messages are silently ignored. This listener runs synchronously
+     * <p>Non-processable messages (EVENT, RETRY) are silently ignored. This listener runs synchronously
      * on the caller's thread (which is already an async executor thread from
      * {@code LocalEventMessageConsumer}), matching the Kafka consumer pattern
      * where the failed-topic listener runs in its own Kafka thread.</p>
      */
     @EventListener
     public void onFailedEvent(EventMessage message) {
-        if (message.getMessageType() != MessageType.FAIL) {
+        if (!shouldProcess(message.getMessageType())) {
             return;
         }
         log.debug("Consuming local failed event message: {}", message.getData());

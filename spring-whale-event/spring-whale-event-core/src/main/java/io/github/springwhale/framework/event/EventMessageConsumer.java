@@ -235,8 +235,7 @@ public abstract class EventMessageConsumer {
                             message.getBusinessName(), getListenerInstanceToNameMap().get(listener), durationMs, finalSuccess));
                 }
                 if (MessageType.RETRY == message.getMessageType()) {
-                    message.setRetrySuccess(true);
-                    message.setMessageType(MessageType.FAIL);
+                    message.setMessageType(MessageType.RETRY_SUCCESS);
                     sendToFailedTopic(message);
                 }
             }

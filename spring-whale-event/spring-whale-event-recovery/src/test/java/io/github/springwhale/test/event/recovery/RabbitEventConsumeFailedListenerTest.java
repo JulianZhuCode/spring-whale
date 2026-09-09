@@ -133,10 +133,9 @@ class RabbitEventConsumeFailedListenerTest {
         failMessage.setBusinessName("order.created");
         failMessage.setTopic("test-topic");
         failMessage.setData("{}");
-        failMessage.setMessageType(MessageType.FAIL);
+        failMessage.setMessageType(MessageType.RETRY_SUCCESS);
         failMessage.setRetryEnabled(true);
         failMessage.setRetryCount(1);
-        failMessage.setRetrySuccess(true);
         failMessage.setFailListener("orderListener");
 
         String rawPayload = objectMapper.writeValueAsString(failMessage);
@@ -176,7 +175,6 @@ class RabbitEventConsumeFailedListenerTest {
         failMessage.setMessageType(MessageType.FAIL);
         failMessage.setRetryEnabled(true);
         failMessage.setRetryCount(eventProperties.getMaxRetries());
-        failMessage.setRetrySuccess(false);
         failMessage.setFailListener("orderListener");
 
         String rawPayload = objectMapper.writeValueAsString(failMessage);
@@ -190,7 +188,7 @@ class RabbitEventConsumeFailedListenerTest {
     }
 
     @Test
-    @DisplayName("Should ack and skip non-FAIL message type")
+    @DisplayName("Should ack and skip non-processable message type")
     void testSkipNonFailMessage() throws Exception {
         EventMessage eventMessage = new EventMessage();
         eventMessage.setId("msg-005");
@@ -207,6 +205,45 @@ class RabbitEventConsumeFailedListenerTest {
         String expectedId = EventFailedRecordIdGenerator.generate("msg-005", "orderListener");
         Optional<EventConsumeFailedRecord> saved = recordDao.findById(expectedId);
         assertTrue(saved.isEmpty());
+        verify(channel).basicAck(1L, false);
+    }
+
+    @Test
+    @DisplayName("Should process RETRY_SUCCESS message type and ack")
+    void testRetrySuccessMessage() throws Exception {
+        String recordId = EventFailedRecordIdGenerator.generate("msg-006", "orderListener");
+
+        EventConsumeFailedRecord existing = new EventConsumeFailedRecord();
+        existing.setId(recordId);
+        existing.setMessageId("msg-006");
+        existing.setSource("test-service");
+        existing.setBusinessName("order.created");
+        existing.setListenerName("orderListener");
+        existing.setTopic("test-topic");
+        existing.setRawMessage("{}");
+        existing.setStatus(EventConsumeStatus.PENDING_RETRY);
+        existing.setRetryCount(1);
+        existing.setNextRetryTime(LocalDateTime.now().plusMinutes(5));
+        recordDao.save(existing);
+
+        EventMessage retrySuccessMessage = new EventMessage();
+        retrySuccessMessage.setId("msg-006");
+        retrySuccessMessage.setSource("test-service");
+        retrySuccessMessage.setBusinessName("order.created");
+        retrySuccessMessage.setTopic("test-topic");
+        retrySuccessMessage.setData("{}");
+        retrySuccessMessage.setMessageType(MessageType.RETRY_SUCCESS);
+        retrySuccessMessage.setRetryEnabled(true);
+        retrySuccessMessage.setRetryCount(1);
+        retrySuccessMessage.setFailListener("orderListener");
+
+        String rawPayload = objectMapper.writeValueAsString(retrySuccessMessage);
+
+        listener.listenerFailed(rawPayload, channel, 1L);
+
+        Optional<EventConsumeFailedRecord> updated = recordDao.findById(recordId);
+        assertTrue(updated.isPresent());
+        assertEquals(EventConsumeStatus.REPLAY_SUCCESS, updated.get().getStatus());
         verify(channel).basicAck(1L, false);
     }
 

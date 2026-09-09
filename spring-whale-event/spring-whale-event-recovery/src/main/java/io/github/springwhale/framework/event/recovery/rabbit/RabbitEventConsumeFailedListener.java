@@ -25,6 +25,11 @@ public class RabbitEventConsumeFailedListener extends EventConsumeFailedListener
                 metricsCollectors, terminalHandlers);
     }
 
+    /**
+     * Listener for the failed-event queue.
+     * <p>Processes both FAIL and RETRY_SUCCESS message types. Non-processable messages
+     * (EVENT, RETRY) are acknowledged and skipped.</p>
+     */
     @RabbitListener(queues = "#{@eventProperties.failedTopic}",
             ackMode = "MANUAL",
             concurrency = "#{@eventProperties.failedConcurrency}")
@@ -32,7 +37,7 @@ public class RabbitEventConsumeFailedListener extends EventConsumeFailedListener
                                @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
         try {
             EventMessage message = jsonMapper.readValue(payload, EventMessage.class);
-            if (message.getMessageType() != MessageType.FAIL) {
+            if (!shouldProcess(message.getMessageType())) {
                 log.debug("Received non-fail message: {}", message);
                 channel.basicAck(deliveryTag, false);
                 return;

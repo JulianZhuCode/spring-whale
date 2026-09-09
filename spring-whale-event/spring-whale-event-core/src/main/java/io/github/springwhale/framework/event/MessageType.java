@@ -15,5 +15,9 @@ public enum MessageType {
     /**
      * A failed-event message sent to the failed topic for retry processing.
      */
-    FAIL
+    FAIL,
+    /**
+     * A retry-success message indicating a previously failed event was successfully retried.
+     */
+    RETRY_SUCCESS
 }

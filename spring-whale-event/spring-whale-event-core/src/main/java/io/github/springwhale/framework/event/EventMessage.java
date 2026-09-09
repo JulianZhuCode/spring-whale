@@ -11,8 +11,8 @@ import java.util.UUID;
  * <p>The sole business field is {@code data} — all other fields are framework metadata:
  * routing ({@code source}, {@code businessName}, {@code topic}, {@code id}),
  * authentication ({@code authenticationContext}), tracing ({@code traceId}),
- * and retry state ({@code retryCount}, {@code retryEnabled}, {@code retrySuccess},
- * {@code errorStack}, {@code failListener}, {@code messageType}).</p>
+ * and retry state ({@code retryCount}, {@code retryEnabled}, {@code errorStack},
+ * {@code failListener}, {@code messageType}).</p>
  */
 @Data
 public class EventMessage {
@@ -31,7 +31,6 @@ public class EventMessage {
     private MessageType messageType = MessageType.EVENT;
     private Integer retryCount;
     private Boolean retryEnabled;
-    private Boolean retrySuccess;
     private String errorStack;
     private String failListener;
     private Integer version;

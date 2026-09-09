@@ -38,6 +38,17 @@ public abstract class EventConsumeFailedListener {
     }
 
     /**
+     * Check if the message type should be processed by this listener.
+     * <p>Only FAIL and RETRY_SUCCESS message types are handled.</p>
+     *
+     * @param messageType the message type to check
+     * @return true if the message type should be processed
+     */
+    protected boolean shouldProcess(MessageType messageType) {
+        return messageType == MessageType.FAIL || messageType == MessageType.RETRY_SUCCESS;
+    }
+
+    /**
      * Handle a failed-event message: determine status and persist the record.
      * <p>Called by MQ-specific subclasses after deserializing the raw message.</p>
      */
@@ -57,7 +68,7 @@ public abstract class EventConsumeFailedListener {
         EventConsumeStatus status;
         LocalDateTime nextRetryTime;
 
-        if (Boolean.TRUE.equals(message.getRetrySuccess())) {
+        if (MessageType.RETRY_SUCCESS == message.getMessageType()) {
             status = EventConsumeStatus.REPLAY_SUCCESS;
             nextRetryTime = null;
             metricsCollectors.forEach(c -> c.onRetrySuccess(message.getId(), message.getFailListener()));
